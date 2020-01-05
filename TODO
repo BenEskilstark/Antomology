@@ -1,0 +1,82 @@
+
+ - - - - - - TODO - - - - - -
+ - have ants un-stack in a sensible way
+
+ - - - - - - NEXT - - - - - -
+ - preview for location creation while you drag
+ - A*-like for ants moving towards location
+ - implement pan/zoom with grid-to-canvas size conversion
+ - add background layer
+ - implement marquee selection
+ - support canvas resize
+ - implement the rest of the conditions
+ - implement the rest of the actions
+ - conditionals with OR/AND
+
+ - - - - - REFACTOR - - - - -
+ - essentially need a "stack" for nested behavior execution or else e.g. a
+   do-while inside a conditional while also only do the do-while as long as
+   the outer condition is true
+ - tasks need a "parent" task or else switching tasks within a repeating task won't repeat
+ - get flow working
+ - better init for systems
+ - split gameReducer into entityReducer and antReducer and gameReducer
+ - state --> game where applicable
+ - helper for abstracting away constructing/composing common conditions/locations
+ - using collides selector for everything makes optimization harder...
+    - in tickReducer/performAction for moves being possible
+    - in tickReducer/evaluateCondition for if ant is at a location
+    - in tickReducer/performAction for pickup/putdown being possible
+    - in keyboardControlSystem/onmousedown for what was left clicked on
+    - in keyboardControlSystem/onmousedown for what was right clicked on
+    - in selectors/getFreeNeighborPositions
+ - config for pickup-able entities
+ - make renderEntity recursive for rendering picked-up entities
+ - get optional chaining working
+ - switch UI to react hooks
+ - implement mouse state for tracking mouse up, down, handling drag
+ - getEntitiesByType should optionally take in array of multiple types, and an exclude flag
+
+
+ - - - - - - BUGS - - - - - -
+ - Ants can detect and pickup marked dirt diagonally away from them
+
+
+ - - - - - - DONE - - - - - -
+ - clicking to select ants
+
+ - remove concept of caste
+ - fix rendering of entity radius vs size
+ - implement entities with varying sizes
+ - collides selector should detect collisions with arbitrary sized entities
+ - implement interpreter for tasks/behaviors
+ - add controls for ants
+ - support holding various types of entities
+
+ - object should be a typed payload
+ - press enter to start game
+
+ - put down in a neighbor position, not your own
+ - implement mark mode and click-and-drag to mark dirt
+ - create UI for adding new locations
+ - settle on location vs entity structures
+
+ - use entities for all entities, Arrays of ids for the rest, selectors to get entityByType
+ - ants shouldn't collide with locations
+ - track entityIDs instead of entities themselves
+
+ - don't allow putting down held entity into dirt
+ - console commands for quickly assigning tasks
+
+ - conditional for neighboring blueprinted dirt
+ - Automate digging out blueprints
+    - task for moving randomly (in colony) until blueprint found
+    - that then switches to a task that takes the dirt out of the colony
+    - switch to task that finds drop-off locations and moves until free spot to place it
+    - then switch back to finding colony entrance
+    - ants move dirt out of their way if they are blocked
+
+ - behaviors shouldn't have a "done" flag or by mutable at all
+ - ants should track their task index, not the task itself
+ - make random move not cross colony entrance boundary
+ - make git repo

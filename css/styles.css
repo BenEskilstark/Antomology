@@ -1,0 +1,79 @@
+body {
+  margin: 0;
+  background-color: #faf8ef;
+}
+
+.container {
+  width: 100%;
+  font-family: "Courier New", sans-serif;
+  font-weight: 300;
+}
+
+.background {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/******************************************************************************
+ * Lobby
+ ******************************************************************************/
+
+.lobby {
+  margin-left: 8px;
+}
+
+.hostedGame {
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.gameRows {
+  display: inline-block;
+}
+
+.gameRow {
+  margin-bottom: 8px;
+  border-top: 1px solid grey;
+  padding: 2px;
+}
+
+.chatBar {
+  float: right;
+  margin-right: 8px;
+}
+
+p {
+  display: inline;
+  margin-right: 4px;
+}
+
+/******************************************************************************
+ * Game
+ ******************************************************************************/
+
+.sidebar {
+  border: 1px solid black;
+  display: inline-block;
+  width: 400px;
+}
+
+.gameCanvas {
+  background-color: white;
+  float: left;
+}
+
+.modal {
+  position: absolute;
+  background-color: whitesmoke;
+  border: 1px solid black;
+  padding: 4px;
+  box-shadow: 2px 2px #666666;
+  border-radius: 3px;
+  color: #46403a;
+  text-align: center;
+}
+
+h3 {
+  margin-top: 0;
+}

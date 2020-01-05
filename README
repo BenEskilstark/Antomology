@@ -1,0 +1,16 @@
+Antomology 2020
+
+compile with
+ > ./compile.bash
+files in js get babelified into the bin directory,
+and then browser-side-required into bundle.js
+
+deploy with
+ > git commit -a -m "some message"
+ > git push origin master
+
+run the app locally with:
+ > npm start
+then in the browser go to:
+  localhost:8000
+

@@ -1,0 +1,33 @@
+Time spent log
+
+Date  Time Started  Time Spent  Work Completed
+----  ------------  ----------  --------------
+
+12/11   10:15am     1hr 45min   Basic app setup with grid rendering seeded dirt
+         5:10pm     1hr         Implement clicking to select ants
+
+12/13    4:10pm     2hr 10min   Implement interpreter for tasks/behaviors and one action
+                                Add right click to set move-towards-location task for ant
+        10:05pm     1hr 30      Implement right click to pick up and put down
+
+12/15   12:05pm     30min       enter to start, object is a payload
+
+12/20    5:20pm     1hr         Ants move out of the way after putting down dirt
+                                Click-and-drag tool for marking dirt
+         8:53pm     1hr         Add UI around creating locations on click-and-drag
+                                Consolidate locations into entities
+
+12/23   10:00am     30min       Use entities for all entities, ids elsewhere
+                                Ants don't collide with locations
+
+1/2      2:30pm     1hr 30min   Better console commands for assigning tasks
+                                Location click-and-drag off-by-one fixed
+                                Can't place dirt in already-occupied space
+
+1/4      8:15pm     2hr 45min   Conditional for neighboring blueprinted dirt
+                                Automated digging out blueprints and putting the dirt down
+                                (13hr 40min)
+
+1/5      9:00am     1hr 45min   Behaviors and tasks are immutable
+                                Multiple ants can do the same tasks together
+                                Random movement won't cross colony entrance boundary
