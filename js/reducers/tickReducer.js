@@ -9,6 +9,7 @@ const {
   randomIn,
   normalIn,
   oneOf,
+  deleteFromArray,
 } = require('../utils/helpers');
 const {
   collides,
@@ -51,8 +52,17 @@ const handleTick = (game: GameState): GameState => {
   // update ants
   for (const id of game.ants) {
     const ant = game.entities[id];
+    if (!ant.alive) {
+      continue;
+    }
     ant.age += 1;
     performTask(game, ant);
+
+    ant.calories -=1;
+    // ant starvation
+    if (ant.calories <= 0) {
+      ant.alive = false;
+    }
   }
 
   game.time += 1;
@@ -179,13 +189,30 @@ const evaluateCondition = (
     case 'BLOCKED': {
       // comparator must be EQUALS
       isTrue = ant.blocked;
+      break;
     }
-    case 'HUNGER': {
-      // TODO
+    case 'CALORIES': {
+      const value = object;
+      const antCalories = ant.calories;
+      if (comparator === 'EQUALS') {
+        isTrue = antCalories == value;
+      } else if (comparator === 'LESS_THAN') {
+        isTrue = antCalories < value;
+      } else if (comparator === 'GREATER_THAN') {
+        isTrue = antCalories > value;
+      }
       break;
     }
     case 'AGE': {
-      // TODO
+      const value = object;
+      const antAge = ant.age;
+      if (comparator === 'EQUALS') {
+        isTrue = antAge == value;
+      } else if (comparator === 'LESS_THAN') {
+        isTrue = antAge < value;
+      } else if (comparator === 'GREATER_THAN') {
+        isTrue = antAge > value;
+      }
       break;
     }
   }
@@ -326,7 +353,41 @@ const performAction = (
       }
       break;
     }
-    // TODO: implement rest of actions
+    case 'EAT': {
+      // TODO: very similar to PICKUP
+      let entityToEat = object;
+      if (entityToEat == null) {
+        break;
+      }
+      const neighborhood = getNeighborhoodLocation(entityToEat);
+      if (collides(ant, neighborhood)) {
+        const caloriesEaten = Math.max(config.antCaloriesPerEat, entityToEat.calories);
+        ant.calories += caloriesEaten;
+        entityToEat.calories -= caloriesEaten;
+        // remove the food item if it has no more calories
+        if (entityToEat.calories <= 0) {
+          delete game.entities[entityToEat.id];
+          game.food = deleteFromArray(game.food, entityToEat.id);
+        }
+      }
+      break;
+    }
+    case 'FEED': {
+      // TODO
+      break;
+    }
+    case 'MARK': {
+      // TODO
+      break;
+    }
+    case 'LAY': {
+      // TODO
+      break;
+    }
+    case 'COMMUNICATE': {
+      // TODO
+      break;
+    }
   }
 
 };

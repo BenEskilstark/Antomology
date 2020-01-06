@@ -9,11 +9,17 @@ var _require2 = require('../entities/ant'),
 var _require3 = require('../entities/dirt'),
     makeDirt = _require3.makeDirt;
 
-var _require4 = require('../entities/location'),
-    makeLocation = _require4.makeLocation;
+var _require4 = require('../entities/food'),
+    makeFood = _require4.makeFood;
 
-var _require5 = require('../config'),
-    config = _require5.config;
+var _require5 = require('../entities/location'),
+    makeLocation = _require5.makeLocation;
+
+var _require6 = require('../config'),
+    config = _require6.config;
+
+var _require7 = require('../utils/helpers'),
+    randomIn = _require7.randomIn;
 
 var tasks = require('../state/tasks');
 
@@ -30,6 +36,7 @@ var initGameState = function initGameState() {
     entities: {},
     ants: [],
     dirt: [],
+    food: [],
     locations: [],
     tempLocation: { x: 0, y: 0 },
     tasks: []
@@ -67,6 +74,17 @@ var initGameState = function initGameState() {
   var ant2 = makeAnt({ x: 30, y: 38 }, 'WORKER');
   gameState.entities[ant2.id] = ant2;
   gameState.ants.push(ant2.id);
+
+  // seed food
+  for (var i = 0; i < 10; i++) {
+    var position = {
+      x: randomIn(0, config.width),
+      y: randomIn(Math.ceil(config.height * 0.75) + 1, config.height)
+    };
+    var food = makeFood(position, 2000, 'Crumb');
+    gameState.entities[food.id] = food;
+    gameState.food.push(food.id);
+  }
 
   return gameState;
 };

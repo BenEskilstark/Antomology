@@ -1,6 +1,8 @@
 
  - - - - - - TODO - - - - - -
  - have ants un-stack in a sensible way
+ - handle food items in collisions and picking up
+ - distinguish between ants picking up food and ants eating food via mouse
 
  - - - - - - NEXT - - - - - -
  - preview for location creation while you drag
@@ -39,7 +41,10 @@
 
 
  - - - - - - BUGS - - - - - -
- - Ants can detect and pickup marked dirt diagonally away from them
+ - ants can detect and pickup marked dirt diagonally away from them
+ - ants won't move to a square one off from them and always pick up diagonally
+ - blueprint doesn't allow simple click, only drag
+ - ants consume entire food on click and not just their configured amount
 
 
  - - - - - - DONE - - - - - -
@@ -80,3 +85,10 @@
  - ants should track their task index, not the task itself
  - make random move not cross colony entrance boundary
  - make git repo
+
+ - convert hunger to calories
+ - implement food items that can be consumed
+ - ants die when they reach 0 calories
+ - color ants differently when they are close to starving
+ - dead ants remain but are indicated differently somehow
+ - ants can only consume a food once before mouse system fails

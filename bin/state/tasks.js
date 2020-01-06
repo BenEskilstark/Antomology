@@ -131,6 +131,17 @@ var createPickupBlockerBehavior = function createPickupBlockerBehavior() {
   };
 };
 
+var createDigBlueprintTask = function createDigBlueprintTask(game) {
+  return {
+    name: 'Find Blueprint',
+    repeating: true,
+    behaviorQueue: [createFindBlueprintBehavior(), createPickupBlueprintBehavior(), createGoToLocationBehavior(getIthLocation(game, 0)), createFindDropOffLocationBehavior(), createPutDownBehavior(), {
+      type: 'SWITCH_TASK',
+      task: createGoToColonyEntranceWithBlockerTask
+    }]
+  };
+};
+
 var createGoToColonyEntranceWithBlockerTask = function createGoToColonyEntranceWithBlockerTask(game) {
   return {
     name: 'Return to Entrance with Blocker',
@@ -165,17 +176,6 @@ var createGoToColonyEntranceWithBlockerTask = function createGoToColonyEntranceW
     }, {
       type: 'SWITCH_TASK',
       task: createDigBlueprintTask
-    }]
-  };
-};
-
-var createDigBlueprintTask = function createDigBlueprintTask(game) {
-  return {
-    name: 'Find Blueprint',
-    repeating: true,
-    behaviorQueue: [createFindBlueprintBehavior(), createPickupBlueprintBehavior(), createGoToLocationBehavior(getIthLocation(game, 0)), createFindDropOffLocationBehavior(), createPutDownBehavior(), {
-      type: 'SWITCH_TASK',
-      task: createGoToColonyEntranceWithBlockerTask
     }]
   };
 };

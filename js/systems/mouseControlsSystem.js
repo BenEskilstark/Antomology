@@ -8,6 +8,7 @@ const {
 const {canvasToGrid, gridToCanvas} = require('../utils/canvasHelpers');
 const {add, subtract} = require('../utils/vectors');
 const {makeLocation} = require('../entities/location');
+const {createGoToLocationTask} = require('../state/tasks');
 
 const initMouseControlsSystem = (store) => {
   const {dispatch} = store;
@@ -157,8 +158,12 @@ const handleRightClick = (state: State, dispatch: Dispatch, gridPos: Vector): vo
     getEntitiesByType(state.game, 'DIRT'),
   );
   const clickedEntity = clickedEntities[0];
+  const clickedFood = collidesWith(
+    {position: gridPos, width: 1, height: 1},
+    getEntitiesByType(state.game, 'FOOD'),
+  )[0];
   // TODO add config for which entities can be picked up
-  const blocked = clickedEntity != null && clickedEntity.type != 'ANT';
+  const blocked = clickedEntity != null || clickedFood != null;
 
   const clickedLocation = {
     id: -1,
@@ -168,33 +173,16 @@ const handleRightClick = (state: State, dispatch: Dispatch, gridPos: Vector): vo
     height: blocked ? 3 : 1,
   };
   if (selectedAntIDs.length > 0) {
-    // TODO: good opportunity for abstraction
-    const task = {
-      name: 'Go To Position',
-      repeating: false,
-      behaviorQueue: [
-        {
-          type: 'DO_WHILE',
-          condition: {
-            type: 'LOCATION',
-            not: true,
-            comparator: 'EQUALS',
-            payload: {
-              object: clickedLocation,
-            },
-          },
-          behavior: {
-            type: 'DO_ACTION',
-            action: {
-              type: 'MOVE',
-              payload: {
-                object: clickedLocation,
-              },
-            },
-          },
+    const task = createGoToLocationTask(clickedLocation);
+    const eatClicked = {
+      type: 'DO_ACTION',
+      action: {
+        type: 'EAT',
+        payload: {
+          object: clickedFood,
         },
-      ],
-    }
+      },
+    };
     const pickupClicked = {
       type: 'DO_ACTION',
       action: {
@@ -213,18 +201,22 @@ const handleRightClick = (state: State, dispatch: Dispatch, gridPos: Vector): vo
         },
       },
     };
-    task.behaviorQueue.push({
-      type: 'CONDITIONAL',
-      condition: {
-        type: 'HOLDING',
-        comparator: 'EQUALS',
-        payload: {
-          object: 'NOTHING',
+    if (clickedFood != null) {
+      task.behaviorQueue.push(eatClicked);
+    } else {
+      task.behaviorQueue.push({
+        type: 'CONDITIONAL',
+        condition: {
+          type: 'HOLDING',
+          comparator: 'EQUALS',
+          payload: {
+            object: 'NOTHING',
+          },
         },
-      },
-      behavior: pickupClicked,
-      elseBehavior: putdownClicked,
-    });
+        behavior: pickupClicked,
+        elseBehavior: putdownClicked,
+      });
+    }
     dispatch({
       type: 'ASSIGN_TASK',
       ants: selectedAntIDs,

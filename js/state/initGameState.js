@@ -3,8 +3,10 @@
 const {makeEntity} = require('../entities/entity');
 const {makeAnt} = require('../entities/ant');
 const {makeDirt} = require('../entities/dirt');
+const {makeFood} = require('../entities/food');
 const {makeLocation} = require('../entities/location');
 const {config} = require('../config');
+const {randomIn} = require('../utils/helpers');
 const tasks = require('../state/tasks');
 
 import type {GameState} from '../types';
@@ -22,6 +24,7 @@ const initGameState = (): GameState => {
     entities: {},
     ants: [],
     dirt: [],
+    food: [],
     locations: [],
     tempLocation: {x: 0, y: 0},
     tasks: [],
@@ -62,6 +65,17 @@ const initGameState = (): GameState => {
   const ant2 = makeAnt({x: 30, y: 38}, 'WORKER');
   gameState.entities[ant2.id] = ant2;
   gameState.ants.push(ant2.id);
+
+  // seed food
+  for (let i = 0; i < 10; i++) {
+    const position = {
+      x: randomIn(0, config.width),
+      y: randomIn(Math.ceil(config.height * 0.75) + 1, config.height),
+    };
+    const food = makeFood(position, 2000, 'Crumb');
+    gameState.entities[food.id] = food;
+    gameState.food.push(food.id);
+  }
 
   return gameState;
 }

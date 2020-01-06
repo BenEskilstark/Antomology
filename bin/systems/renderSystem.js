@@ -65,6 +65,11 @@ var renderEntity = function renderEntity(state, ctx, entity) {
   switch (entity.type) {
     case 'ANT':
       ctx.fillStyle = 'orange';
+      if (!entity.alive) {
+        ctx.fillStyle = 'rgba(100, 100, 100, 0.5)';
+      } else if (entity.calories < config.antStartingCalories * config.antStarvationWarningThreshold) {
+        ctx.fillStyle = 'rgba(250, 50, 0, 0.9)';
+      }
       ctx.beginPath();
       ctx.arc(entity.width / 2, entity.height / 2, entity.width / 2, 0, Math.PI * 2);
       ctx.closePath();
@@ -89,11 +94,15 @@ var renderEntity = function renderEntity(state, ctx, entity) {
     case 'DIRT':
       ctx.fillStyle = 'brown';
       ctx.fillRect(0, 0, entity.width, entity.height);
-      ctx.fillStyle = 'rgba(0, 200, 0,' + entity.marked * 0.5 + ')';
+      ctx.fillStyle = 'rgba(0, 0, 200,' + entity.marked * 0.5 + ')';
       ctx.fillRect(0, 0, entity.width, entity.height);
       break;
     case 'LOCATION':
       ctx.fillStyle = 'rgba(50, 50, 50, 0.2)';
+      ctx.fillRect(0, 0, entity.width, entity.height);
+      break;
+    case 'FOOD':
+      ctx.fillStyle = 'green';
       ctx.fillRect(0, 0, entity.width, entity.height);
       break;
   }

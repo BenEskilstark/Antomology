@@ -27,8 +27,20 @@ var oneOf = function oneOf(options) {
   return options[floor(rand() * options.length)];
 };
 
+// delete an item from the given array using filter. Optionally provide a comparison
+// function, or else do a shallow comparison
+var deleteFromArray = function deleteFromArray(arr, item, compareFn) {
+  var fn = compareFn == null ? function (i) {
+    return i === item;
+  } : compareFn;
+  return arr.filter(function (i) {
+    return i !== item;
+  });
+};
+
 module.exports = {
   randomIn: randomIn,
   normalIn: normalIn,
-  oneOf: oneOf
+  oneOf: oneOf,
+  deleteFromArray: deleteFromArray
 };

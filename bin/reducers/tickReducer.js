@@ -25,7 +25,8 @@ var _require4 = require('../utils/errors'),
 var _require5 = require('../utils/helpers'),
     randomIn = _require5.randomIn,
     normalIn = _require5.normalIn,
-    oneOf = _require5.oneOf;
+    oneOf = _require5.oneOf,
+    deleteFromArray = _require5.deleteFromArray;
 
 var _require6 = require('../selectors/selectors'),
     collides = _require6.collides,
@@ -69,8 +70,17 @@ var handleTick = function handleTick(game) {
       var id = _step.value;
 
       var ant = game.entities[id];
+      if (!ant.alive) {
+        continue;
+      }
       ant.age += 1;
       performTask(game, ant);
+
+      ant.calories -= 1;
+      // ant starvation
+      if (ant.calories <= 0) {
+        ant.alive = false;
+      }
     }
   } catch (err) {
     _didIteratorError = true;
@@ -223,15 +233,32 @@ var evaluateCondition = function evaluateCondition(game, ant, condition) {
       {
         // comparator must be EQUALS
         isTrue = ant.blocked;
+        break;
       }
-    case 'HUNGER':
+    case 'CALORIES':
       {
-        // TODO
+        var _value = object;
+        var antCalories = ant.calories;
+        if (comparator === 'EQUALS') {
+          isTrue = antCalories == _value;
+        } else if (comparator === 'LESS_THAN') {
+          isTrue = antCalories < _value;
+        } else if (comparator === 'GREATER_THAN') {
+          isTrue = antCalories > _value;
+        }
         break;
       }
     case 'AGE':
       {
-        // TODO
+        var _value2 = object;
+        var antAge = ant.age;
+        if (comparator === 'EQUALS') {
+          isTrue = antAge == _value2;
+        } else if (comparator === 'LESS_THAN') {
+          isTrue = antAge < _value2;
+        } else if (comparator === 'GREATER_THAN') {
+          isTrue = antAge > _value2;
+        }
         break;
       }
   }
@@ -365,7 +392,46 @@ var performAction = function performAction(game, ant, action) {
         }
         break;
       }
-    // TODO: implement rest of actions
+    case 'EAT':
+      {
+        // TODO: very similar to PICKUP
+        var entityToEat = object;
+        if (entityToEat == null) {
+          break;
+        }
+        var _neighborhood2 = getNeighborhoodLocation(entityToEat);
+        if (collides(ant, _neighborhood2)) {
+          var caloriesEaten = Math.max(config.antCaloriesPerEat, entityToEat.calories);
+          ant.calories += caloriesEaten;
+          entityToEat.calories -= caloriesEaten;
+          // remove the food item if it has no more calories
+          if (entityToEat.calories <= 0) {
+            delete game.entities[entityToEat.id];
+            game.food = deleteFromArray(game.food, entityToEat.id);
+          }
+        }
+        break;
+      }
+    case 'FEED':
+      {
+        // TODO
+        break;
+      }
+    case 'MARK':
+      {
+        // TODO
+        break;
+      }
+    case 'LAY':
+      {
+        // TODO
+        break;
+      }
+    case 'COMMUNICATE':
+      {
+        // TODO
+        break;
+      }
   }
 };
 

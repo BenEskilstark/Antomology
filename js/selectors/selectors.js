@@ -139,6 +139,9 @@ const getEntitiesByType = (
     case 'LOCATION': {
       return game.locations.map(id => game.entities[id]);
     }
+    case 'FOOD': {
+      return game.food.map(id => game.entities[id]);
+    }
   }
 }
 

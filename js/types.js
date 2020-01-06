@@ -54,6 +54,7 @@ export type GameState = {
   dirt: Array<EntityID>,
   ants: Array<EntityID>,
   locations: Array<EntityID>,
+  food: Array<EntityID>,
 
   tempLocation: Vector, // while creating a location, this is its position
   tasks: Array<Task>, // tasks that can be assigned to ants
@@ -93,6 +94,10 @@ export type Dirt = Entity;
 export type Location = Entity & {
   name: string,
 };
+export type Food = Entity & {
+  name: string,
+  calories: number,
+};
 
 // -------------------------------------------------------------------------------
 // Ants and their behavior
@@ -102,11 +107,12 @@ export type AntSubType = 'QUEEN' | 'WORKER';
 export type Ant = Entity & {
   subType: AntSubType,
   holding: ?Entity,
-  hunger: number,
+  calories: number,
   blocked: boolean, // is this ant blocked from where it's going
   blockedBy: ?entity, // entity that is blocking it
   task: ?Task,
   taskIndex: number,
+  alive: boolean,
 };
 
 export type AntActionType =
@@ -125,7 +131,7 @@ export type AntAction = {
 
 // TODO
 export type ConditionType =
-  'LOCATION' | 'HOLDING' | 'HUNGER' | 'AGE' | 'NEIGHBORING' | 'RANDOM' |
+  'LOCATION' | 'HOLDING' | 'CALORIES' | 'AGE' | 'NEIGHBORING' | 'RANDOM' |
   'BLOCKED';
 export type ConditionComparator = 'EQUALS' | 'LESS_THAN' | 'GREATER_THAN';
 export type Pronoun = 'ANYTHING' | 'NOTHING';

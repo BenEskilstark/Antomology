@@ -5,16 +5,20 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 var _require = require('./entity'),
     makeEntity = _require.makeEntity;
 
+var _require2 = require('../config'),
+    config = _require2.config;
+
 var makeAnt = function makeAnt(position, subType) {
   return _extends({}, makeEntity('ANT', 1, 1, position), {
     subType: subType,
     holding: null,
-    hunger: 0,
+    calories: config.antStartingCalories,
     caste: null,
     task: null,
     taskIndex: 0,
     blocked: false,
-    blockedBy: null
+    blockedBy: null,
+    alive: true
   });
 };
 

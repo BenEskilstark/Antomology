@@ -173,6 +173,12 @@ var getEntitiesByType = function getEntitiesByType(game, entityType) {
           return game.entities[id];
         });
       }
+    case 'FOOD':
+      {
+        return game.food.map(function (id) {
+          return game.entities[id];
+        });
+      }
   }
 };
 

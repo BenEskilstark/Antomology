@@ -14,7 +14,11 @@ var config = {
   canvasHeight: 800,
 
   // colony entrance location id:
-  colonyEntrance: 0
+  colonyEntrance: 0,
+
+  antStartingCalories: 2000,
+  antCaloriesPerEat: 1000,
+  antStarvationWarningThreshold: 0.3
 
 };
 

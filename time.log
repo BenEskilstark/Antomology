@@ -31,3 +31,6 @@ Date  Time Started  Time Spent  Work Completed
 1/5      9:00am     1hr 45min   Behaviors and tasks are immutable
                                 Multiple ants can do the same tasks together
                                 Random movement won't cross colony entrance boundary
+         4:56pm     1hr         Implement calorie system where ants die when they run out
+                                Implement food entities that ants eat to gain calories
+                                Ants die and are colored differently
