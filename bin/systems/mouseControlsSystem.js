@@ -22,7 +22,8 @@ var _require5 = require('../entities/location'),
     makeLocation = _require5.makeLocation;
 
 var _require6 = require('../state/tasks'),
-    createGoToLocationTask = _require6.createGoToLocationTask;
+    createGoToLocationTask = _require6.createGoToLocationTask,
+    createDoAction = _require6.createDoAction;
 
 var initMouseControlsSystem = function initMouseControlsSystem(store) {
   var dispatch = store.dispatch;
@@ -31,29 +32,13 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
   var canvas = null;
   document.onmouseup = function (ev) {
     var state = store.getState();
-    // TODO: maybe a better way to get the canvas
-    if (!canvas) {
-      canvas = document.getElementById('canvas');
-      // don't open the normal right-click menu
-      canvas.addEventListener('contextmenu', function (ev) {
-        return ev.preventDefault();
-      });
-      if (!canvas) {
-        return;
-      }
-    }
-    var rect = canvas.getBoundingClientRect();
-
-    var canvasPos = {
-      x: ev.clientX - rect.left,
-      y: ev.clientY - rect.top
-    };
-    var gridPos = canvasToGrid(canvasPos);
+    var gridPos = getClickedPos(ev);
+    if (gridPos == null) return;
 
     if (ev.button == 0) {
       // left click
       dispatch({ type: 'SET_MOUSE_DOWN', isLeft: true, isDown: false });
-      handleLeftClick(state, dispatch, gridPos, false /* isMouseDown */);
+      handleLeftClick(state, dispatch, gridPos);
     } else if (ev.button == 2) {
       // right click
       dispatch({ type: 'SET_MOUSE_DOWN', isLeft: false, isDown: false });
@@ -63,59 +48,25 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
 
   document.onmousedown = function (ev) {
     var state = store.getState();
-    // TODO: maybe a better way to get the canvas
-    if (!canvas) {
-      canvas = document.getElementById('canvas');
-      // don't open the normal right-click menu
-      canvas.addEventListener('contextmenu', function (ev) {
-        return ev.preventDefault();
-      });
-      if (!canvas) {
-        return;
-      }
-    }
-    var rect = canvas.getBoundingClientRect();
-
-    var canvasPos = {
-      x: ev.clientX - rect.left,
-      y: ev.clientY - rect.top
-    };
-    var gridPos = canvasToGrid(canvasPos);
+    var gridPos = getClickedPos(ev);
+    if (gridPos == null) return;
 
     if (ev.button == 0) {
       // left click
-      dispatch({ type: 'SET_MOUSE_DOWN', isLeft: true, isDown: true });
-      if (state.game.userMode === 'CREATE_LOCATION') {
-        dispatch({ type: 'START_CREATE_LOCATION', position: gridPos });
-      }
+      dispatch({ type: 'SET_MOUSE_DOWN', isLeft: true, isDown: true, downPos: gridPos });
     } else if (ev.button == 2) {
       // right click
-      dispatch({ type: 'SET_MOUSE_DOWN', isLeft: false, isDown: true });
+      dispatch({ type: 'SET_MOUSE_DOWN', isLeft: false, isDown: true, downPos: gridPos });
     }
   };
 
   document.onmousemove = function (ev) {
     var state = store.getState();
+    var gridPos = getClickedPos(ev);
+    if (gridPos == null) return;
+    dispatch({ type: 'SET_MOUSE_POS', curPos: gridPos });
     if (state.game.mouse.isLeftDown && state.game.userMode === 'MARK') {
-      // TODO: maybe a better way to get the canvas
-      if (!canvas) {
-        canvas = document.getElementById('canvas');
-        // don't open the normal right-click menu
-        canvas.addEventListener('contextmenu', function (ev) {
-          return ev.preventDefault();
-        });
-        if (!canvas) {
-          return;
-        }
-      }
-      var rect = canvas.getBoundingClientRect();
-
-      var canvasPos = {
-        x: ev.clientX - rect.left,
-        y: ev.clientY - rect.top
-      };
-      var gridPos = canvasToGrid(canvasPos);
-      var clickedEntities = collidesWith({ position: gridPos, width: 1, height: 1 }, getEntitiesByType(state.game, 'DIRT'));
+      var clickedEntities = collidesWith({ position: gridPos, width: 1, height: 1 }, getEntitiesByType(state.game, ['DIRT']));
       var _iteratorNormalCompletion = true;
       var _didIteratorError = false;
       var _iteratorError = undefined;
@@ -148,11 +99,36 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
   };
 };
 
+var canvas = null;
+var getClickedPos = function getClickedPos(ev) {
+  if (!canvas) {
+    canvas = document.getElementById('canvas');
+    // don't open the normal right-click menu
+    canvas.addEventListener('contextmenu', function (ev) {
+      return ev.preventDefault();
+    });
+    if (!canvas) {
+      return null;
+    }
+  }
+  var rect = canvas.getBoundingClientRect();
+
+  var canvasPos = {
+    x: ev.clientX - rect.left,
+    y: ev.clientY - rect.top
+  };
+  // return null if clicked outside the canvas:
+  if (canvasPos.x < 0 || canvasPos.y < 0 || canvasPos.x > config.canvasWidth || canvasPos.y > config.canvasHeight) {
+    return null;
+  }
+  return canvasToGrid(canvasPos);
+};
+
 var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
   // handle creating locations
   if (state.game.userMode === 'CREATE_LOCATION') {
-    var dimensions = subtract(gridPos, state.game.tempLocation);
-    var locPosition = _extends({}, state.game.tempLocation);
+    var dimensions = subtract(gridPos, state.game.mouse.downPos);
+    var locPosition = _extends({}, state.game.mouse.downPos);
     if (dimensions.x < 0) {
       locPosition.x = locPosition.x + dimensions.x;
     }
@@ -164,32 +140,35 @@ var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
     Math.abs(dimensions.y) + 1, locPosition);
     dispatch({ type: 'CREATE_ENTITY', entity: newLocation });
     return;
-  }
+  } else if (state.game.userMode === 'SELECT') {
+    // handle selecting ants
+    var mouse = state.game.mouse;
 
-  // handle selecting ants
-  var clickedAnts = collidesWith({ position: gridPos, width: 1, height: 1 }, getEntitiesByType(state.game, 'ANT'));
-  // TODO: support multi-selection via marquee
-  if (clickedAnts.length > 0) {
-    dispatch({
-      type: 'SET_SELECTED_ENTITIES',
-      entityIDs: clickedAnts.map(function (entity) {
-        return entity.id;
-      })
-    });
-  } else if (state.game.selectedEntities.length > 0) {
-    dispatch({
-      type: 'SET_SELECTED_ENTITIES',
-      entityIDs: []
-    });
+    var dims = subtract(mouse.curPos, mouse.downPos);
+    var x = dims.x > 0 ? mouse.downPos.x : mouse.curPos.x;
+    var y = dims.y > 0 ? mouse.downPos.y : mouse.curPos.y;
+    var clickedAnts = collidesWith({ position: { x: x, y: y }, width: Math.abs(dims.x) + 1, height: Math.abs(dims.y) + 1 }, getEntitiesByType(state.game, ['ANT']));
+    if (clickedAnts.length > 0) {
+      dispatch({
+        type: 'SET_SELECTED_ENTITIES',
+        entityIDs: clickedAnts.slice(0, config.maxSelectableAnts).map(function (entity) {
+          return entity.id;
+        })
+      });
+    } else if (state.game.selectedEntities.length > 0) {
+      dispatch({
+        type: 'SET_SELECTED_ENTITIES',
+        entityIDs: []
+      });
+    }
   }
 };
 
 var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
   var selectedAntIDs = getSelectedAntIDs(state.game);
-  var clickedEntities = collidesWith({ position: gridPos, width: 1, height: 1 }, getEntitiesByType(state.game, 'DIRT'));
-  var clickedEntity = clickedEntities[0];
-  var clickedFood = collidesWith({ position: gridPos, width: 1, height: 1 }, getEntitiesByType(state.game, 'FOOD'))[0];
-  // TODO add config for which entities can be picked up
+  var clickedEntity = collidesWith({ position: gridPos, width: 1, height: 1 }, getEntitiesByType(state.game, config.antPickupEntities))[0];
+  var clickedFood = collidesWith({ position: gridPos, width: 1, height: 1 }, getEntitiesByType(state.game, config.antEatEntities))[0];
+  // TODO add config for which entities block the ant
   var blocked = clickedEntity != null || clickedFood != null;
 
   var clickedLocation = {
@@ -201,36 +180,12 @@ var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
   };
   if (selectedAntIDs.length > 0) {
     var task = createGoToLocationTask(clickedLocation);
-    var eatClicked = {
-      type: 'DO_ACTION',
-      action: {
-        type: 'EAT',
-        payload: {
-          object: clickedFood
-        }
-      }
-    };
-    var pickupClicked = {
-      type: 'DO_ACTION',
-      action: {
-        type: 'PICKUP',
-        payload: {
-          object: clickedEntity
-        }
-      }
-    };
-    var putdownClicked = {
-      type: 'DO_ACTION',
-      action: {
-        type: 'PUTDOWN',
-        payload: {
-          object: { position: gridPos }
-        }
-      }
-    };
-    if (clickedFood != null) {
+    var eatClicked = createDoAction('EAT', clickedFood);
+    var pickupClicked = createDoAction('PICKUP', clickedEntity);
+    var putdownClicked = createDoAction('PUTDOWN', { position: gridPos });
+    if (state.game.antMode === 'EAT') {
       task.behaviorQueue.push(eatClicked);
-    } else {
+    } else if (state.game.antMode === 'PICKUP') {
       task.behaviorQueue.push({
         type: 'CONDITIONAL',
         condition: {
@@ -243,6 +198,8 @@ var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
         behavior: pickupClicked,
         elseBehavior: putdownClicked
       });
+    } else if (state.game.antMode === 'FEED') {
+      // TODO implement ants feeding each other
     }
     dispatch({
       type: 'ASSIGN_TASK',

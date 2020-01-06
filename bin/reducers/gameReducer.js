@@ -24,6 +24,9 @@ var gameReducer = function gameReducer(game, action) {
           case 'DIRT':
             game.dirt.push(entity.id);
             break;
+          case 'FOOD':
+            game.food.push(entity.id);
+            break;
         }
         return game;
       }
@@ -107,6 +110,14 @@ var gameReducer = function gameReducer(game, action) {
           userMode: userMode
         });
       }
+    case 'SET_ANT_MODE':
+      {
+        var antMode = action.antMode;
+
+        return _extends({}, game, {
+          antMode: antMode
+        });
+      }
     case 'MARK_ENTITY':
       {
         var entityID = action.entityID,
@@ -120,24 +131,27 @@ var gameReducer = function gameReducer(game, action) {
     case 'SET_MOUSE_DOWN':
       {
         var isLeft = action.isLeft,
-            isDown = action.isDown;
+            isDown = action.isDown,
+            downPos = action.downPos;
 
         return _extends({}, game, {
-          mouse: {
+          mouse: _extends({}, game.mouse, {
             isLeftDown: isLeft ? isDown : game.mouse.isLeftDown,
-            isRightDown: isLeft ? game.mouse.isRightDOwn : isDown
-          }
+            isRightDown: isLeft ? game.mouse.isRightDOwn : isDown,
+            downPos: isDown && downPos != null ? downPos : game.mouse.downPos
+          })
         });
       }
-    case 'START_CREATE_LOCATION':
+    case 'SET_MOUSE_POS':
       {
-        var position = action.position;
+        var curPos = action.curPos;
 
         return _extends({}, game, {
-          tempLocation: position
+          mouse: _extends({}, game.mouse, {
+            curPos: curPos
+          })
         });
       }
-
   }
 
   return game;

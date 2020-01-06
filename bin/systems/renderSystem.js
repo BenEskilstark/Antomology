@@ -1,7 +1,13 @@
 'use strict';
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 var _require = require('../config'),
     config = _require.config;
+
+var _require2 = require('../utils/vectors'),
+    subtract = _require2.subtract,
+    add = _require2.add;
 
 /**
  * Render things into the canvas
@@ -46,6 +52,7 @@ var render = function render(state, ctx) {
   ctx.scale(1, -1);
   ctx.scale(config.canvasWidth / config.width, config.canvasHeight / config.height);
 
+  // render entities
   for (var id in game.entities) {
     var entity = game.entities[id];
     if (entity.position == null) {
@@ -53,7 +60,25 @@ var render = function render(state, ctx) {
     }
     renderEntity(state, ctx, entity);
   }
-  for (var _id in game.locations) {}
+
+  // render marquees
+  var mouse = game.mouse;
+
+  if (mouse.isLeftDown && game.userMode !== 'MARK') {
+    if (game.userMode === 'CREATE_LOCATION') {
+      ctx.fillStyle = 'rgba(100, 100, 100, 0.25)';
+    } else if (game.userMode === 'SELECT') {
+      ctx.fillStyle = 'rgba(10, 100, 10, 0.25)';
+    }
+    ctx.lineWidth = 2 / (config.canvasWidth / config.width);
+    ctx.strokeStyle = 'black';
+
+    var dims = subtract(mouse.curPos, mouse.downPos);
+    var x = dims.x > 0 ? mouse.downPos.x : mouse.curPos.x;
+    var y = dims.y > 0 ? mouse.downPos.y : mouse.curPos.y;
+    ctx.fillRect(x, y, Math.abs(dims.x) + 1, Math.abs(dims.y) + 1);
+    ctx.strokeRect(x, y, Math.abs(dims.x) + 1, Math.abs(dims.y) + 1);
+  }
 
   ctx.restore();
 };
@@ -83,12 +108,11 @@ var renderEntity = function renderEntity(state, ctx, entity) {
 
       if (entity.holding != null) {
         var heldEntity = entity.holding;
-        switch (heldEntity.type) {
-          case 'DIRT':
-            ctx.fillStyle = 'brown';
-            ctx.fillRect(0, heldEntity.height / 2, heldEntity.width / 2, heldEntity.height / 2);
-            break;
-        }
+        ctx.save();
+        ctx.scale(0.45, 0.45);
+        ctx.translate(1, 1);
+        renderEntity(state, ctx, _extends({}, heldEntity, { position: { x: 0, y: 0 } }));
+        ctx.restore();
       }
       break;
     case 'DIRT':

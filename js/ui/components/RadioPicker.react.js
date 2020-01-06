@@ -10,11 +10,13 @@ class RadioPicker extends React.Component {
     const optionToggles = [];
     for (const option of this.props.options) {
       optionToggles.push(
-        <div className="radioOption">
+        <div
+          key={'radioOption_' + option}
+          className="radioOption"
+        >
           {option}
           <input type="radio"
             className="radioCheckbox"
-            key={'radioOption_' + option}
             value={option}
             checked={option === this.props.selected}
             onChange={() => this.props.onChange(option)}

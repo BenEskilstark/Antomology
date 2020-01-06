@@ -1,4 +1,5 @@
 const {config} = require('../config');
+const {subtract, add} = require('../utils/vectors');
 
 import type {Store, Game} from '../types';
 
@@ -48,6 +49,7 @@ const render = (state: State, ctx: any): void => {
     config.canvasHeight / config.height,
   );
 
+  // render entities
   for (const id in game.entities) {
     const entity = game.entities[id];
     if (entity.position == null) {
@@ -55,7 +57,23 @@ const render = (state: State, ctx: any): void => {
     }
     renderEntity(state, ctx, entity);
   }
-  for (const id in game.locations) {
+
+  // render marquees
+  const {mouse} = game;
+  if (mouse.isLeftDown && game.userMode !== 'MARK') {
+    if (game.userMode === 'CREATE_LOCATION') {
+      ctx.fillStyle = 'rgba(100, 100, 100, 0.25)';
+    } else if (game.userMode === 'SELECT') {
+      ctx.fillStyle = 'rgba(10, 100, 10, 0.25)';
+    }
+    ctx.lineWidth = 2 / (config.canvasWidth / config.width);
+    ctx.strokeStyle = 'black';
+
+    const dims = subtract(mouse.curPos, mouse.downPos);
+    const x = dims.x > 0 ? mouse.downPos.x : mouse.curPos.x;
+    const y = dims.y > 0 ? mouse.downPos.y : mouse.curPos.y;
+    ctx.fillRect(x, y, Math.abs(dims.x) + 1, Math.abs(dims.y) + 1);
+    ctx.strokeRect(x, y, Math.abs(dims.x) + 1, Math.abs(dims.y) + 1);
   }
 
   ctx.restore();
@@ -92,15 +110,11 @@ const renderEntity = (state: State, ctx: any, entity: Entity): void => {
 
       if (entity.holding != null) {
         const heldEntity = entity.holding;
-        switch (heldEntity.type) {
-          case 'DIRT':
-            ctx.fillStyle = 'brown';
-            ctx.fillRect(
-              0, heldEntity.height / 2,
-              heldEntity.width / 2, heldEntity.height / 2,
-            );
-            break;
-        }
+        ctx.save();
+        ctx.scale(0.45, 0.45);
+        ctx.translate(1, 1);
+        renderEntity(state, ctx, {...heldEntity, position: {x: 0, y: 0}});
+        ctx.restore();
       }
       break;
     case 'DIRT':

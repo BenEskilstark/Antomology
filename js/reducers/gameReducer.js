@@ -19,6 +19,9 @@ const gameReducer = (game: GameState, action: Action): GameState => {
         case 'DIRT':
           game.dirt.push(entity.id);
           break;
+        case 'FOOD':
+          game.food.push(entity.id);
+          break;
       }
       return game;
     }
@@ -68,6 +71,13 @@ const gameReducer = (game: GameState, action: Action): GameState => {
         userMode,
       };
     }
+    case 'SET_ANT_MODE': {
+      const {antMode} = action;
+      return {
+        ...game,
+        antMode,
+      };
+    }
     case 'MARK_ENTITY': {
       const {entityID, quantity} = action;
       if (entityID != null && game.entities[entityID] != null) {
@@ -76,23 +86,27 @@ const gameReducer = (game: GameState, action: Action): GameState => {
       return game;
     }
     case 'SET_MOUSE_DOWN': {
-      const {isLeft, isDown} = action;
+      const {isLeft, isDown, downPos} = action;
       return {
         ...game,
         mouse: {
+          ...game.mouse,
           isLeftDown: isLeft ? isDown : game.mouse.isLeftDown,
           isRightDown: isLeft ? game.mouse.isRightDOwn : isDown,
+          downPos: isDown && downPos != null ? downPos : game.mouse.downPos,
         },
       };
     }
-    case 'START_CREATE_LOCATION': {
-      const {position} = action;
+    case 'SET_MOUSE_POS': {
+      const {curPos} = action;
       return {
         ...game,
-        tempLocation: position,
+        mouse: {
+          ...game.mouse,
+          curPos,
+        },
       };
     }
-
   }
 
   return game;

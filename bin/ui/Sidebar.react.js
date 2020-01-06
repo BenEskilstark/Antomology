@@ -6,13 +6,12 @@ var _require = require('../config'),
     config = _require.config;
 
 var Button = require('./components/Button.react');
+var RadioPicker = require('./components/RadioPicker.react');
 
 function Sidebar(props) {
   var state = props.state,
       dispatch = props.dispatch;
 
-  var markOn = state.game.userMode === 'MARK';
-  var locationOn = state.game.userMode === 'CREATE_LOCATION';
   return React.createElement(
     'div',
     {
@@ -21,18 +20,20 @@ function Sidebar(props) {
         height: config.canvasHeight
       }
     },
-    React.createElement(Button, {
-      label: markOn ? 'Turn Blueprinting Off' : 'Turn Blueprinting On',
-      onClick: function onClick() {
-        var userMode = markOn ? null : 'MARK';
-        dispatch({ type: 'SET_USER_MODE', userMode: userMode });
+    'Left-click and drag will:',
+    React.createElement(RadioPicker, {
+      options: ['SELECT', 'MARK', 'CREATE_LOCATION'],
+      selected: state.game.userMode,
+      onChange: function onChange(userMode) {
+        return dispatch({ type: 'SET_USER_MODE', userMode: userMode });
       }
     }),
-    React.createElement(Button, {
-      label: locationOn ? 'Turn Create Location Off' : 'Turn Create Location On',
-      onClick: function onClick() {
-        var userMode = locationOn ? null : 'CREATE_LOCATION';
-        dispatch({ type: 'SET_USER_MODE', userMode: userMode });
+    'Right-click will cause selected ants to:',
+    React.createElement(RadioPicker, {
+      options: ['PICKUP', 'EAT', 'FEED'],
+      selected: state.game.antMode,
+      onChange: function onChange(antMode) {
+        return dispatch({ type: 'SET_ANT_MODE', antMode: antMode });
       }
     })
   );

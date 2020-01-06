@@ -35,19 +35,25 @@ export type State = {
 // Game State
 // -------------------------------------------------------------------------------
 
-export type UserMode = 'MARK' | 'CREATE_LOCATION' | void;
+export type UserMode = 'MARK' | 'CREATE_LOCATION' | 'SELECT';
+export type AntMode = 'PICKUP' | 'FEED' | 'EAT';
 export type Mouse = {
   isLeftDown: boolean,
   isRightDown: boolean,
+  downPos: Vector, // where the mouse down was pressed
+  curPos: Vector,
 };
 
 export type GameState = {
   time: number,
   tickInterval: any, // when running, this is set
+
+  // mouse interactions
+  antMode: AntMode, // what ants do at clicked entities
   userMode: UserMode,
-  selectedEntities: Array<EntityID>,
   mouse: Mouse,
 
+  selectedEntities: Array<EntityID>,
   // ALL entities (including ants) here:
   entities: {[EntityID]: Entity}, // TODO separating out dirt could speed things up
   // basically a cache of entityType-specific entityIDs
@@ -55,8 +61,11 @@ export type GameState = {
   ants: Array<EntityID>,
   locations: Array<EntityID>,
   food: Array<EntityID>,
+  eggs: Array<EntityID>,
+  larva: Array<EntityID>,
+  pupa: Array<EntityID>,
+  deadAnts: Array<EntityID>,
 
-  tempLocation: Vector, // while creating a location, this is its position
   tasks: Array<Task>, // tasks that can be assigned to ants
 };
 
@@ -65,7 +74,8 @@ export type GameState = {
 // -------------------------------------------------------------------------------
 
 export type EntityID = number;
-export type EntityType = 'ANT' | 'DIRT' | 'FOOD' | 'EGG' | 'LARVA' | 'PUPA' | 'LOCATION';
+export type EntityType =
+  'ANT' | 'DIRT' | 'FOOD' | 'EGG' | 'LARVA' | 'PUPA' | 'LOCATION' | 'DEAD_ANT';
 
 export type Entity = {
   id: EntityID,
@@ -198,7 +208,8 @@ export type Action =
   // NOTE: doing it this way means you can assign an ant a task that is not in the task array
   {type: 'ASSIGN_TASK', task: Task, ants: Array<EntityID>} |
   {type: 'SET_USER_MODE', userMode: UserMode} |
-  {type: 'SET_MOUSE_DOWN', isLeft: boolean, isDown: boolean} |
-  {type: 'START_CREATE_LOCATION', position: Vector} |
+  {type: 'SET_ANT_MODE', antMode: AntMode} |
+  {type: 'SET_MOUSE_DOWN', isLeft: boolean, isDown: boolean, downPos: Vector} |
+  {type: 'SET_MOUSE_POS', curPos: Vector} |
   {type: 'MARK_ENTITY', entityID: EntityID, quantity: number};
 

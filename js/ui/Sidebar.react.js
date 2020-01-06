@@ -3,6 +3,7 @@
 const React = require('react');
 const {config} = require('../config');
 const Button = require('./components/Button.react');
+const RadioPicker = require('./components/RadioPicker.react');
 
 import type {State, Action} from '../types';
 
@@ -13,8 +14,6 @@ type Props = {
 
 function Sidebar(props: Props): React.Node {
   const {state, dispatch} = props;
-  const markOn = state.game.userMode === 'MARK';
-  const locationOn = state.game.userMode === 'CREATE_LOCATION';
   return (
     <div
       className="sidebar"
@@ -22,19 +21,17 @@ function Sidebar(props: Props): React.Node {
         height: config.canvasHeight,
       }}
     >
-      <Button
-        label={markOn ? 'Turn Blueprinting Off' : 'Turn Blueprinting On'}
-        onClick={() => {
-          const userMode = markOn ? null : 'MARK';
-          dispatch({type: 'SET_USER_MODE', userMode});
-        }}
+      Left-click and drag will:
+      <RadioPicker
+        options={['SELECT', 'MARK', 'CREATE_LOCATION']}
+        selected={state.game.userMode}
+        onChange={(userMode) => dispatch({type: 'SET_USER_MODE', userMode})}
       />
-      <Button
-        label={locationOn ? 'Turn Create Location Off' : 'Turn Create Location On'}
-        onClick={() => {
-          const userMode = locationOn ? null : 'CREATE_LOCATION';
-          dispatch({type: 'SET_USER_MODE', userMode});
-        }}
+      Right-click will cause selected ants to:
+      <RadioPicker
+        options={['PICKUP', 'EAT', 'FEED']}
+        selected={state.game.antMode}
+        onChange={(antMode) => dispatch({type: 'SET_ANT_MODE', antMode})}
       />
     </div>
   );

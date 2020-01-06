@@ -4,6 +4,32 @@
 import type {Task, Location, Behavior, GameState} from '../types';
 
 ///////////////////////////////////////////////////////////////
+// general
+///////////////////////////////////////////////////////////////
+
+const createGoToLocationTask = (location: Location): Task => {
+  return {
+    name: 'Go To Location',
+    repeating: false,
+    behaviorQueue: [
+      createGoToLocationBehavior(location),
+    ],
+  };
+};
+
+const createDoAction = (type: string, object: mixed): Behavior => {
+  return {
+    type: 'DO_ACTION',
+    action: {
+      type,
+      payload: {
+        object,
+      },
+    },
+  };
+};
+
+///////////////////////////////////////////////////////////////
 // move
 ///////////////////////////////////////////////////////////////
 
@@ -47,16 +73,6 @@ const createGoToLocationBehavior = (location: Location): Behavior => {
     behavior: createMoveBehavior(location),
   };
 }
-
-const createGoToLocationTask = (location: Location): Task => {
-  return {
-    name: 'Go To Location',
-    repeating: false,
-    behaviorQueue: [
-      createGoToLocationBehavior(location),
-    ],
-  };
-};
 
 const getIthLocation = (game: GameState, i: number): Location => {
   const locationID = game.locations[i];
@@ -243,6 +259,7 @@ const tasks = {
   createRandomMoveTask,
   sendAllAntsToLocation,
   sendAllAntsToBlueprint,
+  createDoAction,
 };
 window.tasks = tasks;
 

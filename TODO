@@ -1,19 +1,21 @@
 
  - - - - - - TODO - - - - - -
- - have ants un-stack in a sensible way
- - handle food items in collisions and picking up
- - distinguish between ants picking up food and ants eating food via mouse
+ - add sidebar card for selected ant statuses
+ - allow assigning tasks to selected ants via UI
 
  - - - - - - NEXT - - - - - -
- - preview for location creation while you drag
+ - have ants un-stack in a sensible way
+ - switch dead ants to their own entity type
+ - ant calories should only go down when they do something
+ - UI for naming locations, name of location floating in space
  - A*-like for ants moving towards location
  - implement pan/zoom with grid-to-canvas size conversion
  - add background layer
- - implement marquee selection
  - support canvas resize
  - implement the rest of the conditions
  - implement the rest of the actions
  - conditionals with OR/AND
+ - mark should be its own entity instead of applying just to dirt
 
  - - - - - REFACTOR - - - - -
  - essentially need a "stack" for nested behavior execution or else e.g. a
@@ -21,10 +23,10 @@
    the outer condition is true
  - tasks need a "parent" task or else switching tasks within a repeating task won't repeat
  - get flow working
+ - cached entityID arrays in state should be the same as the entityType
  - better init for systems
  - split gameReducer into entityReducer and antReducer and gameReducer
  - state --> game where applicable
- - helper for abstracting away constructing/composing common conditions/locations
  - using collides selector for everything makes optimization harder...
     - in tickReducer/performAction for moves being possible
     - in tickReducer/evaluateCondition for if ant is at a location
@@ -32,12 +34,9 @@
     - in keyboardControlSystem/onmousedown for what was left clicked on
     - in keyboardControlSystem/onmousedown for what was right clicked on
     - in selectors/getFreeNeighborPositions
- - config for pickup-able entities
- - make renderEntity recursive for rendering picked-up entities
  - get optional chaining working
  - switch UI to react hooks
  - implement mouse state for tracking mouse up, down, handling drag
- - getEntitiesByType should optionally take in array of multiple types, and an exclude flag
 
 
  - - - - - - BUGS - - - - - -
@@ -85,10 +84,18 @@
  - ants should track their task index, not the task itself
  - make random move not cross colony entrance boundary
  - make git repo
-
  - convert hunger to calories
  - implement food items that can be consumed
  - ants die when they reach 0 calories
  - color ants differently when they are close to starving
  - dead ants remain but are indicated differently somehow
  - ants can only consume a food once before mouse system fails
+
+ - helper for abstracting away constructing/composing common conditions/locations
+ - config for pickup-able entities
+ - getEntitiesByType should optionally take in array of multiple types
+ - make renderEntity recursive for rendering picked-up entities
+ - handle food items in collisions and picking up
+ - distinguish between ants picking up food and ants eating food via UI
+ - preview for location creation while you drag
+ - implement marquee selection

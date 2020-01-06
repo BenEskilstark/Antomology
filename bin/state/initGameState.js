@@ -27,18 +27,24 @@ var initGameState = function initGameState() {
   var gameState = {
     time: 0,
     tickInterval: null,
-    userMode: null,
+    antMode: 'PICKUP',
+    userMode: 'SELECT',
     mouse: {
       isLeftDown: false,
-      isRightDown: false
+      isRightDown: false,
+      downPos: { x: 0, y: 0 },
+      curPos: { x: 0, y: 0 }
     },
     selectedEntities: [],
     entities: {},
     ants: [],
     dirt: [],
     food: [],
+    eggs: [],
+    larva: [],
+    pupa: [],
+    deadAnts: [],
     locations: [],
-    tempLocation: { x: 0, y: 0 },
     tasks: []
   };
 
@@ -81,7 +87,7 @@ var initGameState = function initGameState() {
       x: randomIn(0, config.width),
       y: randomIn(Math.ceil(config.height * 0.75) + 1, config.height)
     };
-    var food = makeFood(position, 2000, 'Crumb');
+    var food = makeFood(position, 1000, 'Crumb');
     gameState.entities[food.id] = food;
     gameState.food.push(food.id);
   }

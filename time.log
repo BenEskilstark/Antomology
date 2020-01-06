@@ -34,3 +34,9 @@ Date  Time Started  Time Spent  Work Completed
          4:56pm     1hr         Implement calorie system where ants die when they run out
                                 Implement food entities that ants eat to gain calories
                                 Ants die and are colored differently
+
+1/6      8:15am     1hr 5min    Config for pickupable/edible/blocking entities
+                                Make renderEntity recursive for picked-up entities
+                                Handle food items in collisions or for picking up
+        10:50am     1hr         Marquee selection, preview for location create
+                                Control ant pickup vs eat via RadioPicker

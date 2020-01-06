@@ -122,6 +122,7 @@ var performTask = function performTask(game, ant) {
     if (task.repeating) {
       ant.taskIndex = ant.taskIndex % task.behaviorQueue.length;
     }
+    // HACK to deal with switching tasks in a nested behavior
   } else if (ant.taskIndex == -1) {
     ant.taskIndex = 0;
   }
@@ -164,7 +165,7 @@ var performBehavior = function performBehavior(game, ant, behavior) {
     case 'SWITCH_TASK':
       {
         ant.task = behavior.task(game);
-        // TODO: this sucks. done doesn't always propagate up particularly if
+        // HACK: this sucks. done doesn't always propagate up particularly if
         // you switch tasks from inside a do-while
         ant.taskIndex = -1; // it's about to +1 in performTask
         done = true;
@@ -250,6 +251,7 @@ var evaluateCondition = function evaluateCondition(game, ant, condition) {
       }
     case 'AGE':
       {
+        // TODO: age, calories, random are very similar
         var _value2 = object;
         var antAge = ant.age;
         if (comparator === 'EQUALS') {
@@ -276,7 +278,7 @@ var performAction = function performAction(game, ant, action) {
         var loc = object;
         if (object === 'RANDOM') {
           // randomly select loc based on free neighbors
-          var freePositions = getEmptyNeighborPositions(ant, getEntitiesByType(game, 'DIRT'));
+          var freePositions = getEmptyNeighborPositions(ant, getEntitiesByType(game, config.antBlockingEntities));
           if (freePositions.length == 0) {
             break; // can't move
           }
@@ -310,7 +312,7 @@ var performAction = function performAction(game, ant, action) {
         }
         moveVec[moveAxis] += distVec[moveAxis] > 0 ? 1 : -1;
         var nextPos = add(moveVec, ant.position);
-        var occupied = collidesWith({ position: nextPos, width: 1, height: 1 }, getEntitiesByType(game, 'DIRT'));
+        var occupied = collidesWith({ position: nextPos, width: 1, height: 1 }, getEntitiesByType(game, config.antBlockingEntities));
         if (occupied.length == 0) {
           ant.prevPosition = ant.position;
           ant.position = nextPos;
@@ -329,7 +331,7 @@ var performAction = function performAction(game, ant, action) {
             break;
           }
           nextPos = add(moveVec, ant.position);
-          occupied = collidesWith({ position: nextPos, width: 1, height: 1 }, getEntitiesByType(game, 'DIRT'));
+          occupied = collidesWith({ position: nextPos, width: 1, height: 1 }, getEntitiesByType(game, config.antBlockingEntities));
           if (occupied.length == 0) {
             ant.position = nextPos;
             ant.blocked = false;
@@ -385,7 +387,7 @@ var performAction = function performAction(game, ant, action) {
           ant.holding.position = locationToPutdown.position;
           ant.holding = null;
           // move the ant out of the way
-          var _freePositions = getEmptyNeighborPositions(ant, getEntitiesByType(game, 'DIRT'));
+          var _freePositions = getEmptyNeighborPositions(ant, getEntitiesByType(game, config.antBlockingEntities));
           if (_freePositions.length > 0) {
             ant.position = _freePositions[0];
           }

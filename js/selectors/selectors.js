@@ -6,7 +6,10 @@ const {config} = require('../config');
 
 import type {GameID, State, Game, Entity} from '../types';
 
-// TODO: collides should handle entities with arbitrary sizes
+/////////////////////////////////////////////////////////////////
+// Collisions
+/////////////////////////////////////////////////////////////////
+
 const collides = (entityA: Entity, entityB: Entity): boolean => {
   if (entityA.position == null || entityB.position == null) {
     return false;
@@ -82,9 +85,9 @@ const collidesWith = (
   return collisions;
 };
 
-const getSelectedAntIDs = (game: GameState): Array<EntityID> => {
-  return game.selectedEntities.filter(id => game.ants.includes(id));
-};
+/////////////////////////////////////////////////////////////////
+// Neighbors
+/////////////////////////////////////////////////////////////////
 
 const getNeighborhoodLocation = (
   entity: Entity,
@@ -125,24 +128,48 @@ const getEmptyNeighborPositions = (
   return emptyPositions;
 };
 
+/////////////////////////////////////////////////////////////////
+// Entities by type
+/////////////////////////////////////////////////////////////////
+
+const getSelectedAntIDs = (game: GameState): Array<EntityID> => {
+  return game.selectedEntities.filter(id => game.ants.includes(id));
+};
+
 const getEntitiesByType = (
   game: GameState,
-  entityType: string,
+  entityTypes: Array<string>,
 ): Array<Entity> => {
-  switch (entityType) {
-    case 'ANT': {
-      return game.ants.map(id => game.entities[id]);
-    }
-    case 'DIRT': {
-      return game.dirt.map(id => game.entities[id]);
-    }
-    case 'LOCATION': {
-      return game.locations.map(id => game.entities[id]);
-    }
-    case 'FOOD': {
-      return game.food.map(id => game.entities[id]);
+  let entities = [];
+  for (const entityType of entityTypes) {
+    switch (entityType) {
+      case 'ANT':
+        entities = entities.concat(game.ants.map(id => game.entities[id]));
+        break;
+      case 'DIRT':
+        entities = entities.concat(game.dirt.map(id => game.entities[id]));
+        break;
+      case 'LOCATION':
+        entities = entities.concat(game.locations.map(id => game.entities[id]));
+        break;
+      case 'FOOD':
+        entities = entities.concat(game.food.map(id => game.entities[id]));
+        break;
+      case 'EGG':
+        entities = entities.concat(game.eggs.map(id => game.entities[id]));
+        break;
+      case 'LARVA':
+        entities = entities.concat(game.larva.map(id => game.entities[id]));
+        break;
+      case 'PUPA':
+        entities = entities.concat(game.pupa.map(id => game.entities[id]));
+        break;
+      case 'DEAD_ANT':
+        entities = entities.concat(game.deadAnts.map(id => game.entities[id]));
+        break;
     }
   }
+  return entities;
 }
 
 const selectors = {

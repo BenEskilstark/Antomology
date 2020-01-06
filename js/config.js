@@ -16,6 +16,11 @@ const config = {
   // colony entrance location id:
   colonyEntrance: 0,
 
+  // ant-specific values
+  maxSelectableAnts: 4,
+  antPickupEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'DEAD_ANT'],
+  antBlockingEntities: ['DIRT', 'FOOD'],
+  antEatEntities: ['FOOD', 'DEAD_ANT'],
   antStartingCalories: 2000,
   antCaloriesPerEat: 1000,
   antStarvationWarningThreshold: 0.3

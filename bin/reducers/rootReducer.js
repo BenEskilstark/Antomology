@@ -43,9 +43,10 @@ var rootReducer = function rootReducer(state, action) {
     case 'CREATE_TASK':
     case 'ASSIGN_TASK':
     case 'SET_USER_MODE':
+    case 'SET_ANT_MODE':
     case 'MARK_ENTITY':
     case 'SET_MOUSE_DOWN':
-    case 'START_CREATE_LOCATION':
+    case 'SET_MOUSE_POS':
       if (!state.game) return state;
       return _extends({}, state, {
         game: gameReducer(state.game, action)

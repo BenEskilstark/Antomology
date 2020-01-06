@@ -1,6 +1,31 @@
 'use strict';
 
 ///////////////////////////////////////////////////////////////
+// general
+///////////////////////////////////////////////////////////////
+
+var createGoToLocationTask = function createGoToLocationTask(location) {
+  return {
+    name: 'Go To Location',
+    repeating: false,
+    behaviorQueue: [createGoToLocationBehavior(location)]
+  };
+};
+// Helpers for creating tasks/locations via the console
+
+var createDoAction = function createDoAction(type, object) {
+  return {
+    type: 'DO_ACTION',
+    action: {
+      type: type,
+      payload: {
+        object: object
+      }
+    }
+  };
+};
+
+///////////////////////////////////////////////////////////////
 // move
 ///////////////////////////////////////////////////////////////
 
@@ -15,7 +40,6 @@ var createMoveBehavior = function createMoveBehavior(location) {
     }
   };
 };
-// Helpers for creating tasks/locations via the console
 
 var createRandomMoveTask = function createRandomMoveTask() {
   return {
@@ -41,14 +65,6 @@ var createGoToLocationBehavior = function createGoToLocationBehavior(location) {
       }
     },
     behavior: createMoveBehavior(location)
-  };
-};
-
-var createGoToLocationTask = function createGoToLocationTask(location) {
-  return {
-    name: 'Go To Location',
-    repeating: false,
-    behaviorQueue: [createGoToLocationBehavior(location)]
   };
 };
 
@@ -220,7 +236,8 @@ var tasks = {
   createMoveBehavior: createMoveBehavior,
   createRandomMoveTask: createRandomMoveTask,
   sendAllAntsToLocation: sendAllAntsToLocation,
-  sendAllAntsToBlueprint: sendAllAntsToBlueprint
+  sendAllAntsToBlueprint: sendAllAntsToBlueprint,
+  createDoAction: createDoAction
 };
 window.tasks = tasks;
 

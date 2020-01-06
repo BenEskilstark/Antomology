@@ -13,7 +13,10 @@ var _require2 = require('../utils/vectors'),
 var _require3 = require('../config'),
     config = _require3.config;
 
-// TODO: collides should handle entities with arbitrary sizes
+/////////////////////////////////////////////////////////////////
+// Collisions
+/////////////////////////////////////////////////////////////////
+
 var collides = function collides(entityA, entityB) {
   if (entityA.position == null || entityB.position == null) {
     return false;
@@ -95,11 +98,9 @@ var collidesWith = function collidesWith(entityA, entities) {
   return collisions;
 };
 
-var getSelectedAntIDs = function getSelectedAntIDs(game) {
-  return game.selectedEntities.filter(function (id) {
-    return game.ants.includes(id);
-  });
-};
+/////////////////////////////////////////////////////////////////
+// Neighbors
+/////////////////////////////////////////////////////////////////
 
 var getNeighborhoodLocation = function getNeighborhoodLocation(entity, radius) {
   var rad = radius != null ? radius : 1;
@@ -153,33 +154,85 @@ var getEmptyNeighborPositions = function getEmptyNeighborPositions(entity, entit
   return emptyPositions;
 };
 
-var getEntitiesByType = function getEntitiesByType(game, entityType) {
-  switch (entityType) {
-    case 'ANT':
-      {
-        return game.ants.map(function (id) {
-          return game.entities[id];
-        });
+/////////////////////////////////////////////////////////////////
+// Entities by type
+/////////////////////////////////////////////////////////////////
+
+var getSelectedAntIDs = function getSelectedAntIDs(game) {
+  return game.selectedEntities.filter(function (id) {
+    return game.ants.includes(id);
+  });
+};
+
+var getEntitiesByType = function getEntitiesByType(game, entityTypes) {
+  var entities = [];
+  var _iteratorNormalCompletion3 = true;
+  var _didIteratorError3 = false;
+  var _iteratorError3 = undefined;
+
+  try {
+    for (var _iterator3 = entityTypes[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+      var entityType = _step3.value;
+
+      switch (entityType) {
+        case 'ANT':
+          entities = entities.concat(game.ants.map(function (id) {
+            return game.entities[id];
+          }));
+          break;
+        case 'DIRT':
+          entities = entities.concat(game.dirt.map(function (id) {
+            return game.entities[id];
+          }));
+          break;
+        case 'LOCATION':
+          entities = entities.concat(game.locations.map(function (id) {
+            return game.entities[id];
+          }));
+          break;
+        case 'FOOD':
+          entities = entities.concat(game.food.map(function (id) {
+            return game.entities[id];
+          }));
+          break;
+        case 'EGG':
+          entities = entities.concat(game.eggs.map(function (id) {
+            return game.entities[id];
+          }));
+          break;
+        case 'LARVA':
+          entities = entities.concat(game.larva.map(function (id) {
+            return game.entities[id];
+          }));
+          break;
+        case 'PUPA':
+          entities = entities.concat(game.pupa.map(function (id) {
+            return game.entities[id];
+          }));
+          break;
+        case 'DEAD_ANT':
+          entities = entities.concat(game.deadAnts.map(function (id) {
+            return game.entities[id];
+          }));
+          break;
       }
-    case 'DIRT':
-      {
-        return game.dirt.map(function (id) {
-          return game.entities[id];
-        });
+    }
+  } catch (err) {
+    _didIteratorError3 = true;
+    _iteratorError3 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion3 && _iterator3.return) {
+        _iterator3.return();
       }
-    case 'LOCATION':
-      {
-        return game.locations.map(function (id) {
-          return game.entities[id];
-        });
+    } finally {
+      if (_didIteratorError3) {
+        throw _iteratorError3;
       }
-    case 'FOOD':
-      {
-        return game.food.map(function (id) {
-          return game.entities[id];
-        });
-      }
+    }
   }
+
+  return entities;
 };
 
 var selectors = {

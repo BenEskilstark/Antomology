@@ -88,6 +88,7 @@ const performTask = (game: GameState, ant: Ant): void => {
     if (task.repeating) {
       ant.taskIndex = ant.taskIndex % task.behaviorQueue.length;
     }
+  // HACK to deal with switching tasks in a nested behavior
   } else if (ant.taskIndex == -1) {
     ant.taskIndex = 0;
   }
@@ -126,7 +127,7 @@ const performBehavior = (game: GameState, ant: Ant, behavior: Behavior): boolean
     }
     case 'SWITCH_TASK': {
       ant.task = behavior.task(game);
-      // TODO: this sucks. done doesn't always propagate up particularly if
+      // HACK: this sucks. done doesn't always propagate up particularly if
       // you switch tasks from inside a do-while
       ant.taskIndex = -1; // it's about to +1 in performTask
       done = true;
@@ -204,6 +205,7 @@ const evaluateCondition = (
       break;
     }
     case 'AGE': {
+      // TODO: age, calories, random are very similar
       const value = object;
       const antAge = ant.age;
       if (comparator === 'EQUALS') {
@@ -231,7 +233,7 @@ const performAction = (
       if (object === 'RANDOM') {
         // randomly select loc based on free neighbors
         let freePositions = getEmptyNeighborPositions(
-          ant, getEntitiesByType(game, 'DIRT'),
+          ant, getEntitiesByType(game, config.antBlockingEntities),
         );
         if (freePositions.length == 0) {
           break; // can't move
@@ -266,7 +268,7 @@ const performAction = (
       let nextPos = add(moveVec, ant.position);
       let occupied = collidesWith(
         {position: nextPos, width: 1, height: 1},
-          getEntitiesByType(game, 'DIRT'),
+          getEntitiesByType(game, config.antBlockingEntities),
       );
       if (occupied.length == 0) {
         ant.prevPosition = ant.position;
@@ -287,7 +289,7 @@ const performAction = (
         nextPos = add(moveVec, ant.position);
         occupied = collidesWith(
           {position: nextPos, width: 1, height: 1},
-          getEntitiesByType(game, 'DIRT'),
+          getEntitiesByType(game, config.antBlockingEntities),
         );
         if (occupied.length == 0) {
           ant.position = nextPos;
@@ -345,7 +347,7 @@ const performAction = (
         ant.holding = null;
         // move the ant out of the way
         const freePositions = getEmptyNeighborPositions(
-          ant, getEntitiesByType(game, 'DIRT'),
+          ant, getEntitiesByType(game, config.antBlockingEntities),
         );
         if (freePositions.length > 0) {
           ant.position = freePositions[0];
