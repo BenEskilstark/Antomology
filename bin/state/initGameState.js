@@ -1,5 +1,7 @@
 'use strict';
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 var _require = require('../entities/entity'),
     makeEntity = _require.makeEntity;
 
@@ -52,6 +54,9 @@ var initGameState = function initGameState() {
   var colonyEntrance = makeLocation('Colony Entrance', 1, 1, { x: 25, y: 37 });
   gameState.entities[colonyEntrance.id] = colonyEntrance;
   gameState.locations.push(colonyEntrance.id);
+
+  // initial tasks
+  gameState.tasks = [tasks.createIdleTask(), _extends({}, tasks.createGoToLocationTask(colonyEntrance), { name: 'Go To Colony Entrance' }), tasks.createRandomMoveTask(), tasks.createDigBlueprintTask(gameState)];
 
   // seed bottom 3/4's with dirt
   for (var x = 0; x < config.width; x++) {

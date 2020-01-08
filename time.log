@@ -40,3 +40,9 @@ Date  Time Started  Time Spent  Work Completed
                                 Handle food items in collisions or for picking up
         10:50am     1hr         Marquee selection, preview for location create
                                 Control ant pickup vs eat via RadioPicker
+         1:00pm     1hr         Card for ant statuses
+                                Allow assigning tasks to selected ants via UI
+         5:00pm     20min       Visually distinguish queen, add deselect button to AntCard
+                                Ants unstack from eachother when idle
+
+1/7      9:30am     4hr         Implement most of a bare bones task/behavior editor

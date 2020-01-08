@@ -96,7 +96,8 @@ var renderEntity = function renderEntity(state, ctx, entity) {
         ctx.fillStyle = 'rgba(250, 50, 0, 0.9)';
       }
       ctx.beginPath();
-      ctx.arc(entity.width / 2, entity.height / 2, entity.width / 2, 0, Math.PI * 2);
+      var radius = entity.subType == 'QUEEN' ? entity.width / 2 : 0.8 * entity.width / 2;
+      ctx.arc(entity.width / 2, entity.height / 2, radius, 0, Math.PI * 2);
       ctx.closePath();
       ctx.fill();
 

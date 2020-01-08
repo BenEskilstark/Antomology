@@ -4,6 +4,7 @@ const {add, equals, subtract, distance} = require('../utils/vectors');
 const {config} = require('../config');
 const {sin, cos, abs, sqrt} = Math;
 const {gameReducer} = require('./gameReducer');
+const {createIdleTask} = require('../state/tasks');
 const {invariant} = require('../utils/errors');
 const {
   randomIn,
@@ -76,8 +77,11 @@ const performTask = (game: GameState, ant: Ant): void => {
     return;
   }
   const {task, taskIndex} = ant;
+  // if ran off the end of the behavior queue, switch to idle task
   if (taskIndex >= task.behaviorQueue.length) {
-    return; // ran off the end of the behavior queue
+    ant.taskIndex = 0;
+    ant.task = createIdleTask();
+    return;
   }
   const behavior = task.behaviorQueue[taskIndex];
   const done = performBehavior(game, ant, behavior);
@@ -103,7 +107,7 @@ const performBehavior = (game: GameState, ant: Ant, behavior: Behavior): boolean
       done = true;
       break;
     }
-    case 'CONDITIONAL': {
+    case 'IF': {
       const childBehavior = behavior.behavior;
       if (evaluateCondition(game, ant, behavior.condition)) {
         performBehavior(game, ant, childBehavior);
@@ -116,7 +120,7 @@ const performBehavior = (game: GameState, ant: Ant, behavior: Behavior): boolean
       // }
       break;
     }
-    case 'DO_WHILE': {
+    case 'WHILE': {
       const childBehavior = behavior.behavior;
       if (evaluateCondition(game, ant, behavior.condition)) {
         performBehavior(game, ant, childBehavior);
@@ -228,6 +232,20 @@ const performAction = (
   const {payload} = action;
   const {object} = payload;
   switch (action.type) {
+    case 'IDLE': {
+      // unstack, similar to moving out of the way of placed dirt
+      const stackedAnts = collidesWith(ant, getEntitiesByType(game, ['ANT']))
+        .filter(a => a.id != ant.id);
+      if (stackedAnts.length > 0) {
+        const freePositions = getEmptyNeighborPositions(
+          ant, getEntitiesByType(game, config.antBlockingEntities),
+        );
+        if (freePositions.length > 0) {
+          ant.position = oneOf(freePositions);
+        }
+      }
+      break;
+    }
     case 'MOVE': {
       let loc = object;
       if (object === 'RANDOM') {

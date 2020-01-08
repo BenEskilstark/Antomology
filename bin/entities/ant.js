@@ -8,13 +8,16 @@ var _require = require('./entity'),
 var _require2 = require('../config'),
     config = _require2.config;
 
+var _require3 = require('../state/tasks'),
+    createIdleTask = _require3.createIdleTask;
+
 var makeAnt = function makeAnt(position, subType) {
   return _extends({}, makeEntity('ANT', 1, 1, position), {
     subType: subType,
     holding: null,
     calories: config.antStartingCalories,
     caste: null,
-    task: null,
+    task: createIdleTask(),
     taskIndex: 0,
     blocked: false,
     blockedBy: null,

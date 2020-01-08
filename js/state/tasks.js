@@ -29,6 +29,16 @@ const createDoAction = (type: string, object: mixed): Behavior => {
   };
 };
 
+const createIdleTask = (): Task => {
+  return {
+    name: 'Idle',
+    repeating: true,
+    behaviorQueue: [
+      createDoAction('IDLE', null),
+    ],
+  }
+}
+
 ///////////////////////////////////////////////////////////////
 // move
 ///////////////////////////////////////////////////////////////
@@ -61,7 +71,7 @@ const createRandomMoveTask = (): Task => {
 
 const createGoToLocationBehavior = (location: Location): Behavior => {
   return {
-    type: 'DO_WHILE',
+    type: 'WHILE',
     condition: {
       type: 'LOCATION',
       not: true,
@@ -89,7 +99,7 @@ const getLocation = (game: GameState, locationID: number): Location => {
 
 const createFindBlueprintBehavior = (): Behavior => {
   return {
-    type: 'DO_WHILE',
+    type: 'WHILE',
     condition: {
       type: 'NEIGHBORING',
       not: true,
@@ -116,7 +126,7 @@ const createPickupBlueprintBehavior = (): Behavior => {
 
 const createFindDropOffLocationBehavior = (): Behavior => {
   return {
-    type: 'DO_WHILE',
+    type: 'WHILE',
     condition: {
       type: 'RANDOM',
       not: false,
@@ -155,9 +165,10 @@ const createPickupBlockerBehavior = (): Behavior => {
 
 const createDigBlueprintTask = (game: GameState): Task => {
   return {
-    name: 'Find Blueprint',
+    name: 'Dig Out Blueprint',
     repeating: true,
     behaviorQueue: [
+      createGoToLocationBehavior(getIthLocation(game, 0)),
       createFindBlueprintBehavior(),
       createPickupBlueprintBehavior(),
       createGoToLocationBehavior(getIthLocation(game, 0)),
@@ -177,7 +188,7 @@ const createGoToColonyEntranceWithBlockerTask = (game: GameState): Task => {
     repeating: false,
     behaviorQueue: [
       {
-        type: 'DO_WHILE',
+        type: 'WHILE',
         condition: {
           type: 'LOCATION',
           not: true,
@@ -187,7 +198,7 @@ const createGoToColonyEntranceWithBlockerTask = (game: GameState): Task => {
           },
         },
         behavior: {
-          type: 'CONDITIONAL',
+          type: 'IF',
           condition: {
             type: 'BLOCKED',
             not: true,
@@ -257,9 +268,11 @@ const tasks = {
   getIthLocation,
   createMoveBehavior,
   createRandomMoveTask,
+  createDigBlueprintTask,
   sendAllAntsToLocation,
   sendAllAntsToBlueprint,
   createDoAction,
+  createIdleTask,
 };
 window.tasks = tasks;
 

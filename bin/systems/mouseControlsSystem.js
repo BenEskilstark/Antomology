@@ -180,6 +180,7 @@ var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
   };
   if (selectedAntIDs.length > 0) {
     var task = createGoToLocationTask(clickedLocation);
+    task.name = 'Go To Clicked Location';
     var eatClicked = createDoAction('EAT', clickedFood);
     var pickupClicked = createDoAction('PICKUP', clickedEntity);
     var putdownClicked = createDoAction('PUTDOWN', { position: gridPos });
@@ -187,7 +188,7 @@ var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
       task.behaviorQueue.push(eatClicked);
     } else if (state.game.antMode === 'PICKUP') {
       task.behaviorQueue.push({
-        type: 'CONDITIONAL',
+        type: 'IF',
         condition: {
           type: 'HOLDING',
           comparator: 'EQUALS',

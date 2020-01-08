@@ -44,6 +44,14 @@ const initGameState = (): GameState => {
   gameState.entities[colonyEntrance.id] = colonyEntrance;
   gameState.locations.push(colonyEntrance.id);
 
+  // initial tasks
+  gameState.tasks = [
+    tasks.createIdleTask(),
+    {...tasks.createGoToLocationTask(colonyEntrance), name: 'Go To Colony Entrance'},
+    tasks.createRandomMoveTask(),
+    tasks.createDigBlueprintTask(gameState),
+  ];
+
   // seed bottom 3/4's with dirt
   for (let x = 0; x < config.width; x++) {
     for (let y = 0; y < config.height; y++) {

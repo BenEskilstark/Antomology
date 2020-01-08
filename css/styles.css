@@ -55,7 +55,7 @@ p {
 .sidebar {
   border: 1px solid black;
   display: inline-block;
-  width: 400px;
+  width: 500px;
 }
 
 .gameCanvas {

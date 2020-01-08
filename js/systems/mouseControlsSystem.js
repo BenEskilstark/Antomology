@@ -161,6 +161,7 @@ const handleRightClick = (state: State, dispatch: Dispatch, gridPos: Vector): vo
   };
   if (selectedAntIDs.length > 0) {
     const task = createGoToLocationTask(clickedLocation);
+    task.name = 'Go To Clicked Location';
     const eatClicked = createDoAction('EAT', clickedFood);
     const pickupClicked = createDoAction('PICKUP', clickedEntity);
     const putdownClicked = createDoAction('PUTDOWN', {position: gridPos});
@@ -168,7 +169,7 @@ const handleRightClick = (state: State, dispatch: Dispatch, gridPos: Vector): vo
       task.behaviorQueue.push(eatClicked);
     } else if (state.game.antMode === 'PICKUP') {
       task.behaviorQueue.push({
-        type: 'CONDITIONAL',
+        type: 'IF',
         condition: {
           type: 'HOLDING',
           comparator: 'EQUALS',

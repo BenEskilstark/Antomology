@@ -18,7 +18,7 @@ var config = {
   colonyEntrance: 0,
 
   // ant-specific values
-  maxSelectableAnts: 2,
+  maxSelectableAnts: 4,
   antPickupEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'DEAD_ANT'],
   antBlockingEntities: ['DIRT', 'FOOD'],
   antEatEntities: ['FOOD', 'DEAD_ANT'],
@@ -40,13 +40,16 @@ var _require = require('./entity'),
 var _require2 = require('../config'),
     config = _require2.config;
 
+var _require3 = require('../state/tasks'),
+    createIdleTask = _require3.createIdleTask;
+
 var makeAnt = function makeAnt(position, subType) {
   return _extends({}, makeEntity('ANT', 1, 1, position), {
     subType: subType,
     holding: null,
     calories: config.antStartingCalories,
     caste: null,
-    task: null,
+    task: createIdleTask(),
     taskIndex: 0,
     blocked: false,
     blockedBy: null,
@@ -55,7 +58,7 @@ var makeAnt = function makeAnt(position, subType) {
 };
 
 module.exports = { makeAnt: makeAnt };
-},{"../config":1,"./entity":4}],3:[function(require,module,exports){
+},{"../config":1,"../state/tasks":15,"./entity":4}],3:[function(require,module,exports){
 'use strict';
 
 var _require = require('./entity'),
@@ -158,7 +161,7 @@ store.subscribe(function () {
 function renderGame(store) {
   ReactDOM.render(React.createElement(Main, { state: store.getState(), dispatch: store.dispatch }), document.getElementById('container'));
 }
-},{"./reducers/rootReducer":10,"./systems/initSystems":16,"./ui/Main.react":22,"react":41,"react-dom":38,"redux":42}],8:[function(require,module,exports){
+},{"./reducers/rootReducer":10,"./systems/initSystems":16,"./ui/Main.react":24,"react":46,"react-dom":43,"redux":47}],8:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -231,9 +234,20 @@ var gameReducer = function gameReducer(game, action) {
           tasks: [].concat(_toConsumableArray(game.tasks), [task])
         });
       }
+    case 'UPDATE_TASK':
+      {
+        var _task = action.task;
+
+        var oldTask = game.tasks.filter(function (t) {
+          return t.name === _task.name;
+        })[0];
+        oldTask.repeating = _task.repeating;
+        oldTask.behaviorQueue = _task.behaviorQueue;
+        return game;
+      }
     case 'ASSIGN_TASK':
       {
-        var _task = action.task,
+        var _task2 = action.task,
             ants = action.ants;
         var _iteratorNormalCompletion = true;
         var _didIteratorError = false;
@@ -243,9 +257,10 @@ var gameReducer = function gameReducer(game, action) {
           for (var _iterator = ants[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
             var _id2 = _step.value;
 
-            game.entities[_id2].task = _task;
+            game.entities[_id2].task = _task2;
             game.entities[_id2].taskIndex = 0;
           }
+          // add the task to the task array
         } catch (err) {
           _didIteratorError = true;
           _iteratorError = err;
@@ -261,6 +276,12 @@ var gameReducer = function gameReducer(game, action) {
           }
         }
 
+        var taskAdded = game.tasks.filter(function (t) {
+          return t.name === _task2.name;
+        }).length > 0;
+        if (!taskAdded) {
+          game.tasks.push(_task2);
+        }
         return game;
       }
     case 'SET_USER_MODE':
@@ -393,6 +414,7 @@ var rootReducer = function rootReducer(state, action) {
     case 'DESTROY_ANT':
     case 'SET_SELECTED_ENTITIES':
     case 'CREATE_TASK':
+    case 'UPDATE_TASK':
     case 'ASSIGN_TASK':
     case 'SET_USER_MODE':
     case 'SET_ANT_MODE':
@@ -430,22 +452,25 @@ var sin = Math.sin,
 var _require3 = require('./gameReducer'),
     gameReducer = _require3.gameReducer;
 
-var _require4 = require('../utils/errors'),
-    invariant = _require4.invariant;
+var _require4 = require('../state/tasks'),
+    createIdleTask = _require4.createIdleTask;
 
-var _require5 = require('../utils/helpers'),
-    randomIn = _require5.randomIn,
-    normalIn = _require5.normalIn,
-    oneOf = _require5.oneOf,
-    deleteFromArray = _require5.deleteFromArray;
+var _require5 = require('../utils/errors'),
+    invariant = _require5.invariant;
 
-var _require6 = require('../selectors/selectors'),
-    collides = _require6.collides,
-    collidesWith = _require6.collidesWith,
-    getNeighborhoodLocation = _require6.getNeighborhoodLocation,
-    getNeighborhoodEntities = _require6.getNeighborhoodEntities,
-    getEmptyNeighborPositions = _require6.getEmptyNeighborPositions,
-    getEntitiesByType = _require6.getEntitiesByType;
+var _require6 = require('../utils/helpers'),
+    randomIn = _require6.randomIn,
+    normalIn = _require6.normalIn,
+    oneOf = _require6.oneOf,
+    deleteFromArray = _require6.deleteFromArray;
+
+var _require7 = require('../selectors/selectors'),
+    collides = _require7.collides,
+    collidesWith = _require7.collidesWith,
+    getNeighborhoodLocation = _require7.getNeighborhoodLocation,
+    getNeighborhoodEntities = _require7.getNeighborhoodEntities,
+    getEmptyNeighborPositions = _require7.getEmptyNeighborPositions,
+    getEntitiesByType = _require7.getEntitiesByType;
 
 var tickReducer = function tickReducer(game, action) {
   switch (action.type) {
@@ -520,9 +545,12 @@ var performTask = function performTask(game, ant) {
   }
   var task = ant.task,
       taskIndex = ant.taskIndex;
+  // if ran off the end of the behavior queue, switch to idle task
 
   if (taskIndex >= task.behaviorQueue.length) {
-    return; // ran off the end of the behavior queue
+    ant.taskIndex = 0;
+    ant.task = createIdleTask();
+    return;
   }
   var behavior = task.behaviorQueue[taskIndex];
   var done = performBehavior(game, ant, behavior);
@@ -549,7 +577,7 @@ var performBehavior = function performBehavior(game, ant, behavior) {
         done = true;
         break;
       }
-    case 'CONDITIONAL':
+    case 'IF':
       {
         var childBehavior = behavior.behavior;
         if (evaluateCondition(game, ant, behavior.condition)) {
@@ -563,7 +591,7 @@ var performBehavior = function performBehavior(game, ant, behavior) {
         // }
         break;
       }
-    case 'DO_WHILE':
+    case 'WHILE':
       {
         var _childBehavior = behavior.behavior;
         if (evaluateCondition(game, ant, behavior.condition)) {
@@ -684,33 +712,47 @@ var performAction = function performAction(game, ant, action) {
   var object = payload.object;
 
   switch (action.type) {
+    case 'IDLE':
+      {
+        // unstack, similar to moving out of the way of placed dirt
+        var stackedAnts = collidesWith(ant, getEntitiesByType(game, ['ANT'])).filter(function (a) {
+          return a.id != ant.id;
+        });
+        if (stackedAnts.length > 0) {
+          var freePositions = getEmptyNeighborPositions(ant, getEntitiesByType(game, config.antBlockingEntities));
+          if (freePositions.length > 0) {
+            ant.position = oneOf(freePositions);
+          }
+        }
+        break;
+      }
     case 'MOVE':
       {
         var loc = object;
         if (object === 'RANDOM') {
           // randomly select loc based on free neighbors
-          var freePositions = getEmptyNeighborPositions(ant, getEntitiesByType(game, config.antBlockingEntities));
-          if (freePositions.length == 0) {
+          var _freePositions = getEmptyNeighborPositions(ant, getEntitiesByType(game, config.antBlockingEntities));
+          if (_freePositions.length == 0) {
             break; // can't move
           }
           // don't select previous position
-          freePositions = freePositions.filter(function (pos) {
+          _freePositions = _freePositions.filter(function (pos) {
             return pos.x != ant.prevPosition.x || pos.y != ant.prevPosition.y;
           });
-          if (freePositions.length == 0) {
+          if (_freePositions.length == 0) {
             // then previous position was removed, so fall back to it
             loc = { position: ant.prevPosition };
           } else {
             // don't cross colonyEntrance boundary
             var colEnt = game.entities[config.colonyEntrance].position;
-            freePositions = freePositions.filter(function (pos) {
+            _freePositions = _freePositions.filter(function (pos) {
               return !equals(pos, colEnt);
             });
-            if (freePositions.length == 0) {
+            if (_freePositions.length == 0) {
               // fall back to previous position
               loc = { position: ant.prevPosition };
             }
-            loc = { position: oneOf(freePositions) };
+            loc = { position: oneOf(_freePositions) };
           }
         }
         var distVec = subtract(loc.position, ant.position);
@@ -798,9 +840,9 @@ var performAction = function performAction(game, ant, action) {
           ant.holding.position = locationToPutdown.position;
           ant.holding = null;
           // move the ant out of the way
-          var _freePositions = getEmptyNeighborPositions(ant, getEntitiesByType(game, config.antBlockingEntities));
-          if (_freePositions.length > 0) {
-            ant.position = _freePositions[0];
+          var _freePositions2 = getEmptyNeighborPositions(ant, getEntitiesByType(game, config.antBlockingEntities));
+          if (_freePositions2.length > 0) {
+            ant.position = _freePositions2[0];
           }
         }
         break;
@@ -849,7 +891,7 @@ var performAction = function performAction(game, ant, action) {
 };
 
 module.exports = { tickReducer: tickReducer };
-},{"../config":1,"../selectors/selectors":12,"../utils/errors":27,"../utils/helpers":28,"../utils/vectors":29,"./gameReducer":8}],12:[function(require,module,exports){
+},{"../config":1,"../selectors/selectors":12,"../state/tasks":15,"../utils/errors":32,"../utils/helpers":33,"../utils/vectors":34,"./gameReducer":8}],12:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -1099,8 +1141,10 @@ var selectors = {
 window.selectors = selectors; // for testing
 
 module.exports = selectors;
-},{"../config":1,"../utils/errors":27,"../utils/vectors":29}],13:[function(require,module,exports){
+},{"../config":1,"../utils/errors":32,"../utils/vectors":34}],13:[function(require,module,exports){
 'use strict';
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 var _require = require('../entities/entity'),
     makeEntity = _require.makeEntity;
@@ -1155,6 +1199,9 @@ var initGameState = function initGameState() {
   gameState.entities[colonyEntrance.id] = colonyEntrance;
   gameState.locations.push(colonyEntrance.id);
 
+  // initial tasks
+  gameState.tasks = [tasks.createIdleTask(), _extends({}, tasks.createGoToLocationTask(colonyEntrance), { name: 'Go To Colony Entrance' }), tasks.createRandomMoveTask(), tasks.createDigBlueprintTask(gameState)];
+
   // seed bottom 3/4's with dirt
   for (var x = 0; x < config.width; x++) {
     for (var y = 0; y < config.height; y++) {
@@ -1198,7 +1245,7 @@ var initGameState = function initGameState() {
 };
 
 module.exports = { initGameState: initGameState };
-},{"../config":1,"../entities/ant":2,"../entities/dirt":3,"../entities/entity":4,"../entities/food":5,"../entities/location":6,"../state/tasks":15,"../utils/helpers":28}],14:[function(require,module,exports){
+},{"../config":1,"../entities/ant":2,"../entities/dirt":3,"../entities/entity":4,"../entities/food":5,"../entities/location":6,"../state/tasks":15,"../utils/helpers":33}],14:[function(require,module,exports){
 'use strict';
 
 var initState = function initState() {
@@ -1237,6 +1284,14 @@ var createDoAction = function createDoAction(type, object) {
   };
 };
 
+var createIdleTask = function createIdleTask() {
+  return {
+    name: 'Idle',
+    repeating: true,
+    behaviorQueue: [createDoAction('IDLE', null)]
+  };
+};
+
 ///////////////////////////////////////////////////////////////
 // move
 ///////////////////////////////////////////////////////////////
@@ -1267,7 +1322,7 @@ var createRandomMoveTask = function createRandomMoveTask() {
 
 var createGoToLocationBehavior = function createGoToLocationBehavior(location) {
   return {
-    type: 'DO_WHILE',
+    type: 'WHILE',
     condition: {
       type: 'LOCATION',
       not: true,
@@ -1295,7 +1350,7 @@ var getLocation = function getLocation(game, locationID) {
 
 var createFindBlueprintBehavior = function createFindBlueprintBehavior() {
   return {
-    type: 'DO_WHILE',
+    type: 'WHILE',
     condition: {
       type: 'NEIGHBORING',
       not: true,
@@ -1322,7 +1377,7 @@ var createPickupBlueprintBehavior = function createPickupBlueprintBehavior() {
 
 var createFindDropOffLocationBehavior = function createFindDropOffLocationBehavior() {
   return {
-    type: 'DO_WHILE',
+    type: 'WHILE',
     condition: {
       type: 'RANDOM',
       not: false,
@@ -1361,9 +1416,9 @@ var createPickupBlockerBehavior = function createPickupBlockerBehavior() {
 
 var createDigBlueprintTask = function createDigBlueprintTask(game) {
   return {
-    name: 'Find Blueprint',
+    name: 'Dig Out Blueprint',
     repeating: true,
-    behaviorQueue: [createFindBlueprintBehavior(), createPickupBlueprintBehavior(), createGoToLocationBehavior(getIthLocation(game, 0)), createFindDropOffLocationBehavior(), createPutDownBehavior(), {
+    behaviorQueue: [createGoToLocationBehavior(getIthLocation(game, 0)), createFindBlueprintBehavior(), createPickupBlueprintBehavior(), createGoToLocationBehavior(getIthLocation(game, 0)), createFindDropOffLocationBehavior(), createPutDownBehavior(), {
       type: 'SWITCH_TASK',
       task: createGoToColonyEntranceWithBlockerTask
     }]
@@ -1375,7 +1430,7 @@ var createGoToColonyEntranceWithBlockerTask = function createGoToColonyEntranceW
     name: 'Return to Entrance with Blocker',
     repeating: false,
     behaviorQueue: [{
-      type: 'DO_WHILE',
+      type: 'WHILE',
       condition: {
         type: 'LOCATION',
         not: true,
@@ -1385,7 +1440,7 @@ var createGoToColonyEntranceWithBlockerTask = function createGoToColonyEntranceW
         }
       },
       behavior: {
-        type: 'CONDITIONAL',
+        type: 'IF',
         condition: {
           type: 'BLOCKED',
           not: true,
@@ -1447,9 +1502,11 @@ var tasks = {
   getIthLocation: getIthLocation,
   createMoveBehavior: createMoveBehavior,
   createRandomMoveTask: createRandomMoveTask,
+  createDigBlueprintTask: createDigBlueprintTask,
   sendAllAntsToLocation: sendAllAntsToLocation,
   sendAllAntsToBlueprint: sendAllAntsToBlueprint,
-  createDoAction: createDoAction
+  createDoAction: createDoAction,
+  createIdleTask: createIdleTask
 };
 window.tasks = tasks;
 
@@ -1663,6 +1720,7 @@ var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
   };
   if (selectedAntIDs.length > 0) {
     var task = createGoToLocationTask(clickedLocation);
+    task.name = 'Go To Clicked Location';
     var eatClicked = createDoAction('EAT', clickedFood);
     var pickupClicked = createDoAction('PICKUP', clickedEntity);
     var putdownClicked = createDoAction('PUTDOWN', { position: gridPos });
@@ -1670,7 +1728,7 @@ var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
       task.behaviorQueue.push(eatClicked);
     } else if (state.game.antMode === 'PICKUP') {
       task.behaviorQueue.push({
-        type: 'CONDITIONAL',
+        type: 'IF',
         condition: {
           type: 'HOLDING',
           comparator: 'EQUALS',
@@ -1693,7 +1751,7 @@ var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
 };
 
 module.exports = { initMouseControlsSystem: initMouseControlsSystem };
-},{"../config":1,"../entities/location":6,"../selectors/selectors":12,"../state/tasks":15,"../utils/canvasHelpers":26,"../utils/vectors":29}],18:[function(require,module,exports){
+},{"../config":1,"../entities/location":6,"../selectors/selectors":12,"../state/tasks":15,"../utils/canvasHelpers":31,"../utils/vectors":34}],18:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -1792,7 +1850,8 @@ var renderEntity = function renderEntity(state, ctx, entity) {
         ctx.fillStyle = 'rgba(250, 50, 0, 0.9)';
       }
       ctx.beginPath();
-      ctx.arc(entity.width / 2, entity.height / 2, entity.width / 2, 0, Math.PI * 2);
+      var radius = entity.subType == 'QUEEN' ? entity.width / 2 : 0.8 * entity.width / 2;
+      ctx.arc(entity.width / 2, entity.height / 2, radius, 0, Math.PI * 2);
       ctx.closePath();
       ctx.fill();
 
@@ -1830,7 +1889,410 @@ var renderEntity = function renderEntity(state, ctx, entity) {
 };
 
 module.exports = { initRenderSystem: initRenderSystem };
-},{"../config":1,"../utils/vectors":29}],19:[function(require,module,exports){
+},{"../config":1,"../utils/vectors":34}],19:[function(require,module,exports){
+'use strict';
+
+var React = require('react');
+
+var _require = require('../config'),
+    config = _require.config;
+
+var Dropdown = require('./components/Dropdown.react');
+var Button = require('./components/Button.react');
+
+function AntCard(props) {
+  var state = props.state,
+      dispatch = props.dispatch,
+      ant = props.ant;
+
+
+  var hungryStr = ant.calories < config.antStartingCalories * config.antStarvationWarningThreshold ? ' - Hungry' : '';
+
+  return React.createElement(
+    'div',
+    {
+      className: 'antCard',
+      style: {
+        border: '1px solid black'
+      }
+    },
+    React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'b',
+        null,
+        ant.subType
+      )
+    ),
+    React.createElement(
+      'div',
+      null,
+      'Calories: ',
+      ant.calories,
+      hungryStr
+    ),
+    React.createElement(
+      'div',
+      null,
+      'HP: 10/10'
+    ),
+    React.createElement(
+      'div',
+      null,
+      'Current Task:',
+      React.createElement(Dropdown, {
+        options: state.game.tasks.map(function (task) {
+          return task.name;
+        }),
+        selected: ant.task != null ? ant.task.name : null,
+        onChange: function onChange(nextTaskName) {
+          var nextTask = state.game.tasks.filter(function (t) {
+            return t.name === nextTaskName;
+          })[0];
+          dispatch({ type: 'ASSIGN_TASK', task: nextTask, ants: [ant.id] });
+        }
+      }),
+      React.createElement(Button, {
+        label: 'Deselect',
+        onClick: function onClick() {
+          dispatch({
+            type: 'SET_SELECTED_ENTITIES',
+            entityIDs: state.game.selectedEntities.filter(function (id) {
+              return id != ant.id;
+            })
+          });
+        }
+      })
+    )
+  );
+};
+
+module.exports = AntCard;
+},{"../config":1,"./components/Button.react":27,"./components/Dropdown.react":29,"react":46}],20:[function(require,module,exports){
+'use strict';
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var React = require('react');
+
+var _require = require('../config'),
+    config = _require.config;
+
+var Button = require('./components/Button.react');
+var Checkbox = require('./components/Checkbox.react');
+var Dropdown = require('./components/Dropdown.react');
+
+var _require2 = require('../selectors/selectors'),
+    getEntitiesByType = _require2.getEntitiesByType;
+
+var useState = React.useState,
+    useEffect = React.useEffect;
+
+
+function BehaviorCard(props) {
+  var state = props.state;
+
+  if (props.behavior == null) {
+    return null;
+  }
+  // mutating the copy of behavior, but then also re-setting it to itself for re-rendering
+
+  var _useState = useState(props.behavior),
+      _useState2 = _slicedToArray(_useState, 2),
+      behavior = _useState2[0],
+      setBehavior = _useState2[1];
+
+  useEffect(function () {
+    setBehavior(props.behavior);
+  }, [props.behavior]);
+
+  var selectedSubject = '';
+  var subjects = [];
+  if (behavior.type == 'DO_ACTION') {
+    subjects = ['MOVE', 'PICKUP', 'PUTDOWN', 'IDLE', 'EAT', 'FEED', 'LAY'];
+    selectedSubject = behavior.action.type;
+  } else if (behavior.type == 'IF' || behavior.type == 'WHILE') {
+    subjects = ['LOCATION', 'RANDOM', 'HOLDING', 'NEIGHBORING', 'CALORIES', 'AGE'];
+    selectedSubject = behavior.condition.type;
+  } else {
+    subjects = state.game.tasks.map(function (t) {
+      return t.name;
+    });
+    // selectedSubject = behavior.task(state.game).name;
+  }
+  return React.createElement(
+    'div',
+    {
+      className: 'behaviorCard',
+      style: {}
+    },
+    React.createElement(Dropdown, {
+      options: ['DO_ACTION', 'IF', 'WHILE', 'SWITCH_TASK'],
+      selected: behavior.type,
+      onChange: function onChange(newType) {
+        var newBehavior = {
+          type: newType
+        };
+        if (newType === 'DO_ACTION') {
+          newBehavior.action = {
+            type: 'IDLE',
+            payload: {
+              object: null
+            }
+          };
+        } else if (newType === 'IF') {
+          newBehavior.condition = {
+            type: 'RANDOM',
+            comparator: 'LESS_THAN',
+            payload: {
+              object: 1
+            }
+          };
+          newBehavior.behavior = {
+            type: 'DO_ACTION',
+            action: {
+              type: 'IDLE',
+              payload: {
+                object: null
+              }
+            }
+          };
+          newBehavior.elseBehavior = {
+            type: 'DO_ACTION',
+            action: {
+              type: 'IDLE',
+              payload: {
+                object: null
+              }
+            }
+          };
+        } else if (newType === 'WHILE') {
+          newBehavior.condition = {
+            type: 'RANDOM',
+            comparator: 'LESS_THAN',
+            payload: {
+              object: 1
+            }
+          };
+          newBehavior.behavior = {
+            type: 'DO_ACTION',
+            action: {
+              type: 'IDLE',
+              payload: {
+                object: null
+              }
+            }
+          };
+        } else if (newType === 'SWITCH_TASK') {
+          var newTask = state.game.tasks.filter(function (t) {
+            return t.name === 'Idle';
+          })[0];
+          newBehavior.task = function () {
+            return newTask;
+          };
+        }
+        setBehavior(newBehavior);
+      }
+    }),
+    React.createElement(Dropdown, {
+      options: subjects,
+      selected: selectedSubject,
+      onChange: function onChange(nextSubject) {
+        if (behavior.type === 'DO_ACTION') {
+          behavior.action.type = nextSubject;
+          if (nextSubject === 'MOVE') {
+            // behavior.payload.object = 'RANDOM';
+          }
+        } else if (behavior.type === 'IF' || behavior.type === 'WHILE') {
+          behavior.condition.type = nextSubject;
+        } else {
+          behavior.task = state.game.tasks.filter(function (t) {
+            return t.name === nextSubject;
+          })[0];
+        }
+        setBehavior(behavior);
+      }
+    }),
+    behavior.type === 'DO_ACTION' ? React.createElement(DoActionCard, {
+      state: state,
+      behavior: behavior,
+      setBehavior: setBehavior
+    }) : null,
+    behavior.type === 'IF' || behavior.type === 'WHILE' ? React.createElement(Conditional, {
+      state: state,
+      condition: behavior.condition,
+      behavior: behavior,
+      setBehavior: setBehavior
+    }) : null,
+    behavior.type === 'IF' ? React.createElement(
+      'span',
+      null,
+      'Then: ',
+      React.createElement(
+        'div',
+        { style: { paddingLeft: 10 } },
+        React.createElement(BehaviorCard, {
+          state: state, behavior: behavior.behavior
+        })
+      ),
+      'Else: ',
+      React.createElement(
+        'div',
+        { style: { paddingLeft: 10 } },
+        React.createElement(BehaviorCard, {
+          state: state, behavior: behavior.elseBehavior
+        })
+      )
+    ) : null,
+    behavior.type === 'WHILE' ? React.createElement(
+      'span',
+      null,
+      'Do: ',
+      React.createElement(
+        'div',
+        { style: { paddingLeft: 10 } },
+        React.createElement(BehaviorCard, {
+          state: state, behavior: behavior.behavior
+        })
+      )
+    ) : null
+  );
+}
+
+function Conditional(props) {
+  var condition = props.condition,
+      state = props.state,
+      behavior = props.behavior,
+      setBehavior = props.setBehavior;
+
+  var typeName = condition.type;
+  var conditionObject = condition.payload.object;
+  var comparator = condition.comparator;
+  var comparatorOptions = ['EQUALS', 'LESS_THAN', 'GREATER_THAN'];
+  if (typeName == 'LOCATION' || typeName === 'HOLDING' || typeName === 'NEIGHBORING' || typeName === 'BLOCKED') {
+    comparatorOptions = ['EQUALS'];
+  }
+  var objectField = 'True';
+  if (typeName === 'RANDOM' || typeName === 'CALORIES' || typeName === 'AGE') {
+    objectField = React.createElement('input', { type: 'number',
+      value: conditionObject,
+      onChange: function onChange(ev) {
+        behavior.condition.payload.object = parseFloat(ev.target.value);
+        setBehavior(behavior);
+      }
+    });
+  }
+  if (typeName === 'LOCATION') {
+    objectField = React.createElement(Dropdown, {
+      options: getEntitiesByType(state.game, ['LOCATION']).map(function (l) {
+        return l.name;
+      }),
+      selected: conditionObject.name,
+      onChange: function onChange(locName) {
+        var loc = getEntitiesByType(state.game, ['LOCATION']).filter(function (l) {
+          return l.name === locName;
+        })[0];
+        behavior.condition.payload.object = loc;
+        setBehavior(behavior);
+      }
+    });
+  }
+  if (typeName === 'HOLDING') {
+    objectField = React.createElement(Dropdown, {
+      options: ['ANYTHING', 'NOTHING', 'DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA'],
+      selected: conditionObject,
+      onChange: function onChange(obj) {
+        behavior.condition.payload.object = obj;
+        setBehavior(behavior);
+      }
+    });
+  }
+  if (typeName === 'NEIGHBORING') {
+    objectField = React.createElement(Dropdown, {
+      options: ['MARKED', 'DIRT', 'FOOD'],
+      selected: conditionObject,
+      onChange: function onChange(obj) {
+        behavior.condition.payload.object = obj;
+        setBehavior(behavior);
+      }
+    });
+  }
+
+  return React.createElement(
+    'span',
+    null,
+    'Not: ',
+    React.createElement(Checkbox, { checked: condition.not, onChange: function onChange(check) {} }),
+    React.createElement(Dropdown, {
+      options: comparatorOptions,
+      selected: comparator,
+      onChange: function onChange(newComparator) {
+        behavior.condition.comparator = newComparator;
+        setBehavior(behavior);
+      }
+    }),
+    objectField
+  );
+}
+
+function DoActionCard(props) {
+  var state = props.state,
+      behavior = props.behavior,
+      setBehavior = props.setBehavior;
+
+  var actionType = behavior.action.type;
+  var actionOptions = [];
+  var actionPreposition = '';
+  switch (actionType) {
+    case 'MOVE':
+      actionPreposition = 'towards: ';
+      actionOptions = ['RANDOM'].concat(getEntitiesByType(state.game, ['LOCATION']).map(function (l) {
+        return l.name;
+      }));
+      break;
+    case 'PICKUP':
+      actionOptions = ['DIRT', 'MARKED', 'FOOD', 'EGG', 'LARVA', 'PUPA'];
+      break;
+    case 'PUTDOWN':
+      break;
+    case 'IDLE':
+      actionOptions = [];
+      break;
+    // TODO
+  }
+  var selectedObject = behavior.action.payload.object;
+  if (selectedObject == null) {
+    selectedObject = 'NONE';
+  }
+  // for locations:
+  if (selectedObject.name != null) {
+    selectedObject = selectedObject.name;
+  }
+  return React.createElement(
+    'span',
+    null,
+    actionPreposition,
+    React.createElement(Dropdown, {
+      options: actionOptions,
+      selected: selectedObject,
+      onChange: function onChange(nextActionOption) {
+        if (actionType === 'MOVE' && nextActionOption !== 'RANDOM') {
+          var loc = getEntitiesByType(state.game, ['LOCATION']).filter(function (l) {
+            return l.name === nextActionOption;
+          })[0];
+          behavior.action.payload.object = loc;
+        } else {
+          behavior.action.payload.object = nextActionOption;
+        }
+        setBehavior(behavior);
+      }
+    })
+  );
+}
+
+module.exports = BehaviorCard;
+},{"../config":1,"../selectors/selectors":12,"./components/Button.react":27,"./components/Checkbox.react":28,"./components/Dropdown.react":29,"react":46}],21:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -1843,7 +2305,7 @@ function Canvas(props) {
 }
 
 module.exports = Canvas;
-},{"react":41}],20:[function(require,module,exports){
+},{"react":46}],22:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -1863,7 +2325,7 @@ function Game(props) {
 }
 
 module.exports = Game;
-},{"./Canvas.react":19,"./Sidebar.react":23,"react":41}],21:[function(require,module,exports){
+},{"./Canvas.react":21,"./Sidebar.react":25,"react":46}],23:[function(require,module,exports){
 'use strict';
 
 function _objectDestructuringEmpty(obj) { if (obj == null) throw new TypeError("Cannot destructure undefined"); }
@@ -1890,7 +2352,7 @@ function Lobby(props) {
 }
 
 module.exports = Lobby;
-},{"../selectors/selectors":12,"./components/Button.react":24,"react":41}],22:[function(require,module,exports){
+},{"../selectors/selectors":12,"./components/Button.react":27,"react":46}],24:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -1964,8 +2426,10 @@ function getModal(props) {
 }
 
 module.exports = Main;
-},{"../config":1,"./Game.react":20,"./Lobby.react":21,"./components/Button.react":24,"react":41}],23:[function(require,module,exports){
+},{"../config":1,"./Game.react":22,"./Lobby.react":23,"./components/Button.react":27,"react":46}],25:[function(require,module,exports){
 'use strict';
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var React = require('react');
 
@@ -1974,11 +2438,30 @@ var _require = require('../config'),
 
 var Button = require('./components/Button.react');
 var RadioPicker = require('./components/RadioPicker.react');
+var Dropdown = require('./components/Dropdown.react');
+var AntCard = require('./AntCard.react');
+var TaskCard = require('./TaskCard.react');
+
+var _require2 = require('../selectors/selectors'),
+    getSelectedAntIDs = _require2.getSelectedAntIDs;
+
+var useState = React.useState,
+    useMemo = React.useMemo,
+    useEffect = React.useEffect;
+
 
 function Sidebar(props) {
   var state = props.state,
       dispatch = props.dispatch;
+  var game = state.game;
+  // TODO allow selecting eggs, larva, pupa
 
+  var selectedAnts = getSelectedAntIDs(game).map(function (id) {
+    return game.entities[id];
+  });
+  var antCards = selectedAnts.map(function (ant) {
+    return React.createElement(AntCard, { state: state, ant: ant, dispatch: dispatch, key: 'antCard_' + ant.id });
+  });
   return React.createElement(
     'div',
     {
@@ -1990,7 +2473,7 @@ function Sidebar(props) {
     'Left-click and drag will:',
     React.createElement(RadioPicker, {
       options: ['SELECT', 'MARK', 'CREATE_LOCATION'],
-      selected: state.game.userMode,
+      selected: game.userMode,
       onChange: function onChange(userMode) {
         return dispatch({ type: 'SET_USER_MODE', userMode: userMode });
       }
@@ -1998,16 +2481,208 @@ function Sidebar(props) {
     'Right-click will cause selected ants to:',
     React.createElement(RadioPicker, {
       options: ['PICKUP', 'EAT', 'FEED'],
-      selected: state.game.antMode,
+      selected: game.antMode,
       onChange: function onChange(antMode) {
         return dispatch({ type: 'SET_ANT_MODE', antMode: antMode });
       }
+    }),
+    React.createElement(
+      'div',
+      {
+        style: {
+          border: '1px solid black'
+        }
+      },
+      React.createElement(
+        'div',
+        null,
+        React.createElement(
+          'b',
+          null,
+          'Selected Ants'
+        )
+      ),
+      'Assign to All Selected Ants:',
+      React.createElement(Dropdown, {
+        options: game.tasks.map(function (t) {
+          return t.name;
+        }),
+        selected: 'NONE',
+        onChange: function onChange(nextName) {
+          if (selectedAnts.length == 0) return;
+          var nextTask = game.tasks.filter(function (t) {
+            return t.name === nextName;
+          })[0];
+          dispatch({ type: 'ASSIGN_TASK', task: nextTask, ants: getSelectedAntIDs(game) });
+        }
+      }),
+      antCards,
+      React.createElement(TaskEditor, props)
+    )
+  );
+}
+
+function TaskEditor(props) {
+  var state = props.state,
+      dispatch = props.dispatch;
+  var game = state.game;
+
+  var _useState = useState('New Task'),
+      _useState2 = _slicedToArray(_useState, 2),
+      taskName = _useState2[0],
+      setTaskName = _useState2[1];
+
+  var editingTask = useMemo(function () {
+    return taskName === 'New Task' ? { name: 'New Task', repeating: false, behaviorQueue: [] } : game.tasks.filter(function (t) {
+      return t.name === taskName;
+    })[0];
+  }, [taskName]);
+  return React.createElement(
+    'div',
+    {
+      className: 'taskEditor',
+      style: {
+        border: '1px solid black'
+      }
+    },
+    React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'b',
+        null,
+        'Task Editor'
+      )
+    ),
+    'Edit Task: ',
+    React.createElement(Dropdown, {
+      options: ['New Task'].concat(game.tasks.map(function (t) {
+        return t.name;
+      })),
+      selected: taskName,
+      onChange: setTaskName
+    }),
+    React.createElement(TaskCard, {
+      state: state,
+      dispatch: dispatch,
+      newTask: taskName === 'New Task',
+      task: editingTask
     })
   );
 }
 
 module.exports = Sidebar;
-},{"../config":1,"./components/Button.react":24,"./components/RadioPicker.react":25,"react":41}],24:[function(require,module,exports){
+},{"../config":1,"../selectors/selectors":12,"./AntCard.react":19,"./TaskCard.react":26,"./components/Button.react":27,"./components/Dropdown.react":29,"./components/RadioPicker.react":30,"react":46}],26:[function(require,module,exports){
+'use strict';
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var React = require('react');
+
+var _require = require('../config'),
+    config = _require.config;
+
+var Button = require('./components/Button.react');
+var Checkbox = require('./components/Checkbox.react');
+var Dropdown = require('./components/Dropdown.react');
+var useState = React.useState,
+    useEffect = React.useEffect;
+
+var BehaviorCard = require('./BehaviorCard.react');
+
+function TaskCard(props) {
+  var state = props.state,
+      dispatch = props.dispatch,
+      task = props.task,
+      newTask = props.newTask;
+
+  var _useState = useState(task.repeating),
+      _useState2 = _slicedToArray(_useState, 2),
+      repeating = _useState2[0],
+      setRepeating = _useState2[1];
+
+  var _useState3 = useState(task.name),
+      _useState4 = _slicedToArray(_useState3, 2),
+      taskName = _useState4[0],
+      setTaskName = _useState4[1];
+  // "deep-copy" behaviorQueue so that BehaviorCards can mutate it
+
+
+  var _useState5 = useState(task.behaviorQueue.map(function (b) {
+    return JSON.parse(JSON.stringify(b));
+  })),
+      _useState6 = _slicedToArray(_useState5, 2),
+      behaviorQueue = _useState6[0],
+      setBehaviorQueue = _useState6[1];
+
+  useEffect(function () {
+    setRepeating(task.repeating);
+    setTaskName(task.name);
+    setBehaviorQueue(task.behaviorQueue.map(function (b) {
+      return JSON.parse(JSON.stringify(b));
+    }));
+  }, [task.name, task.repeating, task.behaviorQueue]);
+
+  var behaviors = behaviorQueue.map(function (b, i) {
+    return React.createElement(
+      'div',
+      { key: 'behavior_' + i },
+      React.createElement(BehaviorCard, { state: state, dispatch: dispatch, behavior: b })
+    );
+  });
+  return React.createElement(
+    'div',
+    {
+      className: 'taskCard',
+      style: {}
+    },
+    React.createElement(
+      'div',
+      null,
+      'Name:',
+      React.createElement('input', { type: 'text',
+        placeholder: 'Task Name',
+        onChange: function onChange(ev) {
+          setTaskName(ev.target.value);
+        },
+        value: taskName })
+    ),
+    React.createElement(
+      'div',
+      null,
+      'Repeating:',
+      React.createElement(Checkbox, { checked: repeating, onChange: setRepeating })
+    ),
+    React.createElement(
+      'div',
+      null,
+      'BehaviorQueue:',
+      React.createElement(
+        'div',
+        null,
+        behaviors
+      ),
+      React.createElement(Button, {
+        label: 'Add Behavior',
+        onClick: function onClick() {}
+      })
+    ),
+    React.createElement(Button, {
+      label: newTask || taskName != task.name ? 'Create Task' : 'Update Task',
+      onClick: function onClick() {
+        var editedTask = { name: taskName, repeating: repeating, behaviorQueue: behaviorQueue };
+        if (newTask || taskName != task.name) {
+          dispatch({ type: 'CREATE_TASK', task: editedTask });
+        } else {
+          dispatch({ type: 'UPDATE_TASK', task: editedTask });
+        }
+      }
+    })
+  );
+}
+
+module.exports = TaskCard;
+},{"../config":1,"./BehaviorCard.react":20,"./components/Button.react":27,"./components/Checkbox.react":28,"./components/Dropdown.react":29,"react":46}],27:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -2074,7 +2749,76 @@ var Button = function (_React$Component) {
 }(React.Component);
 
 module.exports = Button;
-},{"React":32}],25:[function(require,module,exports){
+},{"React":37}],28:[function(require,module,exports){
+'use strict';
+
+var React = require('React');
+
+/**
+ * Props:
+ *  checked: boolean
+ *  onChange: (value: boolean) => void
+ */
+function Checkbox(props) {
+  var checked = props.checked,
+      _onChange = props.onChange;
+
+  return React.createElement('input', {
+    type: 'checkbox',
+    checked: checked,
+    onChange: function onChange() {
+      _onChange(!checked);
+    }
+  });
+}
+
+module.exports = Checkbox;
+},{"React":37}],29:[function(require,module,exports){
+'use strict';
+
+var React = require('React');
+
+/**
+ * Props:
+ * options: Array<string>
+ * selected: string // which option is selected
+ * onChange: (string) => void
+ */
+var Dropdown = function Dropdown(props) {
+  var options = props.options,
+      selected = props.selected,
+      _onChange = props.onChange;
+
+  var optionTags = options.map(function (option) {
+    return React.createElement(
+      'option',
+      { key: 'option_' + option, value: option },
+      option
+    );
+  });
+  optionTags.push(React.createElement(
+    'option',
+    { key: 'option_null', value: null },
+    'NONE'
+  ));
+
+  return React.createElement(
+    'select',
+    {
+      onChange: function onChange(ev) {
+        var val = ev.target.value;
+        if (val != 'NONE') {
+          _onChange(val);
+        }
+      },
+      value: selected
+    },
+    optionTags
+  );
+};
+
+module.exports = Dropdown;
+},{"React":37}],30:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -2163,7 +2907,7 @@ var RadioPicker = function (_React$Component) {
 }(React.Component);
 
 module.exports = RadioPicker;
-},{"React":32}],26:[function(require,module,exports){
+},{"React":37}],31:[function(require,module,exports){
 'use strict';
 
 var _require = require('../config'),
@@ -2196,7 +2940,7 @@ module.exports = {
   canvasToGrid: canvasToGrid,
   gridToCanvas: gridToCanvas
 };
-},{"../config":1,"../utils/vectors":29}],27:[function(require,module,exports){
+},{"../config":1,"../utils/vectors":34}],32:[function(require,module,exports){
 "use strict";
 
 var invariant = function invariant(condition, message) {
@@ -2206,7 +2950,7 @@ var invariant = function invariant(condition, message) {
 };
 
 module.exports = { invariant: invariant };
-},{}],28:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 "use strict";
 
 var floor = Math.floor,
@@ -2253,7 +2997,7 @@ module.exports = {
   oneOf: oneOf,
   deleteFromArray: deleteFromArray
 };
-},{}],29:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 "use strict";
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -2374,7 +3118,7 @@ module.exports = {
   floor: floor,
   ceil: ceil
 };
-},{}],30:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 (function (process){
 /** @license React v16.12.0
  * react.development.js
@@ -4698,7 +5442,7 @@ module.exports = react;
 }
 
 }).call(this,require('_process'))
-},{"_process":51,"object-assign":33,"prop-types/checkPropTypes":34}],31:[function(require,module,exports){
+},{"_process":56,"object-assign":38,"prop-types/checkPropTypes":39}],36:[function(require,module,exports){
 /** @license React v16.12.0
  * react.production.min.js
  *
@@ -4725,7 +5469,7 @@ b,c){return W().useImperativeHandle(a,b,c)},useDebugValue:function(){},useLayout
 if(null!=b){void 0!==b.ref&&(g=b.ref,l=J.current);void 0!==b.key&&(d=""+b.key);if(a.type&&a.type.defaultProps)var f=a.type.defaultProps;for(k in b)K.call(b,k)&&!L.hasOwnProperty(k)&&(e[k]=void 0===b[k]&&void 0!==f?f[k]:b[k])}var k=arguments.length-2;if(1===k)e.children=c;else if(1<k){f=Array(k);for(var m=0;m<k;m++)f[m]=arguments[m+2];e.children=f}return{$$typeof:p,type:a.type,key:d,ref:g,props:e,_owner:l}},createFactory:function(a){var b=M.bind(null,a);b.type=a;return b},isValidElement:N,version:"16.12.0",
 __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED:{ReactCurrentDispatcher:I,ReactCurrentBatchConfig:{suspense:null},ReactCurrentOwner:J,IsSomeRendererActing:{current:!1},assign:h}},Y={default:X},Z=Y&&X||Y;module.exports=Z.default||Z;
 
-},{"object-assign":33}],32:[function(require,module,exports){
+},{"object-assign":38}],37:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -4736,7 +5480,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 }).call(this,require('_process'))
-},{"./cjs/react.development.js":30,"./cjs/react.production.min.js":31,"_process":51}],33:[function(require,module,exports){
+},{"./cjs/react.development.js":35,"./cjs/react.production.min.js":36,"_process":56}],38:[function(require,module,exports){
 /*
 object-assign
 (c) Sindre Sorhus
@@ -4828,7 +5572,7 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 	return to;
 };
 
-},{}],34:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -4934,7 +5678,7 @@ checkPropTypes.resetWarningCache = function() {
 module.exports = checkPropTypes;
 
 }).call(this,require('_process'))
-},{"./lib/ReactPropTypesSecret":35,"_process":51}],35:[function(require,module,exports){
+},{"./lib/ReactPropTypesSecret":40,"_process":56}],40:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -4948,7 +5692,7 @@ var ReactPropTypesSecret = 'SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED';
 
 module.exports = ReactPropTypesSecret;
 
-},{}],36:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 (function (process){
 /** @license React v16.12.0
  * react-dom.development.js
@@ -32747,7 +33491,7 @@ module.exports = reactDom;
 }
 
 }).call(this,require('_process'))
-},{"_process":51,"object-assign":33,"prop-types/checkPropTypes":34,"react":41,"scheduler":47,"scheduler/tracing":48}],37:[function(require,module,exports){
+},{"_process":56,"object-assign":38,"prop-types/checkPropTypes":39,"react":46,"scheduler":52,"scheduler/tracing":53}],42:[function(require,module,exports){
 /** @license React v16.12.0
  * react-dom.production.min.js
  *
@@ -33039,7 +33783,7 @@ xe,ye,Ca.injectEventPluginsByName,fa,Sc,function(a){ya(a,Rc)},cb,db,Pd,Ba,Sj,{cu
 (function(a){var b=a.findFiberByHostInstance;return ok(n({},a,{overrideHookState:null,overrideProps:null,setSuspenseHandler:null,scheduleUpdate:null,currentDispatcherRef:Ea.ReactCurrentDispatcher,findHostInstanceByFiber:function(a){a=ic(a);return null===a?null:a.stateNode},findFiberByHostInstance:function(a){return b?b(a):null},findHostInstancesForRefresh:null,scheduleRefresh:null,scheduleRoot:null,setRefreshHandler:null,getCurrentFiber:null}))})({findFiberByHostInstance:Fc,bundleType:0,version:"16.12.0",
 rendererPackageName:"react-dom"});var Dk={default:Ck},Ek=Dk&&Ck||Dk;module.exports=Ek.default||Ek;
 
-},{"object-assign":33,"react":41,"scheduler":47}],38:[function(require,module,exports){
+},{"object-assign":38,"react":46,"scheduler":52}],43:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -33081,13 +33825,13 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 }).call(this,require('_process'))
-},{"./cjs/react-dom.development.js":36,"./cjs/react-dom.production.min.js":37,"_process":51}],39:[function(require,module,exports){
-arguments[4][30][0].apply(exports,arguments)
-},{"_process":51,"dup":30,"object-assign":33,"prop-types/checkPropTypes":34}],40:[function(require,module,exports){
-arguments[4][31][0].apply(exports,arguments)
-},{"dup":31,"object-assign":33}],41:[function(require,module,exports){
-arguments[4][32][0].apply(exports,arguments)
-},{"./cjs/react.development.js":39,"./cjs/react.production.min.js":40,"_process":51,"dup":32}],42:[function(require,module,exports){
+},{"./cjs/react-dom.development.js":41,"./cjs/react-dom.production.min.js":42,"_process":56}],44:[function(require,module,exports){
+arguments[4][35][0].apply(exports,arguments)
+},{"_process":56,"dup":35,"object-assign":38,"prop-types/checkPropTypes":39}],45:[function(require,module,exports){
+arguments[4][36][0].apply(exports,arguments)
+},{"dup":36,"object-assign":38}],46:[function(require,module,exports){
+arguments[4][37][0].apply(exports,arguments)
+},{"./cjs/react.development.js":44,"./cjs/react.production.min.js":45,"_process":56,"dup":37}],47:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -33763,7 +34507,7 @@ exports.compose = compose;
 exports.createStore = createStore;
 
 }).call(this,require('_process'))
-},{"_process":51,"symbol-observable":49}],43:[function(require,module,exports){
+},{"_process":56,"symbol-observable":54}],48:[function(require,module,exports){
 (function (process){
 /** @license React v0.18.0
  * scheduler-tracing.development.js
@@ -34190,7 +34934,7 @@ exports.unstable_unsubscribe = unstable_unsubscribe;
 }
 
 }).call(this,require('_process'))
-},{"_process":51}],44:[function(require,module,exports){
+},{"_process":56}],49:[function(require,module,exports){
 /** @license React v0.18.0
  * scheduler-tracing.production.min.js
  *
@@ -34202,7 +34946,7 @@ exports.unstable_unsubscribe = unstable_unsubscribe;
 
 'use strict';Object.defineProperty(exports,"__esModule",{value:!0});var b=0;exports.__interactionsRef=null;exports.__subscriberRef=null;exports.unstable_clear=function(a){return a()};exports.unstable_getCurrent=function(){return null};exports.unstable_getThreadID=function(){return++b};exports.unstable_trace=function(a,d,c){return c()};exports.unstable_wrap=function(a){return a};exports.unstable_subscribe=function(){};exports.unstable_unsubscribe=function(){};
 
-},{}],45:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 (function (process){
 /** @license React v0.18.0
  * scheduler.development.js
@@ -35110,7 +35854,7 @@ exports.unstable_Profiling = unstable_Profiling;
 }
 
 }).call(this,require('_process'))
-},{"_process":51}],46:[function(require,module,exports){
+},{"_process":56}],51:[function(require,module,exports){
 /** @license React v0.18.0
  * scheduler.production.min.js
  *
@@ -35134,7 +35878,7 @@ exports.unstable_scheduleCallback=function(a,b,c){var d=exports.unstable_now();i
 exports.unstable_wrapCallback=function(a){var b=R;return function(){var c=R;R=b;try{return a.apply(this,arguments)}finally{R=c}}};exports.unstable_getCurrentPriorityLevel=function(){return R};exports.unstable_shouldYield=function(){var a=exports.unstable_now();V(a);var b=L(N);return b!==Q&&null!==Q&&null!==b&&null!==b.callback&&b.startTime<=a&&b.expirationTime<Q.expirationTime||k()};exports.unstable_requestPaint=Z;exports.unstable_continueExecution=function(){T||S||(T=!0,f(X))};
 exports.unstable_pauseExecution=function(){};exports.unstable_getFirstCallbackNode=function(){return L(N)};exports.unstable_Profiling=null;
 
-},{}],47:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -35145,7 +35889,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 }).call(this,require('_process'))
-},{"./cjs/scheduler.development.js":45,"./cjs/scheduler.production.min.js":46,"_process":51}],48:[function(require,module,exports){
+},{"./cjs/scheduler.development.js":50,"./cjs/scheduler.production.min.js":51,"_process":56}],53:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -35156,7 +35900,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 }).call(this,require('_process'))
-},{"./cjs/scheduler-tracing.development.js":43,"./cjs/scheduler-tracing.production.min.js":44,"_process":51}],49:[function(require,module,exports){
+},{"./cjs/scheduler-tracing.development.js":48,"./cjs/scheduler-tracing.production.min.js":49,"_process":56}],54:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -35188,7 +35932,7 @@ if (typeof self !== 'undefined') {
 var result = (0, _ponyfill2['default'])(root);
 exports['default'] = result;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./ponyfill.js":50}],50:[function(require,module,exports){
+},{"./ponyfill.js":55}],55:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -35212,7 +35956,7 @@ function symbolObservablePonyfill(root) {
 
 	return result;
 };
-},{}],51:[function(require,module,exports){
+},{}],56:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 

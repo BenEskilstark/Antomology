@@ -19,22 +19,25 @@ var sin = Math.sin,
 var _require3 = require('./gameReducer'),
     gameReducer = _require3.gameReducer;
 
-var _require4 = require('../utils/errors'),
-    invariant = _require4.invariant;
+var _require4 = require('../state/tasks'),
+    createIdleTask = _require4.createIdleTask;
 
-var _require5 = require('../utils/helpers'),
-    randomIn = _require5.randomIn,
-    normalIn = _require5.normalIn,
-    oneOf = _require5.oneOf,
-    deleteFromArray = _require5.deleteFromArray;
+var _require5 = require('../utils/errors'),
+    invariant = _require5.invariant;
 
-var _require6 = require('../selectors/selectors'),
-    collides = _require6.collides,
-    collidesWith = _require6.collidesWith,
-    getNeighborhoodLocation = _require6.getNeighborhoodLocation,
-    getNeighborhoodEntities = _require6.getNeighborhoodEntities,
-    getEmptyNeighborPositions = _require6.getEmptyNeighborPositions,
-    getEntitiesByType = _require6.getEntitiesByType;
+var _require6 = require('../utils/helpers'),
+    randomIn = _require6.randomIn,
+    normalIn = _require6.normalIn,
+    oneOf = _require6.oneOf,
+    deleteFromArray = _require6.deleteFromArray;
+
+var _require7 = require('../selectors/selectors'),
+    collides = _require7.collides,
+    collidesWith = _require7.collidesWith,
+    getNeighborhoodLocation = _require7.getNeighborhoodLocation,
+    getNeighborhoodEntities = _require7.getNeighborhoodEntities,
+    getEmptyNeighborPositions = _require7.getEmptyNeighborPositions,
+    getEntitiesByType = _require7.getEntitiesByType;
 
 var tickReducer = function tickReducer(game, action) {
   switch (action.type) {
@@ -109,9 +112,12 @@ var performTask = function performTask(game, ant) {
   }
   var task = ant.task,
       taskIndex = ant.taskIndex;
+  // if ran off the end of the behavior queue, switch to idle task
 
   if (taskIndex >= task.behaviorQueue.length) {
-    return; // ran off the end of the behavior queue
+    ant.taskIndex = 0;
+    ant.task = createIdleTask();
+    return;
   }
   var behavior = task.behaviorQueue[taskIndex];
   var done = performBehavior(game, ant, behavior);
@@ -138,7 +144,7 @@ var performBehavior = function performBehavior(game, ant, behavior) {
         done = true;
         break;
       }
-    case 'CONDITIONAL':
+    case 'IF':
       {
         var childBehavior = behavior.behavior;
         if (evaluateCondition(game, ant, behavior.condition)) {
@@ -152,7 +158,7 @@ var performBehavior = function performBehavior(game, ant, behavior) {
         // }
         break;
       }
-    case 'DO_WHILE':
+    case 'WHILE':
       {
         var _childBehavior = behavior.behavior;
         if (evaluateCondition(game, ant, behavior.condition)) {
@@ -273,33 +279,47 @@ var performAction = function performAction(game, ant, action) {
   var object = payload.object;
 
   switch (action.type) {
+    case 'IDLE':
+      {
+        // unstack, similar to moving out of the way of placed dirt
+        var stackedAnts = collidesWith(ant, getEntitiesByType(game, ['ANT'])).filter(function (a) {
+          return a.id != ant.id;
+        });
+        if (stackedAnts.length > 0) {
+          var freePositions = getEmptyNeighborPositions(ant, getEntitiesByType(game, config.antBlockingEntities));
+          if (freePositions.length > 0) {
+            ant.position = oneOf(freePositions);
+          }
+        }
+        break;
+      }
     case 'MOVE':
       {
         var loc = object;
         if (object === 'RANDOM') {
           // randomly select loc based on free neighbors
-          var freePositions = getEmptyNeighborPositions(ant, getEntitiesByType(game, config.antBlockingEntities));
-          if (freePositions.length == 0) {
+          var _freePositions = getEmptyNeighborPositions(ant, getEntitiesByType(game, config.antBlockingEntities));
+          if (_freePositions.length == 0) {
             break; // can't move
           }
           // don't select previous position
-          freePositions = freePositions.filter(function (pos) {
+          _freePositions = _freePositions.filter(function (pos) {
             return pos.x != ant.prevPosition.x || pos.y != ant.prevPosition.y;
           });
-          if (freePositions.length == 0) {
+          if (_freePositions.length == 0) {
             // then previous position was removed, so fall back to it
             loc = { position: ant.prevPosition };
           } else {
             // don't cross colonyEntrance boundary
             var colEnt = game.entities[config.colonyEntrance].position;
-            freePositions = freePositions.filter(function (pos) {
+            _freePositions = _freePositions.filter(function (pos) {
               return !equals(pos, colEnt);
             });
-            if (freePositions.length == 0) {
+            if (_freePositions.length == 0) {
               // fall back to previous position
               loc = { position: ant.prevPosition };
             }
-            loc = { position: oneOf(freePositions) };
+            loc = { position: oneOf(_freePositions) };
           }
         }
         var distVec = subtract(loc.position, ant.position);
@@ -387,9 +407,9 @@ var performAction = function performAction(game, ant, action) {
           ant.holding.position = locationToPutdown.position;
           ant.holding = null;
           // move the ant out of the way
-          var _freePositions = getEmptyNeighborPositions(ant, getEntitiesByType(game, config.antBlockingEntities));
-          if (_freePositions.length > 0) {
-            ant.position = _freePositions[0];
+          var _freePositions2 = getEmptyNeighborPositions(ant, getEntitiesByType(game, config.antBlockingEntities));
+          if (_freePositions2.length > 0) {
+            ant.position = _freePositions2[0];
           }
         }
         break;

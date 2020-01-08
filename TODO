@@ -1,13 +1,19 @@
 
  - - - - - - TODO - - - - - -
- - add sidebar card for selected ant statuses
- - allow assigning tasks to selected ants via UI
+ - UI for editing behaviors/tasks
+    - remove function inside SWITCH_TASK behavior
+    - implement Add Behavior button in TaskCard
+    - test every interaction
+ - prevent ants from moving off-screen
+ - Ant egg/larva/pupa life-cycles
 
  - - - - - - NEXT - - - - - -
- - have ants un-stack in a sensible way
  - switch dead ants to their own entity type
+ - RANDOM move behavior for staying inside a location
  - ant calories should only go down when they do something
  - UI for naming locations, name of location floating in space
+
+ - - - - -  LATER - - - - - -
  - A*-like for ants moving towards location
  - implement pan/zoom with grid-to-canvas size conversion
  - add background layer
@@ -35,7 +41,6 @@
     - in keyboardControlSystem/onmousedown for what was right clicked on
     - in selectors/getFreeNeighborPositions
  - get optional chaining working
- - switch UI to react hooks
  - implement mouse state for tracking mouse up, down, handling drag
 
 
@@ -44,6 +49,9 @@
  - ants won't move to a square one off from them and always pick up diagonally
  - blueprint doesn't allow simple click, only drag
  - ants consume entire food on click and not just their configured amount
+ - update Go To Clicked Location to always point at last location instead of first
+ - two ants can eat the same food at the same time
+ - selection marquee doesn't work 100% from every angle
 
 
  - - - - - - DONE - - - - - -
@@ -99,3 +107,9 @@
  - distinguish between ants picking up food and ants eating food via UI
  - preview for location creation while you drag
  - implement marquee selection
+ - add sidebar card for selected ant statuses
+ - allow assigning tasks to selected ants via UI
+ - have ants un-stack in a sensible way
+ - visually distinguish queen from workers
+ - Add a X to the AntCard to deselect it
+ - AntCard should call out when ants are hungry

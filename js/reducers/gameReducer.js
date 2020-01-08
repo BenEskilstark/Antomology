@@ -56,11 +56,23 @@ const gameReducer = (game: GameState, action: Action): GameState => {
         tasks: [...game.tasks, task],
       };
     }
+    case 'UPDATE_TASK': {
+      const {task} = action;
+      const oldTask = game.tasks.filter(t => t.name === task.name)[0];
+      oldTask.repeating = task.repeating;
+      oldTask.behaviorQueue = task.behaviorQueue;
+      return game;
+    }
     case 'ASSIGN_TASK': {
       const {task, ants} = action;
       for (const id of ants) {
         game.entities[id].task = task;
         game.entities[id].taskIndex = 0;
+      }
+      // add the task to the task array
+      const taskAdded = game.tasks.filter(t => t.name === task.name).length > 0;
+      if (!taskAdded) {
+        game.tasks.push(task);
       }
       return game;
     }

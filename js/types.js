@@ -159,23 +159,23 @@ export type Condition = {
 
 export type DoActionBehavior = {
   type: 'DO_ACTION',
-  action: AntActionType,
+  action: AntAction,
 };
 export type ConditionalBehavior = {
-  type: 'CONDITIONAL',
+  type: 'IF',
   condition: Condition,
   behavior: Behavior,
   elseBehavior: ?Behavior,
 };
 // NOTE: implementation is just a regular while, reads better as do-while imo
 export type DoWhileBehavior = {
-  type: 'DO_WHILE',
+  type: 'WHILE',
   condition: Condition,
   behavior: Behavior,
 };
 export type SwitchToTaskBehavior = {
   type: 'SWITCH_TASK',
-  task: () => Task, // create the task here to prevent infinite loops
+  task: (game: GameState) => Task, // create the task here to prevent infinite loops
 };
 export type Behavior =
   DoActionBehavior |
@@ -204,8 +204,8 @@ export type Action =
   {type: 'CREATE_ENTITY', entity: Entity} |
   {type: 'SET_SELECTED_ENTITIES', entityIDs: Array<EntityID>} |
   {type: 'DESTROY_ENTITY', id: EntityID} |
+  {type: 'UPDATE_TASK', task: Task, originalName: string} |
   {type: 'CREATE_TASK', task: Task} |
-  // NOTE: doing it this way means you can assign an ant a task that is not in the task array
   {type: 'ASSIGN_TASK', task: Task, ants: Array<EntityID>} |
   {type: 'SET_USER_MODE', userMode: UserMode} |
   {type: 'SET_ANT_MODE', antMode: AntMode} |

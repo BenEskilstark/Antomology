@@ -41,6 +41,7 @@ var rootReducer = function rootReducer(state, action) {
     case 'DESTROY_ANT':
     case 'SET_SELECTED_ENTITIES':
     case 'CREATE_TASK':
+    case 'UPDATE_TASK':
     case 'ASSIGN_TASK':
     case 'SET_USER_MODE':
     case 'SET_ANT_MODE':

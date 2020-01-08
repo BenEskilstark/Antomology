@@ -70,9 +70,20 @@ var gameReducer = function gameReducer(game, action) {
           tasks: [].concat(_toConsumableArray(game.tasks), [task])
         });
       }
+    case 'UPDATE_TASK':
+      {
+        var _task = action.task;
+
+        var oldTask = game.tasks.filter(function (t) {
+          return t.name === _task.name;
+        })[0];
+        oldTask.repeating = _task.repeating;
+        oldTask.behaviorQueue = _task.behaviorQueue;
+        return game;
+      }
     case 'ASSIGN_TASK':
       {
-        var _task = action.task,
+        var _task2 = action.task,
             ants = action.ants;
         var _iteratorNormalCompletion = true;
         var _didIteratorError = false;
@@ -82,9 +93,10 @@ var gameReducer = function gameReducer(game, action) {
           for (var _iterator = ants[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
             var _id2 = _step.value;
 
-            game.entities[_id2].task = _task;
+            game.entities[_id2].task = _task2;
             game.entities[_id2].taskIndex = 0;
           }
+          // add the task to the task array
         } catch (err) {
           _didIteratorError = true;
           _iteratorError = err;
@@ -100,6 +112,12 @@ var gameReducer = function gameReducer(game, action) {
           }
         }
 
+        var taskAdded = game.tasks.filter(function (t) {
+          return t.name === _task2.name;
+        }).length > 0;
+        if (!taskAdded) {
+          game.tasks.push(_task2);
+        }
         return game;
       }
     case 'SET_USER_MODE':

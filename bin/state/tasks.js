@@ -25,6 +25,14 @@ var createDoAction = function createDoAction(type, object) {
   };
 };
 
+var createIdleTask = function createIdleTask() {
+  return {
+    name: 'Idle',
+    repeating: true,
+    behaviorQueue: [createDoAction('IDLE', null)]
+  };
+};
+
 ///////////////////////////////////////////////////////////////
 // move
 ///////////////////////////////////////////////////////////////
@@ -55,7 +63,7 @@ var createRandomMoveTask = function createRandomMoveTask() {
 
 var createGoToLocationBehavior = function createGoToLocationBehavior(location) {
   return {
-    type: 'DO_WHILE',
+    type: 'WHILE',
     condition: {
       type: 'LOCATION',
       not: true,
@@ -83,7 +91,7 @@ var getLocation = function getLocation(game, locationID) {
 
 var createFindBlueprintBehavior = function createFindBlueprintBehavior() {
   return {
-    type: 'DO_WHILE',
+    type: 'WHILE',
     condition: {
       type: 'NEIGHBORING',
       not: true,
@@ -110,7 +118,7 @@ var createPickupBlueprintBehavior = function createPickupBlueprintBehavior() {
 
 var createFindDropOffLocationBehavior = function createFindDropOffLocationBehavior() {
   return {
-    type: 'DO_WHILE',
+    type: 'WHILE',
     condition: {
       type: 'RANDOM',
       not: false,
@@ -149,9 +157,9 @@ var createPickupBlockerBehavior = function createPickupBlockerBehavior() {
 
 var createDigBlueprintTask = function createDigBlueprintTask(game) {
   return {
-    name: 'Find Blueprint',
+    name: 'Dig Out Blueprint',
     repeating: true,
-    behaviorQueue: [createFindBlueprintBehavior(), createPickupBlueprintBehavior(), createGoToLocationBehavior(getIthLocation(game, 0)), createFindDropOffLocationBehavior(), createPutDownBehavior(), {
+    behaviorQueue: [createGoToLocationBehavior(getIthLocation(game, 0)), createFindBlueprintBehavior(), createPickupBlueprintBehavior(), createGoToLocationBehavior(getIthLocation(game, 0)), createFindDropOffLocationBehavior(), createPutDownBehavior(), {
       type: 'SWITCH_TASK',
       task: createGoToColonyEntranceWithBlockerTask
     }]
@@ -163,7 +171,7 @@ var createGoToColonyEntranceWithBlockerTask = function createGoToColonyEntranceW
     name: 'Return to Entrance with Blocker',
     repeating: false,
     behaviorQueue: [{
-      type: 'DO_WHILE',
+      type: 'WHILE',
       condition: {
         type: 'LOCATION',
         not: true,
@@ -173,7 +181,7 @@ var createGoToColonyEntranceWithBlockerTask = function createGoToColonyEntranceW
         }
       },
       behavior: {
-        type: 'CONDITIONAL',
+        type: 'IF',
         condition: {
           type: 'BLOCKED',
           not: true,
@@ -235,9 +243,11 @@ var tasks = {
   getIthLocation: getIthLocation,
   createMoveBehavior: createMoveBehavior,
   createRandomMoveTask: createRandomMoveTask,
+  createDigBlueprintTask: createDigBlueprintTask,
   sendAllAntsToLocation: sendAllAntsToLocation,
   sendAllAntsToBlueprint: sendAllAntsToBlueprint,
-  createDoAction: createDoAction
+  createDoAction: createDoAction,
+  createIdleTask: createIdleTask
 };
 window.tasks = tasks;
 

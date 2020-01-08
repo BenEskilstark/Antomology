@@ -17,7 +17,7 @@ var config = {
   colonyEntrance: 0,
 
   // ant-specific values
-  maxSelectableAnts: 2,
+  maxSelectableAnts: 4,
   antPickupEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'DEAD_ANT'],
   antBlockingEntities: ['DIRT', 'FOOD'],
   antEatEntities: ['FOOD', 'DEAD_ANT'],
