@@ -46,3 +46,7 @@ Date  Time Started  Time Spent  Work Completed
                                 Ants unstack from eachother when idle
 
 1/7      9:30am     4hr         Implement most of a bare bones task/behavior editor
+
+1/8      9:45am     30min       AddBehavior button
+         2:50pm     1hr 30min   Add ant life cycle of egg/larva/pupa + implement feeding
+

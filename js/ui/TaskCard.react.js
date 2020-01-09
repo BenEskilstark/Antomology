@@ -66,7 +66,17 @@ function TaskCard(props: Props): React.Node {
         <div>{behaviors}</div>
         <Button
           label="Add Behavior"
-          onClick={() => {}}
+          onClick={() => {
+            setBehaviorQueue(behaviorQueue.concat({
+              type: 'DO_ACTION',
+              action: {
+                type: 'IDLE',
+                payload: {
+                  object: null,
+                },
+              },
+            }));
+          }}
         />
       </div>
       <Button

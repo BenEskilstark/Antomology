@@ -89,7 +89,17 @@ function TaskCard(props) {
       ),
       React.createElement(Button, {
         label: 'Add Behavior',
-        onClick: function onClick() {}
+        onClick: function onClick() {
+          setBehaviorQueue(behaviorQueue.concat({
+            type: 'DO_ACTION',
+            action: {
+              type: 'IDLE',
+              payload: {
+                object: null
+              }
+            }
+          }));
+        }
       })
     ),
     React.createElement(Button, {

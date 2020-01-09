@@ -1,11 +1,13 @@
 
  - - - - - - TODO - - - - - -
- - UI for editing behaviors/tasks
-    - remove function inside SWITCH_TASK behavior
-    - implement Add Behavior button in TaskCard
-    - test every interaction
+ - test every interaction
+ - button for exporting tasks as json
+ - button for importing task jsons
  - prevent ants from moving off-screen
- - Ant egg/larva/pupa life-cycles
+ - Make larva, eggs, pupa, selectable
+ - egg,larva, pupa UI cards
+ - prioritize feeding larva
+ - Call out ants near death of old age
 
  - - - - - - NEXT - - - - - -
  - switch dead ants to their own entity type
@@ -29,9 +31,10 @@
    the outer condition is true
  - tasks need a "parent" task or else switching tasks within a repeating task won't repeat
  - get flow working
+ - as long as we're treating locations/tasks uniquely by name, store only those names
  - cached entityID arrays in state should be the same as the entityType
  - better init for systems
- - split gameReducer into entityReducer and antReducer and gameReducer
+ - split gameReducer into entityReducer, antReducer, gameReducer, and mouseReducer
  - state --> game where applicable
  - using collides selector for everything makes optimization harder...
     - in tickReducer/performAction for moves being possible
@@ -41,7 +44,6 @@
     - in keyboardControlSystem/onmousedown for what was right clicked on
     - in selectors/getFreeNeighborPositions
  - get optional chaining working
- - implement mouse state for tracking mouse up, down, handling drag
 
 
  - - - - - - BUGS - - - - - -
@@ -113,3 +115,8 @@
  - visually distinguish queen from workers
  - Add a X to the AntCard to deselect it
  - AntCard should call out when ants are hungry
+
+ - UI for editing behaviors/tasks
+    - remove function inside SWITCH_TASK behavior
+    - implement Add Behavior button in TaskCard
+ - Ant egg/larva/pupa life-cycles

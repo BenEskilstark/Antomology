@@ -200,7 +200,7 @@ var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
         elseBehavior: putdownClicked
       });
     } else if (state.game.antMode === 'FEED') {
-      // TODO implement ants feeding each other
+      task.behaviorQueue.push(createDoAction('FEED', null));
     }
     dispatch({
       type: 'ASSIGN_TASK',

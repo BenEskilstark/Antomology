@@ -47,7 +47,7 @@ function BehaviorCard(props) {
     subjects = state.game.tasks.map(function (t) {
       return t.name;
     });
-    // selectedSubject = behavior.task(state.game).name;
+    selectedSubject = behavior.task;
   }
   return React.createElement(
     'div',
@@ -113,12 +113,7 @@ function BehaviorCard(props) {
             }
           };
         } else if (newType === 'SWITCH_TASK') {
-          var newTask = state.game.tasks.filter(function (t) {
-            return t.name === 'Idle';
-          })[0];
-          newBehavior.task = function () {
-            return newTask;
-          };
+          newBehavior.task = 'Idle';
         }
         setBehavior(newBehavior);
       }
@@ -129,15 +124,10 @@ function BehaviorCard(props) {
       onChange: function onChange(nextSubject) {
         if (behavior.type === 'DO_ACTION') {
           behavior.action.type = nextSubject;
-          if (nextSubject === 'MOVE') {
-            // behavior.payload.object = 'RANDOM';
-          }
         } else if (behavior.type === 'IF' || behavior.type === 'WHILE') {
           behavior.condition.type = nextSubject;
         } else {
-          behavior.task = state.game.tasks.filter(function (t) {
-            return t.name === nextSubject;
-          })[0];
+          behavior.task = nextSubject;
         }
         setBehavior(behavior);
       }

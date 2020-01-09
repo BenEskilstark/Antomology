@@ -27,6 +27,15 @@ var gameReducer = function gameReducer(game, action) {
           case 'FOOD':
             game.food.push(entity.id);
             break;
+          case 'EGG':
+            game.eggs.push(entity.id);
+            break;
+          case 'LARVA':
+            game.larva.push(entity.id);
+            break;
+          case 'PUPA':
+            game.pupa.push(entity.id);
+            break;
         }
         return game;
       }

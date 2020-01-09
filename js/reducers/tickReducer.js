@@ -20,6 +20,10 @@ const {
   getEmptyNeighborPositions,
   getEntitiesByType,
 } = require('../selectors/selectors');
+const {makeEgg} = require('../entities/egg');
+const {makeLarva} = require('../entities/larva');
+const {makePupa} = require('../entities/pupa');
+const {makeAnt} = require('../entities/ant');
 
 import type {
   GameState, Entity, Action, Ant, Behavior, Condition, Task, AntAction, AntActionType
@@ -63,6 +67,51 @@ const handleTick = (game: GameState): GameState => {
     // ant starvation
     if (ant.calories <= 0) {
       ant.alive = false;
+    }
+  }
+
+  // update eggs
+  for (const id of game.eggs) {
+    const egg = game.entities[id];
+    egg.age += 1;
+    if (egg.age > config.eggHatchAge) {
+      game.entities[id] = {...makeLarva(egg.position, egg.subType), id};
+      game.larva.push(id);
+      game.eggs = game.eggs.filter(e => e != id);
+    }
+  }
+
+  // update larva
+  for (const id of game.larva) {
+    const larva = game.entities[id];
+    larva.age += 1;
+    if (!larva.alive) {
+      continue;
+    }
+
+    larva.calories -= 1;
+    // larva starvation
+    if (larva.calories <= 0) {
+      larva.alive = false;
+      continue;
+    }
+
+    if (larva.calories >= config.larvaEndCalories) {
+      game.entities[id] = {...makePupa(larva.position, larva.subType), id};
+      game.pupa.push(id);
+      game.larva = game.larva.filter(e => e != id);
+    }
+
+  }
+
+  // update pupa
+  for (const id of game.pupa) {
+    const pupa = game.entities[id];
+    pupa.age += 1;
+    if (pupa.age > config.pupaHatchAge) {
+      game.entities[id] = {...makeAnt(pupa.position, pupa.subType), id};
+      game.ants.push(id);
+      game.pupa = game.pupa.filter(e => e != id);
     }
   }
 
@@ -130,7 +179,7 @@ const performBehavior = (game: GameState, ant: Ant, behavior: Behavior): boolean
       break;
     }
     case 'SWITCH_TASK': {
-      ant.task = behavior.task(game);
+      ant.task = game.tasks.filter(t => t.name === behavior.task)[0];
       // HACK: this sucks. done doesn't always propagate up particularly if
       // you switch tasks from inside a do-while
       ant.taskIndex = -1; // it's about to +1 in performTask
@@ -358,7 +407,7 @@ const performAction = (
       const neighborhood = getNeighborhoodLocation(locationToPutdown);
       const putDown = collidesWith(
         locationToPutdown,
-        getEntitiesByType(game, 'DIRT'),
+        getEntitiesByType(game, config.antBlockingEntities),
       );
       if (collides(ant, neighborhood) && ant.holding != null && putDown.length == 0) {
         ant.holding.position = locationToPutdown.position;
@@ -393,7 +442,20 @@ const performAction = (
       break;
     }
     case 'FEED': {
-      // TODO
+      // TODO: very similar to PUTDOWN
+      const neighborhood = getNeighborhoodLocation(ant);
+      const feedableEntities = collidesWith(
+        neighborhood,
+        getEntitiesByType(game, ['ANT', 'LARVA']),
+      ).filter(e => e.id != ant.id);
+      if (
+        ant.holding != null && ant.holding.type === 'FOOD' &&
+        feedableEntities.length > 0
+      ) {
+        const fedEntity = oneOf(feedableEntities);
+        fedEntity.calories += ant.holding.calories;
+        ant.holding = null;
+      }
       break;
     }
     case 'MARK': {
@@ -401,7 +463,25 @@ const performAction = (
       break;
     }
     case 'LAY': {
-      // TODO
+      if (ant.subType != 'QUEEN') {
+        break; // only queen lays eggs
+      }
+      const putDown = collidesWith(
+        ant,
+        getEntitiesByType(game, config.antBlockingEntities),
+      );
+      if (putDown.length == 0) {
+        const egg = makeEgg(ant.position, 'WORKER'); // TODO
+        game.entities[egg.id] = egg;
+        game.eggs.push(egg.id);
+        // move the ant out of the way
+        const freePositions = getEmptyNeighborPositions(
+          ant, getEntitiesByType(game, config.antBlockingEntities),
+        );
+        if (freePositions.length > 0) {
+          ant.position = freePositions[0];
+        }
+      }
       break;
     }
     case 'COMMUNICATE': {

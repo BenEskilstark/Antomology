@@ -36,7 +36,7 @@ function BehaviorCard(props: Props): React.Node {
     selectedSubject = behavior.condition.type;
   } else {
     subjects = state.game.tasks.map(t => t.name);
-    // selectedSubject = behavior.task(state.game).name;
+    selectedSubject = behavior.task;
   }
   return (
     <div
@@ -101,8 +101,7 @@ function BehaviorCard(props: Props): React.Node {
               },
             }
           } else if (newType === 'SWITCH_TASK') {
-            const newTask = state.game.tasks.filter(t => t.name === 'Idle')[0];
-            newBehavior.task = () => newTask;
+            newBehavior.task = 'Idle';
           }
           setBehavior(newBehavior);
         }}
@@ -113,13 +112,10 @@ function BehaviorCard(props: Props): React.Node {
         onChange={(nextSubject) => {
           if (behavior.type === 'DO_ACTION') {
             behavior.action.type = nextSubject;
-            if (nextSubject === 'MOVE') {
-              // behavior.payload.object = 'RANDOM';
-            }
           } else if (behavior.type === 'IF' || behavior.type === 'WHILE') {
             behavior.condition.type = nextSubject;
           } else {
-            behavior.task = state.game.tasks.filter(t => t.name === nextSubject)[0];
+            behavior.task = nextSubject;
           }
           setBehavior(behavior);
         }}

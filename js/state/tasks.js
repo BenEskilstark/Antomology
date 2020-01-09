@@ -39,6 +39,16 @@ const createIdleTask = (): Task => {
   }
 }
 
+const createLayEggTask = (): Task => {
+  return {
+    name: 'Lay Egg',
+    repeating: false,
+    behaviorQueue: [
+      createDoAction('LAY', null),
+    ],
+  };
+}
+
 ///////////////////////////////////////////////////////////////
 // move
 ///////////////////////////////////////////////////////////////
@@ -176,7 +186,7 @@ const createDigBlueprintTask = (game: GameState): Task => {
       createPutDownBehavior(),
       {
         type: 'SWITCH_TASK',
-        task: createGoToColonyEntranceWithBlockerTask,
+        task: 'Move Dirt Out of the Way to the Entrance',
       },
     ],
   };
@@ -184,7 +194,7 @@ const createDigBlueprintTask = (game: GameState): Task => {
 
 const createGoToColonyEntranceWithBlockerTask = (game: GameState): Task => {
   return {
-    name: 'Return to Entrance with Blocker',
+    name: 'Move Dirt Out of the Way to the Entrance',
     repeating: false,
     behaviorQueue: [
       {
@@ -211,21 +221,21 @@ const createGoToColonyEntranceWithBlockerTask = (game: GameState): Task => {
           elseBehavior: {
             type: 'SWITCH_TASK',
             done: false,
-            task: createMoveBlockerTask,
+            task: 'Put Down Blocking Dirt',
           },
         },
       },
       {
         type: 'SWITCH_TASK',
-        task: createDigBlueprintTask,
+        task: 'Dig Out Blueprint',
       },
     ],
   };
 }
 
-const createMoveBlockerTask = (game: GameState): Task => {
+const createMoveBlockerTask = (): Task => {
   return {
-    name: 'Move Blocker',
+    name: 'Put Down Blocking Dirt',
     repeating: false,
     behaviorQueue: [
       createPickupBlockerBehavior(),
@@ -233,7 +243,7 @@ const createMoveBlockerTask = (game: GameState): Task => {
       createPutDownBehavior(),
       {
         type: 'SWITCH_TASK',
-        task: createGoToColonyEntranceWithBlockerTask,
+        task: 'Move Dirt Out of the Way to the Entrance',
       },
     ],
   };
@@ -268,11 +278,14 @@ const tasks = {
   getIthLocation,
   createMoveBehavior,
   createRandomMoveTask,
+  createMoveBlockerTask,
+  createGoToColonyEntranceWithBlockerTask,
   createDigBlueprintTask,
   sendAllAntsToLocation,
   sendAllAntsToBlueprint,
   createDoAction,
   createIdleTask,
+  createLayEggTask,
 };
 window.tasks = tasks;
 

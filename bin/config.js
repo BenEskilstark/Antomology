@@ -19,12 +19,18 @@ var config = {
   // ant-specific values
   maxSelectableAnts: 4,
   antPickupEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'DEAD_ANT'],
-  antBlockingEntities: ['DIRT', 'FOOD'],
+  antBlockingEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA'],
   antEatEntities: ['FOOD', 'DEAD_ANT'],
   antStartingCalories: 2000,
   antCaloriesPerEat: 1000,
-  antStarvationWarningThreshold: 0.3
+  antStarvationWarningThreshold: 0.3,
 
+  // life-cycle related
+  antMaxAge: 10000,
+  eggHatchAge: 20,
+  larvaStartCalories: 1000,
+  larvaEndCalories: 2000,
+  pupaHatchAge: 20
 };
 
 module.exports = { config: config };

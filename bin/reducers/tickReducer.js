@@ -39,6 +39,18 @@ var _require7 = require('../selectors/selectors'),
     getEmptyNeighborPositions = _require7.getEmptyNeighborPositions,
     getEntitiesByType = _require7.getEntitiesByType;
 
+var _require8 = require('../entities/egg'),
+    makeEgg = _require8.makeEgg;
+
+var _require9 = require('../entities/larva'),
+    makeLarva = _require9.makeLarva;
+
+var _require10 = require('../entities/pupa'),
+    makePupa = _require10.makePupa;
+
+var _require11 = require('../entities/ant'),
+    makeAnt = _require11.makeAnt;
+
 var tickReducer = function tickReducer(game, action) {
   switch (action.type) {
     case 'START_TICK':
@@ -85,6 +97,8 @@ var handleTick = function handleTick(game) {
         ant.alive = false;
       }
     }
+
+    // update eggs
   } catch (err) {
     _didIteratorError = true;
     _iteratorError = err;
@@ -96,6 +110,134 @@ var handleTick = function handleTick(game) {
     } finally {
       if (_didIteratorError) {
         throw _iteratorError;
+      }
+    }
+  }
+
+  var _iteratorNormalCompletion2 = true;
+  var _didIteratorError2 = false;
+  var _iteratorError2 = undefined;
+
+  try {
+    var _loop = function _loop() {
+      var id = _step2.value;
+
+      var egg = game.entities[id];
+      egg.age += 1;
+      if (egg.age > config.eggHatchAge) {
+        game.entities[id] = _extends({}, makeLarva(egg.position, egg.subType), { id: id });
+        game.larva.push(id);
+        game.eggs = game.eggs.filter(function (e) {
+          return e != id;
+        });
+      }
+    };
+
+    for (var _iterator2 = game.eggs[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+      _loop();
+    }
+
+    // update larva
+  } catch (err) {
+    _didIteratorError2 = true;
+    _iteratorError2 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion2 && _iterator2.return) {
+        _iterator2.return();
+      }
+    } finally {
+      if (_didIteratorError2) {
+        throw _iteratorError2;
+      }
+    }
+  }
+
+  var _iteratorNormalCompletion3 = true;
+  var _didIteratorError3 = false;
+  var _iteratorError3 = undefined;
+
+  try {
+    var _loop2 = function _loop2() {
+      var id = _step3.value;
+
+      var larva = game.entities[id];
+      larva.age += 1;
+      if (!larva.alive) {
+        return 'continue';
+      }
+
+      larva.calories -= 1;
+      // larva starvation
+      if (larva.calories <= 0) {
+        larva.alive = false;
+        return 'continue';
+      }
+
+      if (larva.calories >= config.larvaEndCalories) {
+        game.entities[id] = _extends({}, makePupa(larva.position, larva.subType), { id: id });
+        game.pupa.push(id);
+        game.larva = game.larva.filter(function (e) {
+          return e != id;
+        });
+      }
+    };
+
+    for (var _iterator3 = game.larva[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+      var _ret2 = _loop2();
+
+      if (_ret2 === 'continue') continue;
+    }
+
+    // update pupa
+  } catch (err) {
+    _didIteratorError3 = true;
+    _iteratorError3 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion3 && _iterator3.return) {
+        _iterator3.return();
+      }
+    } finally {
+      if (_didIteratorError3) {
+        throw _iteratorError3;
+      }
+    }
+  }
+
+  var _iteratorNormalCompletion4 = true;
+  var _didIteratorError4 = false;
+  var _iteratorError4 = undefined;
+
+  try {
+    var _loop3 = function _loop3() {
+      var id = _step4.value;
+
+      var pupa = game.entities[id];
+      pupa.age += 1;
+      if (pupa.age > config.pupaHatchAge) {
+        game.entities[id] = _extends({}, makeAnt(pupa.position, pupa.subType), { id: id });
+        game.ants.push(id);
+        game.pupa = game.pupa.filter(function (e) {
+          return e != id;
+        });
+      }
+    };
+
+    for (var _iterator4 = game.pupa[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+      _loop3();
+    }
+  } catch (err) {
+    _didIteratorError4 = true;
+    _iteratorError4 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion4 && _iterator4.return) {
+        _iterator4.return();
+      }
+    } finally {
+      if (_didIteratorError4) {
+        throw _iteratorError4;
       }
     }
   }
@@ -170,7 +312,9 @@ var performBehavior = function performBehavior(game, ant, behavior) {
       }
     case 'SWITCH_TASK':
       {
-        ant.task = behavior.task(game);
+        ant.task = game.tasks.filter(function (t) {
+          return t.name === behavior.task;
+        })[0];
         // HACK: this sucks. done doesn't always propagate up particularly if
         // you switch tasks from inside a do-while
         ant.taskIndex = -1; // it's about to +1 in performTask
@@ -402,7 +546,7 @@ var performAction = function performAction(game, ant, action) {
           locationToPutdown = { position: ant.position };
         }
         var _neighborhood = getNeighborhoodLocation(locationToPutdown);
-        var putDown = collidesWith(locationToPutdown, getEntitiesByType(game, 'DIRT'));
+        var putDown = collidesWith(locationToPutdown, getEntitiesByType(game, config.antBlockingEntities));
         if (collides(ant, _neighborhood) && ant.holding != null && putDown.length == 0) {
           ant.holding.position = locationToPutdown.position;
           ant.holding = null;
@@ -436,7 +580,16 @@ var performAction = function performAction(game, ant, action) {
       }
     case 'FEED':
       {
-        // TODO
+        // TODO: very similar to PUTDOWN
+        var _neighborhood3 = getNeighborhoodLocation(ant);
+        var feedableEntities = collidesWith(_neighborhood3, getEntitiesByType(game, ['ANT', 'LARVA'])).filter(function (e) {
+          return e.id != ant.id;
+        });
+        if (ant.holding != null && ant.holding.type === 'FOOD' && feedableEntities.length > 0) {
+          var fedEntity = oneOf(feedableEntities);
+          fedEntity.calories += ant.holding.calories;
+          ant.holding = null;
+        }
         break;
       }
     case 'MARK':
@@ -446,7 +599,20 @@ var performAction = function performAction(game, ant, action) {
       }
     case 'LAY':
       {
-        // TODO
+        if (ant.subType != 'QUEEN') {
+          break; // only queen lays eggs
+        }
+        var _putDown = collidesWith(ant, getEntitiesByType(game, config.antBlockingEntities));
+        if (_putDown.length == 0) {
+          var _egg = makeEgg(ant.position, 'WORKER'); // TODO
+          game.entities[_egg.id] = _egg;
+          game.eggs.push(_egg.id);
+          // move the ant out of the way
+          var _freePositions3 = getEmptyNeighborPositions(ant, getEntitiesByType(game, config.antBlockingEntities));
+          if (_freePositions3.length > 0) {
+            ant.position = _freePositions3[0];
+          }
+        }
         break;
       }
     case 'COMMUNICATE':

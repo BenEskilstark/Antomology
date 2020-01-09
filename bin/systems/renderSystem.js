@@ -89,47 +89,88 @@ var renderEntity = function renderEntity(state, ctx, entity) {
   ctx.translate(entity.position.x, entity.position.y);
   switch (entity.type) {
     case 'ANT':
-      ctx.fillStyle = 'orange';
-      if (!entity.alive) {
-        ctx.fillStyle = 'rgba(100, 100, 100, 0.5)';
-      } else if (entity.calories < config.antStartingCalories * config.antStarvationWarningThreshold) {
-        ctx.fillStyle = 'rgba(250, 50, 0, 0.9)';
-      }
-      ctx.beginPath();
-      var radius = entity.subType == 'QUEEN' ? entity.width / 2 : 0.8 * entity.width / 2;
-      ctx.arc(entity.width / 2, entity.height / 2, radius, 0, Math.PI * 2);
-      ctx.closePath();
-      ctx.fill();
+      {
+        ctx.fillStyle = 'orange';
+        if (!entity.alive) {
+          ctx.fillStyle = 'rgba(100, 100, 100, 0.5)';
+        } else if (entity.calories < config.antStartingCalories * config.antStarvationWarningThreshold) {
+          ctx.fillStyle = 'rgba(250, 50, 0, 0.9)';
+        }
+        ctx.beginPath();
+        var radius = entity.subType == 'QUEEN' ? entity.width / 2 : 0.8 * entity.width / 2;
+        ctx.arc(entity.width / 2, entity.height / 2, radius, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.fill();
 
-      if (state.game.selectedEntities.includes(entity.id)) {
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 2 / (config.canvasWidth / config.width);
-        ctx.stroke();
-      }
+        if (state.game.selectedEntities.includes(entity.id)) {
+          ctx.strokeStyle = 'black';
+          ctx.lineWidth = 2 / (config.canvasWidth / config.width);
+          ctx.stroke();
+        }
 
-      if (entity.holding != null) {
-        var heldEntity = entity.holding;
-        ctx.save();
-        ctx.scale(0.45, 0.45);
-        ctx.translate(1, 1);
-        renderEntity(state, ctx, _extends({}, heldEntity, { position: { x: 0, y: 0 } }));
-        ctx.restore();
+        if (entity.holding != null) {
+          var heldEntity = entity.holding;
+          ctx.save();
+          ctx.scale(0.45, 0.45);
+          ctx.translate(1, 1);
+          renderEntity(state, ctx, _extends({}, heldEntity, { position: { x: 0, y: 0 } }));
+          ctx.restore();
+        }
+        break;
       }
-      break;
     case 'DIRT':
-      ctx.fillStyle = 'brown';
-      ctx.fillRect(0, 0, entity.width, entity.height);
-      ctx.fillStyle = 'rgba(0, 0, 200,' + entity.marked * 0.5 + ')';
-      ctx.fillRect(0, 0, entity.width, entity.height);
-      break;
+      {
+        ctx.fillStyle = 'brown';
+        ctx.fillRect(0, 0, entity.width, entity.height);
+        ctx.fillStyle = 'rgba(0, 0, 200,' + entity.marked * 0.5 + ')';
+        ctx.fillRect(0, 0, entity.width, entity.height);
+        break;
+      }
     case 'LOCATION':
-      ctx.fillStyle = 'rgba(50, 50, 50, 0.2)';
-      ctx.fillRect(0, 0, entity.width, entity.height);
-      break;
+      {
+        ctx.fillStyle = 'rgba(50, 50, 50, 0.2)';
+        ctx.fillRect(0, 0, entity.width, entity.height);
+        break;
+      }
     case 'FOOD':
-      ctx.fillStyle = 'green';
-      ctx.fillRect(0, 0, entity.width, entity.height);
-      break;
+      {
+        ctx.fillStyle = 'green';
+        ctx.fillRect(0, 0, entity.width, entity.height);
+        break;
+      }
+    case 'EGG':
+      {
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        var _radius = entity.width / 2 * 0.4;
+        ctx.arc(entity.width / 2, entity.height / 2, _radius, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.fill();
+        break;
+      }
+    case 'LARVA':
+      {
+        ctx.fillStyle = 'white';
+        if (!entity.alive) {
+          ctx.fillStyle = 'rgba(100, 100, 100, 0.5)';
+        }
+        ctx.beginPath();
+        var _radius2 = entity.width / 2 * 0.6;
+        ctx.arc(entity.width / 2, entity.height / 2, _radius2, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.fill();
+        break;
+      }
+    case 'PUPA':
+      {
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        var _radius3 = entity.width / 2 * 1.05;
+        ctx.arc(entity.width / 2, entity.height / 2, _radius3, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.fill();
+        break;
+      }
   }
   ctx.restore();
 };

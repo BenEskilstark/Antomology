@@ -50,6 +50,9 @@ const initGameState = (): GameState => {
     {...tasks.createGoToLocationTask(colonyEntrance), name: 'Go To Colony Entrance'},
     tasks.createRandomMoveTask(),
     tasks.createDigBlueprintTask(gameState),
+    tasks.createMoveBlockerTask(),
+    tasks.createGoToColonyEntranceWithBlockerTask(gameState),
+    tasks.createLayEggTask(),
   ];
 
   // seed bottom 3/4's with dirt

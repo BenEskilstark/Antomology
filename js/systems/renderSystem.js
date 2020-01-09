@@ -87,7 +87,7 @@ const renderEntity = (state: State, ctx: any, entity: Entity): void => {
     entity.position.y,
   );
   switch (entity.type) {
-    case 'ANT':
+    case 'ANT': {
       ctx.fillStyle = 'orange';
       if (!entity.alive) {
         ctx.fillStyle = 'rgba(100, 100, 100, 0.5)';
@@ -118,20 +118,54 @@ const renderEntity = (state: State, ctx: any, entity: Entity): void => {
         ctx.restore();
       }
       break;
-    case 'DIRT':
+    }
+    case 'DIRT': {
       ctx.fillStyle = 'brown';
       ctx.fillRect(0, 0, entity.width, entity.height);
       ctx.fillStyle = 'rgba(0, 0, 200,' + entity.marked * 0.5 + ')';
       ctx.fillRect(0, 0, entity.width, entity.height);
       break;
-    case 'LOCATION':
+    }
+    case 'LOCATION': {
       ctx.fillStyle = 'rgba(50, 50, 50, 0.2)';
       ctx.fillRect(0, 0, entity.width, entity.height);
       break;
-    case 'FOOD':
+    }
+    case 'FOOD': {
       ctx.fillStyle = 'green';
       ctx.fillRect(0, 0, entity.width, entity.height);
       break;
+    }
+    case 'EGG': {
+      ctx.fillStyle = 'white';
+      ctx.beginPath();
+      const radius = entity.width / 2 * 0.4;
+      ctx.arc(entity.width / 2, entity.height / 2, radius, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.fill();
+      break;
+    }
+    case 'LARVA': {
+      ctx.fillStyle = 'white';
+      if (!entity.alive) {
+        ctx.fillStyle = 'rgba(100, 100, 100, 0.5)';
+      }
+      ctx.beginPath();
+      const radius = entity.width / 2 * 0.6;
+      ctx.arc(entity.width / 2, entity.height / 2, radius, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.fill();
+      break;
+    }
+    case 'PUPA': {
+      ctx.fillStyle = 'white';
+      ctx.beginPath();
+      const radius = entity.width / 2 * 1.05;
+      ctx.arc(entity.width / 2, entity.height / 2, radius, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.fill();
+      break;
+    }
   }
   ctx.restore();
 }

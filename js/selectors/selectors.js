@@ -82,7 +82,8 @@ const collidesWith = (
     }
   }
 
-  return collisions;
+  // don't collide with yourself ever
+  return collisions.filter(e => e.id != entityA.id);
 };
 
 /////////////////////////////////////////////////////////////////

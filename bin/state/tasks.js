@@ -33,6 +33,14 @@ var createIdleTask = function createIdleTask() {
   };
 };
 
+var createLayEggTask = function createLayEggTask() {
+  return {
+    name: 'Lay Egg',
+    repeating: false,
+    behaviorQueue: [createDoAction('LAY', null)]
+  };
+};
+
 ///////////////////////////////////////////////////////////////
 // move
 ///////////////////////////////////////////////////////////////
@@ -161,14 +169,14 @@ var createDigBlueprintTask = function createDigBlueprintTask(game) {
     repeating: true,
     behaviorQueue: [createGoToLocationBehavior(getIthLocation(game, 0)), createFindBlueprintBehavior(), createPickupBlueprintBehavior(), createGoToLocationBehavior(getIthLocation(game, 0)), createFindDropOffLocationBehavior(), createPutDownBehavior(), {
       type: 'SWITCH_TASK',
-      task: createGoToColonyEntranceWithBlockerTask
+      task: 'Move Dirt Out of the Way to the Entrance'
     }]
   };
 };
 
 var createGoToColonyEntranceWithBlockerTask = function createGoToColonyEntranceWithBlockerTask(game) {
   return {
-    name: 'Return to Entrance with Blocker',
+    name: 'Move Dirt Out of the Way to the Entrance',
     repeating: false,
     behaviorQueue: [{
       type: 'WHILE',
@@ -194,23 +202,23 @@ var createGoToColonyEntranceWithBlockerTask = function createGoToColonyEntranceW
         elseBehavior: {
           type: 'SWITCH_TASK',
           done: false,
-          task: createMoveBlockerTask
+          task: 'Put Down Blocking Dirt'
         }
       }
     }, {
       type: 'SWITCH_TASK',
-      task: createDigBlueprintTask
+      task: 'Dig Out Blueprint'
     }]
   };
 };
 
-var createMoveBlockerTask = function createMoveBlockerTask(game) {
+var createMoveBlockerTask = function createMoveBlockerTask() {
   return {
-    name: 'Move Blocker',
+    name: 'Put Down Blocking Dirt',
     repeating: false,
     behaviorQueue: [createPickupBlockerBehavior(), createFindDropOffLocationBehavior(), createPutDownBehavior(), {
       type: 'SWITCH_TASK',
-      task: createGoToColonyEntranceWithBlockerTask
+      task: 'Move Dirt Out of the Way to the Entrance'
     }]
   };
 };
@@ -243,11 +251,14 @@ var tasks = {
   getIthLocation: getIthLocation,
   createMoveBehavior: createMoveBehavior,
   createRandomMoveTask: createRandomMoveTask,
+  createMoveBlockerTask: createMoveBlockerTask,
+  createGoToColonyEntranceWithBlockerTask: createGoToColonyEntranceWithBlockerTask,
   createDigBlueprintTask: createDigBlueprintTask,
   sendAllAntsToLocation: sendAllAntsToLocation,
   sendAllAntsToBlueprint: sendAllAntsToBlueprint,
   createDoAction: createDoAction,
-  createIdleTask: createIdleTask
+  createIdleTask: createIdleTask,
+  createLayEggTask: createLayEggTask
 };
 window.tasks = tasks;
 

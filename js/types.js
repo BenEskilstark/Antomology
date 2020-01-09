@@ -55,8 +55,8 @@ export type GameState = {
 
   selectedEntities: Array<EntityID>,
   // ALL entities (including ants) here:
-  entities: {[EntityID]: Entity}, // TODO separating out dirt could speed things up
-  // basically a cache of entityType-specific entityIDs
+  entities: {[EntityID]: Entity},
+  // basically a cache of entityType-specific entityIDs:
   dirt: Array<EntityID>,
   ants: Array<EntityID>,
   locations: Array<EntityID>,
@@ -101,6 +101,17 @@ export type Entity = {
 };
 
 export type Dirt = Entity;
+export type Egg = Entity & {
+  subType: AntSubType,
+};
+export type Larva = Entity & {
+  calories: number,
+  alive: boolean,
+  subType: AntSubType,
+};
+export type Pupa = Entity & {
+  subType: AntSubType,
+};
 export type Location = Entity & {
   name: string,
 };
@@ -133,13 +144,13 @@ export type AntAction = {
   payload: {
     // string includes:
     //  - "RANDOM" option for MOVE action
+    //  - location name for PICKUP action
     //  - "MARKED" option for PICKUP action
     //  - "BLOCKER" option for PICKUP action
     object: Entity | Location | string,
   },
 };
 
-// TODO
 export type ConditionType =
   'LOCATION' | 'HOLDING' | 'CALORIES' | 'AGE' | 'NEIGHBORING' | 'RANDOM' |
   'BLOCKED';
@@ -152,6 +163,7 @@ export type Condition = {
     // string includes:
     //  - "MARKED" option for NEIGHBORING blueprint dirt
     //  - "RANDOM" option for stochastic process uses number
+    //  - Location name instead of location entity itself
     object: Entity | Location | string | Pronoun | number,
   },
   not: boolean,
@@ -167,7 +179,6 @@ export type ConditionalBehavior = {
   behavior: Behavior,
   elseBehavior: ?Behavior,
 };
-// NOTE: implementation is just a regular while, reads better as do-while imo
 export type DoWhileBehavior = {
   type: 'WHILE',
   condition: Condition,
@@ -175,7 +186,7 @@ export type DoWhileBehavior = {
 };
 export type SwitchToTaskBehavior = {
   type: 'SWITCH_TASK',
-  task: (game: GameState) => Task, // create the task here to prevent infinite loops
+  task: string, // name of the task
 };
 export type Behavior =
   DoActionBehavior |

@@ -95,7 +95,10 @@ var collidesWith = function collidesWith(entityA, entities) {
     }
   }
 
-  return collisions;
+  // don't collide with yourself ever
+  return collisions.filter(function (e) {
+    return e.id != entityA.id;
+  });
 };
 
 /////////////////////////////////////////////////////////////////
