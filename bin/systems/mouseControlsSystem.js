@@ -32,6 +32,7 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
   var canvas = null;
   document.onmouseup = function (ev) {
     var state = store.getState();
+    if (state.game == null) return;
     var gridPos = getClickedPos(ev);
     if (gridPos == null) return;
 
@@ -48,6 +49,7 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
 
   document.onmousedown = function (ev) {
     var state = store.getState();
+    if (state.game == null) return;
     var gridPos = getClickedPos(ev);
     if (gridPos == null) return;
 
@@ -62,6 +64,7 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
 
   document.onmousemove = function (ev) {
     var state = store.getState();
+    if (state.game == null) return;
     var gridPos = getClickedPos(ev);
     if (gridPos == null) return;
     dispatch({ type: 'SET_MOUSE_POS', curPos: gridPos });
@@ -135,8 +138,7 @@ var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
     if (dimensions.y < 0) {
       locPosition.y = locPosition.y + dimensions.y;
     }
-    var newLocation = makeLocation('test', // TODO
-    Math.abs(dimensions.x) + 1, // off by one
+    var newLocation = makeLocation(state.game.nextLocationName, Math.abs(dimensions.x) + 1, // off by one
     Math.abs(dimensions.y) + 1, locPosition);
     dispatch({ type: 'CREATE_ENTITY', entity: newLocation });
     return;

@@ -5,21 +5,16 @@
 var _require = require('./renderSystem'),
     initRenderSystem = _require.initRenderSystem;
 
-var _require2 = require('./mouseControlsSystem'),
-    initMouseControlsSystem = _require2.initMouseControlsSystem;
+var _require2 = require('./foodSpawnSystem'),
+    initFoodSpawnSystem = _require2.initFoodSpawnSystem;
 
-var started = false; // TODO there's a better way to handle this...
+var _require3 = require('./mouseControlsSystem'),
+    initMouseControlsSystem = _require3.initMouseControlsSystem;
+
 var initSystems = function initSystems(store) {
-  store.subscribe(function () {
-    var state = store.getState();
-    if (started || !state.game) {
-      return;
-    }
-    started = true;
-
-    initRenderSystem(store);
-    initMouseControlsSystem(store);
-  });
+  initRenderSystem(store);
+  initMouseControlsSystem(store);
+  initFoodSpawnSystem(store);
 };
 
 module.exports = { initSystems: initSystems };

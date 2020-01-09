@@ -17,21 +17,24 @@ var config = {
   // colony entrance location id:
   colonyEntrance: 0,
 
+  foodSpawnRate: 0.02, // ~once per 5 seconds
+  foodSpawnCalories: 1000,
+
   // ant-specific values
   maxSelectableAnts: 4,
   antPickupEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'DEAD_ANT'],
   antBlockingEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA'],
   antEatEntities: ['FOOD', 'DEAD_ANT'],
-  antStartingCalories: 2000,
+  antStartingCalories: 4000,
   antCaloriesPerEat: 1000,
   antStarvationWarningThreshold: 0.3,
 
   // life-cycle related
   antMaxAge: 10000,
-  eggHatchAge: 20,
-  larvaStartCalories: 1000,
-  larvaEndCalories: 2000,
-  pupaHatchAge: 20
+  eggHatchAge: 300,
+  larvaStartingCalories: 2000,
+  larvaEndCalories: 3000,
+  pupaHatchAge: 200
 };
 
 module.exports = { config: config };
@@ -152,7 +155,7 @@ var _require2 = require('../config'),
 
 var makeLarva = function makeLarva(position, subType) {
   return _extends({}, makeEntity('LARVA', 1, 1, position), {
-    calories: config.larvaStartCalories,
+    calories: config.larvaStartingCalories,
     alive: true,
     subType: subType
   });
@@ -223,7 +226,7 @@ store.subscribe(function () {
 function renderGame(store) {
   ReactDOM.render(React.createElement(Main, { state: store.getState(), dispatch: store.dispatch }), document.getElementById('container'));
 }
-},{"./reducers/rootReducer":13,"./systems/initSystems":19,"./ui/Main.react":27,"react":49,"react-dom":46,"redux":50}],11:[function(require,module,exports){
+},{"./reducers/rootReducer":13,"./systems/initSystems":20,"./ui/Main.react":28,"react":50,"react-dom":47,"redux":51}],11:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -239,28 +242,43 @@ var gameReducer = function gameReducer(game, action) {
       {
         var entity = action.entity;
 
-        game.entities[entity.id] = entity;
+        var nextID = entity.id;
+        // if trying to make a location with the same name as one that already exists,
+        // just update the position of the currently-existing entity for that location
+        var sameLocationName = false;
+        if (entity.type == 'LOCATION') {
+          var locationIDWithName = game.locations.filter(function (l) {
+            return game.entities[l].name === entity.name;
+          })[0];
+          if (locationIDWithName != null) {
+            sameLocationName = true;
+            nextID = locationIDWithName;
+          }
+        }
+        game.entities[nextID] = entity;
         switch (entity.type) {
           case 'LOCATION':
-            game.locations.push(entity.id);
+            if (!sameLocationName) {
+              game.locations.push(nextID);
+            } // else it's already there
             break;
           case 'ANT':
-            game.ants.push(entity.id);
+            game.ants.push(nextID);
             break;
           case 'DIRT':
-            game.dirt.push(entity.id);
+            game.dirt.push(nextID);
             break;
           case 'FOOD':
-            game.food.push(entity.id);
+            game.food.push(nextID);
             break;
           case 'EGG':
-            game.eggs.push(entity.id);
+            game.eggs.push(nextID);
             break;
           case 'LARVA':
-            game.larva.push(entity.id);
+            game.larva.push(nextID);
             break;
           case 'PUPA':
-            game.pupa.push(entity.id);
+            game.pupa.push(nextID);
             break;
         }
         return game;
@@ -315,6 +333,14 @@ var gameReducer = function gameReducer(game, action) {
         oldTask.repeating = _task.repeating;
         oldTask.behaviorQueue = _task.behaviorQueue;
         return game;
+      }
+    case 'UPDATE_NEXT_LOCATION_NAME':
+      {
+        var name = action.name;
+
+        return _extends({}, game, {
+          nextLocationName: name
+        });
       }
     case 'ASSIGN_TASK':
       {
@@ -486,6 +512,7 @@ var rootReducer = function rootReducer(state, action) {
     case 'SET_SELECTED_ENTITIES':
     case 'CREATE_TASK':
     case 'UPDATE_TASK':
+    case 'UPDATE_NEXT_LOCATION_NAME':
     case 'ASSIGN_TASK':
     case 'SET_USER_MODE':
     case 'SET_ANT_MODE':
@@ -541,7 +568,8 @@ var _require7 = require('../selectors/selectors'),
     getNeighborhoodLocation = _require7.getNeighborhoodLocation,
     getNeighborhoodEntities = _require7.getNeighborhoodEntities,
     getEmptyNeighborPositions = _require7.getEmptyNeighborPositions,
-    getEntitiesByType = _require7.getEntitiesByType;
+    getEntitiesByType = _require7.getEntitiesByType,
+    insideWorld = _require7.insideWorld;
 
 var _require8 = require('../entities/egg'),
     makeEgg = _require8.makeEgg;
@@ -871,6 +899,12 @@ var evaluateCondition = function evaluateCondition(game, ant, condition) {
         }
         break;
       }
+    case 'BLOCKED':
+      {
+        // comparator must be EQUALS
+        isTrue = ant.blocked;
+        break;
+      }
     case 'RANDOM':
       {
         var value = object;
@@ -882,12 +916,6 @@ var evaluateCondition = function evaluateCondition(game, ant, condition) {
         } else if (comparator === 'GREATER_THAN') {
           isTrue = rand > value;
         }
-        break;
-      }
-    case 'BLOCKED':
-      {
-        // comparator must be EQUALS
-        isTrue = ant.blocked;
         break;
       }
     case 'CALORIES':
@@ -946,7 +974,7 @@ var performAction = function performAction(game, ant, action) {
         var loc = object;
         if (object === 'RANDOM') {
           // randomly select loc based on free neighbors
-          var _freePositions = getEmptyNeighborPositions(ant, getEntitiesByType(game, config.antBlockingEntities));
+          var _freePositions = getEmptyNeighborPositions(ant, getEntitiesByType(game, config.antBlockingEntities)).filter(insideWorld);
           if (_freePositions.length == 0) {
             break; // can't move
           }
@@ -981,7 +1009,7 @@ var performAction = function performAction(game, ant, action) {
         moveVec[moveAxis] += distVec[moveAxis] > 0 ? 1 : -1;
         var nextPos = add(moveVec, ant.position);
         var occupied = collidesWith({ position: nextPos, width: 1, height: 1 }, getEntitiesByType(game, config.antBlockingEntities));
-        if (occupied.length == 0) {
+        if (occupied.length == 0 && insideWorld(nextPos)) {
           ant.prevPosition = ant.position;
           ant.position = nextPos;
         } else {
@@ -1000,13 +1028,15 @@ var performAction = function performAction(game, ant, action) {
           }
           nextPos = add(moveVec, ant.position);
           occupied = collidesWith({ position: nextPos, width: 1, height: 1 }, getEntitiesByType(game, config.antBlockingEntities));
-          if (occupied.length == 0) {
+          if (occupied.length == 0 && insideWorld(nextPos)) {
             ant.position = nextPos;
             ant.blocked = false;
             ant.blockedBy = null;
           } else {
-            ant.blocked = true;
-            ant.blockedBy = occupied[0];
+            if (occupied.length > 0) {
+              ant.blocked = true;
+              ant.blockedBy = occupied[0];
+            }
           }
         }
         break;
@@ -1106,8 +1136,9 @@ var performAction = function performAction(game, ant, action) {
         if (ant.subType != 'QUEEN') {
           break; // only queen lays eggs
         }
-        var _putDown = collidesWith(ant, getEntitiesByType(game, config.antBlockingEntities));
-        if (_putDown.length == 0) {
+        var nothingInTheWay = collidesWith(ant, getEntitiesByType(game, config.antBlockingEntities)).length === 0;
+        var dirtBelow = collidesWith({ position: { x: ant.position.x, y: ant.position.y - 1 } }, getEntitiesByType(game, ['DIRT'])).length > 0;
+        if (nothingInTheWay && dirtBelow) {
           var _egg = makeEgg(ant.position, 'WORKER'); // TODO
           game.entities[_egg.id] = _egg;
           game.eggs.push(_egg.id);
@@ -1128,7 +1159,7 @@ var performAction = function performAction(game, ant, action) {
 };
 
 module.exports = { tickReducer: tickReducer };
-},{"../config":1,"../entities/ant":2,"../entities/egg":4,"../entities/larva":7,"../entities/pupa":9,"../selectors/selectors":15,"../state/tasks":18,"../utils/errors":35,"../utils/helpers":36,"../utils/vectors":37,"./gameReducer":11}],15:[function(require,module,exports){
+},{"../config":1,"../entities/ant":2,"../entities/egg":4,"../entities/larva":7,"../entities/pupa":9,"../selectors/selectors":15,"../state/tasks":18,"../utils/errors":36,"../utils/helpers":37,"../utils/vectors":38,"./gameReducer":11}],15:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -1288,6 +1319,10 @@ var getEmptyNeighborPositions = function getEmptyNeighborPositions(entity, entit
   return emptyPositions;
 };
 
+var insideWorld = function insideWorld(pos) {
+  return pos.x > 0 && pos.x < config.width && pos.y > 0 && pos.y < config.height;
+};
+
 /////////////////////////////////////////////////////////////////
 // Entities by type
 /////////////////////////////////////////////////////////////////
@@ -1376,12 +1411,13 @@ var selectors = {
   getNeighborhoodLocation: getNeighborhoodLocation,
   getNeighborhoodEntities: getNeighborhoodEntities,
   getEmptyNeighborPositions: getEmptyNeighborPositions,
-  getEntitiesByType: getEntitiesByType
+  getEntitiesByType: getEntitiesByType,
+  insideWorld: insideWorld
 };
 window.selectors = selectors; // for testing
 
 module.exports = selectors;
-},{"../config":1,"../utils/errors":35,"../utils/vectors":37}],16:[function(require,module,exports){
+},{"../config":1,"../utils/errors":36,"../utils/vectors":38}],16:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -1415,6 +1451,7 @@ var initGameState = function initGameState() {
     tickInterval: null,
     antMode: 'PICKUP',
     userMode: 'SELECT',
+    nextLocationName: 'Give Locations Unique Names',
     mouse: {
       isLeftDown: false,
       isRightDown: false,
@@ -1435,7 +1472,7 @@ var initGameState = function initGameState() {
   };
 
   // seed start location
-  var colonyEntrance = makeLocation('Colony Entrance', 1, 1, { x: 25, y: 37 });
+  var colonyEntrance = makeLocation('Colony Entrance', 1, 1, { x: 25, y: 29 });
   gameState.entities[colonyEntrance.id] = colonyEntrance;
   gameState.locations.push(colonyEntrance.id);
 
@@ -1445,7 +1482,7 @@ var initGameState = function initGameState() {
   // seed bottom 3/4's with dirt
   for (var x = 0; x < config.width; x++) {
     for (var y = 0; y < config.height; y++) {
-      if (y < config.height * 0.75 && Math.random() < 0.99) {
+      if (y < config.height * 0.6 && Math.random() < 0.99) {
         if (x == colonyEntrance.position.x && y == colonyEntrance.position.y) {
           continue;
         }
@@ -1460,21 +1497,21 @@ var initGameState = function initGameState() {
   }
 
   // seed ants
-  var ant = makeAnt({ x: 25, y: 38 }, 'QUEEN');
+  var ant = makeAnt({ x: 25, y: 30 }, 'QUEEN');
   gameState.entities[ant.id] = ant;
   gameState.ants.push(ant.id);
-  var ant1 = makeAnt({ x: 20, y: 38 }, 'WORKER');
+  var ant1 = makeAnt({ x: 20, y: 30 }, 'WORKER');
   gameState.entities[ant1.id] = ant1;
   gameState.ants.push(ant1.id);
-  var ant2 = makeAnt({ x: 30, y: 38 }, 'WORKER');
+  var ant2 = makeAnt({ x: 30, y: 30 }, 'WORKER');
   gameState.entities[ant2.id] = ant2;
   gameState.ants.push(ant2.id);
 
   // seed food
-  for (var i = 0; i < 10; i++) {
+  for (var i = 0; i < 15; i++) {
     var position = {
       x: randomIn(0, config.width),
-      y: randomIn(Math.ceil(config.height * 0.75) + 1, config.height)
+      y: randomIn(Math.ceil(config.height * 0.6) + 1, config.height)
     };
     var food = makeFood(position, 1000, 'Crumb');
     gameState.entities[food.id] = food;
@@ -1485,7 +1522,7 @@ var initGameState = function initGameState() {
 };
 
 module.exports = { initGameState: initGameState };
-},{"../config":1,"../entities/ant":2,"../entities/dirt":3,"../entities/entity":5,"../entities/food":6,"../entities/location":8,"../state/tasks":18,"../utils/helpers":36}],17:[function(require,module,exports){
+},{"../config":1,"../entities/ant":2,"../entities/dirt":3,"../entities/entity":5,"../entities/food":6,"../entities/location":8,"../state/tasks":18,"../utils/helpers":37}],17:[function(require,module,exports){
 'use strict';
 
 var initState = function initState() {
@@ -1765,30 +1802,67 @@ module.exports = tasks;
 },{}],19:[function(require,module,exports){
 'use strict';
 
+// no flow checking cuz it's annoying
+
+var _require = require('../config'),
+    config = _require.config;
+
+var _require2 = require('../entities/food'),
+    makeFood = _require2.makeFood;
+
+var _require3 = require('../utils/helpers'),
+    randomIn = _require3.randomIn;
+
+var _require4 = require('../selectors/selectors'),
+    collidesWith = _require4.collidesWith,
+    getEntitiesByType = _require4.getEntitiesByType;
+
+var initFoodSpawnSystem = function initFoodSpawnSystem(store) {
+
+  var time = -1;
+  store.subscribe(function () {
+    var state = store.getState();
+    if (state.game == null) return;
+    // only check on a new tick
+    if (state.game.time == time) {
+      return;
+    }
+    time = state.game.time;
+
+    if (Math.random() < config.foodSpawnRate) {
+      var x = randomIn(0, config.width - 1);
+      var y = randomIn(0, config.height - 1);
+      if (collidesWith({ position: { x: x, y: y } }, getEntitiesByType(state.game, config.antBlockingEntities)).length == 0) {
+        var food = makeFood({ x: x, y: y }, config.foodSpawnCalories, 'Crumb');
+        store.dispatch({ type: 'CREATE_ENTITY', entity: food });
+      }
+    }
+  });
+};
+
+module.exports = { initFoodSpawnSystem: initFoodSpawnSystem };
+},{"../config":1,"../entities/food":6,"../selectors/selectors":15,"../utils/helpers":37}],20:[function(require,module,exports){
+'use strict';
+
 // a system for starting up the other systems
 
 var _require = require('./renderSystem'),
     initRenderSystem = _require.initRenderSystem;
 
-var _require2 = require('./mouseControlsSystem'),
-    initMouseControlsSystem = _require2.initMouseControlsSystem;
+var _require2 = require('./foodSpawnSystem'),
+    initFoodSpawnSystem = _require2.initFoodSpawnSystem;
 
-var started = false; // TODO there's a better way to handle this...
+var _require3 = require('./mouseControlsSystem'),
+    initMouseControlsSystem = _require3.initMouseControlsSystem;
+
 var initSystems = function initSystems(store) {
-  store.subscribe(function () {
-    var state = store.getState();
-    if (started || !state.game) {
-      return;
-    }
-    started = true;
-
-    initRenderSystem(store);
-    initMouseControlsSystem(store);
-  });
+  initRenderSystem(store);
+  initMouseControlsSystem(store);
+  initFoodSpawnSystem(store);
 };
 
 module.exports = { initSystems: initSystems };
-},{"./mouseControlsSystem":20,"./renderSystem":21}],20:[function(require,module,exports){
+},{"./foodSpawnSystem":19,"./mouseControlsSystem":21,"./renderSystem":22}],21:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -1823,6 +1897,7 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
   var canvas = null;
   document.onmouseup = function (ev) {
     var state = store.getState();
+    if (state.game == null) return;
     var gridPos = getClickedPos(ev);
     if (gridPos == null) return;
 
@@ -1839,6 +1914,7 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
 
   document.onmousedown = function (ev) {
     var state = store.getState();
+    if (state.game == null) return;
     var gridPos = getClickedPos(ev);
     if (gridPos == null) return;
 
@@ -1853,6 +1929,7 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
 
   document.onmousemove = function (ev) {
     var state = store.getState();
+    if (state.game == null) return;
     var gridPos = getClickedPos(ev);
     if (gridPos == null) return;
     dispatch({ type: 'SET_MOUSE_POS', curPos: gridPos });
@@ -1926,8 +2003,7 @@ var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
     if (dimensions.y < 0) {
       locPosition.y = locPosition.y + dimensions.y;
     }
-    var newLocation = makeLocation('test', // TODO
-    Math.abs(dimensions.x) + 1, // off by one
+    var newLocation = makeLocation(state.game.nextLocationName, Math.abs(dimensions.x) + 1, // off by one
     Math.abs(dimensions.y) + 1, locPosition);
     dispatch({ type: 'CREATE_ENTITY', entity: newLocation });
     return;
@@ -2002,7 +2078,7 @@ var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
 };
 
 module.exports = { initMouseControlsSystem: initMouseControlsSystem };
-},{"../config":1,"../entities/location":8,"../selectors/selectors":15,"../state/tasks":18,"../utils/canvasHelpers":34,"../utils/vectors":37}],21:[function(require,module,exports){
+},{"../config":1,"../entities/location":8,"../selectors/selectors":15,"../state/tasks":18,"../utils/canvasHelpers":35,"../utils/vectors":38}],22:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -2019,12 +2095,13 @@ var _require2 = require('../utils/vectors'),
  */
 var initRenderSystem = function initRenderSystem(store) {
 
-  var time = store.getState().game.time;
+  var time = -1;
   var canvas = null;
   var ctx = null;
   var svg = null;
   store.subscribe(function () {
     var state = store.getState();
+    if (state.game == null) return;
     // only check on a new tick
     if (state.game.time == time && state.game.tickInterval != null) {
       return;
@@ -2057,16 +2134,46 @@ var render = function render(state, ctx) {
   ctx.scale(1, -1);
   ctx.scale(config.canvasWidth / config.width, config.canvasHeight / config.height);
 
-  // render entities
+  // render non-location entities
   for (var id in game.entities) {
     var entity = game.entities[id];
-    if (entity.position == null) {
+    if (entity.position == null || entity.type == 'LOCATION') {
       continue;
     }
     renderEntity(state, ctx, entity);
   }
+  // render locations last so they go on top
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
 
-  // render marquees
+  try {
+    for (var _iterator = game.locations[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var _id = _step.value;
+
+      var _entity = game.entities[_id];
+      if (_entity.position == null) {
+        continue;
+      }
+      renderEntity(state, ctx, _entity);
+    }
+
+    // render marquees
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
   var mouse = game.mouse;
 
   if (mouse.isLeftDown && game.userMode !== 'MARK') {
@@ -2135,6 +2242,13 @@ var renderEntity = function renderEntity(state, ctx, entity) {
       {
         ctx.fillStyle = 'rgba(50, 50, 50, 0.2)';
         ctx.fillRect(0, 0, entity.width, entity.height);
+        // gotta flip back for location label
+        ctx.save();
+        ctx.scale(1, -1);
+        ctx.fillStyle = 'black';
+        ctx.font = '1px Consolas';
+        ctx.fillText(entity.name, 0, -1 * entity.height);
+        ctx.restore();
         break;
       }
     case 'FOOD':
@@ -2158,9 +2272,11 @@ var renderEntity = function renderEntity(state, ctx, entity) {
         ctx.fillStyle = 'white';
         if (!entity.alive) {
           ctx.fillStyle = 'rgba(100, 100, 100, 0.5)';
+        } else if (entity.calories < config.larvaStartingCalories * config.antStarvationWarningThreshold) {
+          ctx.fillStyle = 'rgba(250, 50, 0, 0.9)';
         }
         ctx.beginPath();
-        var _radius2 = entity.width / 2 * 0.6;
+        var _radius2 = entity.width / 2 * 0.5 + entity.calories / 10000;
         ctx.arc(entity.width / 2, entity.height / 2, _radius2, 0, Math.PI * 2);
         ctx.closePath();
         ctx.fill();
@@ -2170,10 +2286,7 @@ var renderEntity = function renderEntity(state, ctx, entity) {
       {
         ctx.fillStyle = 'white';
         ctx.beginPath();
-        var _radius3 = entity.width / 2 * 1.05;
-        ctx.arc(entity.width / 2, entity.height / 2, _radius3, 0, Math.PI * 2);
-        ctx.closePath();
-        ctx.fill();
+        ctx.fillRect(0, 0, entity.width, entity.height);
         break;
       }
   }
@@ -2181,7 +2294,7 @@ var renderEntity = function renderEntity(state, ctx, entity) {
 };
 
 module.exports = { initRenderSystem: initRenderSystem };
-},{"../config":1,"../utils/vectors":37}],22:[function(require,module,exports){
+},{"../config":1,"../utils/vectors":38}],23:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -2261,7 +2374,7 @@ function AntCard(props) {
 };
 
 module.exports = AntCard;
-},{"../config":1,"./components/Button.react":30,"./components/Dropdown.react":32,"react":49}],23:[function(require,module,exports){
+},{"../config":1,"./components/Button.react":31,"./components/Dropdown.react":33,"react":50}],24:[function(require,module,exports){
 'use strict';
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
@@ -2574,7 +2687,7 @@ function DoActionCard(props) {
 }
 
 module.exports = BehaviorCard;
-},{"../config":1,"../selectors/selectors":15,"./components/Button.react":30,"./components/Checkbox.react":31,"./components/Dropdown.react":32,"react":49}],24:[function(require,module,exports){
+},{"../config":1,"../selectors/selectors":15,"./components/Button.react":31,"./components/Checkbox.react":32,"./components/Dropdown.react":33,"react":50}],25:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -2587,7 +2700,7 @@ function Canvas(props) {
 }
 
 module.exports = Canvas;
-},{"react":49}],25:[function(require,module,exports){
+},{"react":50}],26:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -2607,7 +2720,7 @@ function Game(props) {
 }
 
 module.exports = Game;
-},{"./Canvas.react":24,"./Sidebar.react":28,"react":49}],26:[function(require,module,exports){
+},{"./Canvas.react":25,"./Sidebar.react":29,"react":50}],27:[function(require,module,exports){
 'use strict';
 
 function _objectDestructuringEmpty(obj) { if (obj == null) throw new TypeError("Cannot destructure undefined"); }
@@ -2634,7 +2747,7 @@ function Lobby(props) {
 }
 
 module.exports = Lobby;
-},{"../selectors/selectors":15,"./components/Button.react":30,"react":49}],27:[function(require,module,exports){
+},{"../selectors/selectors":15,"./components/Button.react":31,"react":50}],28:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -2708,7 +2821,7 @@ function getModal(props) {
 }
 
 module.exports = Main;
-},{"../config":1,"./Game.react":25,"./Lobby.react":26,"./components/Button.react":30,"react":49}],28:[function(require,module,exports){
+},{"../config":1,"./Game.react":26,"./Lobby.react":27,"./components/Button.react":31,"react":50}],29:[function(require,module,exports){
 'use strict';
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
@@ -2752,22 +2865,45 @@ function Sidebar(props) {
         height: config.canvasHeight
       }
     },
-    'Left-click and drag will:',
-    React.createElement(RadioPicker, {
-      options: ['SELECT', 'MARK', 'CREATE_LOCATION'],
-      selected: game.userMode,
-      onChange: function onChange(userMode) {
-        return dispatch({ type: 'SET_USER_MODE', userMode: userMode });
-      }
-    }),
-    'Right-click will cause selected ants to:',
-    React.createElement(RadioPicker, {
-      options: ['PICKUP', 'EAT', 'FEED'],
-      selected: game.antMode,
-      onChange: function onChange(antMode) {
-        return dispatch({ type: 'SET_ANT_MODE', antMode: antMode });
-      }
-    }),
+    React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'b',
+        null,
+        'Controls'
+      )
+    ),
+    React.createElement(
+      'div',
+      null,
+      'Left-click and drag will:',
+      React.createElement(Dropdown, {
+        noNoneOption: true,
+        options: ['SELECT', 'MARK', 'CREATE_LOCATION'],
+        selected: game.userMode,
+        onChange: function onChange(userMode) {
+          return dispatch({ type: 'SET_USER_MODE', userMode: userMode });
+        }
+      }),
+      game.userMode === 'CREATE_LOCATION' ? React.createElement('input', { type: 'text', value: game.nextLocationName,
+        onChange: function onChange(ev) {
+          dispatch({ type: 'UPDATE_NEXT_LOCATION_NAME', name: ev.target.value });
+        } }) : null
+    ),
+    React.createElement(
+      'div',
+      null,
+      'Right-click will cause selected ants to:',
+      React.createElement(Dropdown, {
+        noNoneOption: true,
+        options: ['PICKUP', 'EAT', 'FEED'],
+        selected: game.antMode,
+        onChange: function onChange(antMode) {
+          return dispatch({ type: 'SET_ANT_MODE', antMode: antMode });
+        }
+      })
+    ),
     React.createElement(
       'div',
       {
@@ -2838,6 +2974,7 @@ function TaskEditor(props) {
     ),
     'Edit Task: ',
     React.createElement(Dropdown, {
+      noNoneOption: true,
       options: ['New Task'].concat(game.tasks.map(function (t) {
         return t.name;
       })),
@@ -2854,7 +2991,7 @@ function TaskEditor(props) {
 }
 
 module.exports = Sidebar;
-},{"../config":1,"../selectors/selectors":15,"./AntCard.react":22,"./TaskCard.react":29,"./components/Button.react":30,"./components/Dropdown.react":32,"./components/RadioPicker.react":33,"react":49}],29:[function(require,module,exports){
+},{"../config":1,"../selectors/selectors":15,"./AntCard.react":23,"./TaskCard.react":30,"./components/Button.react":31,"./components/Dropdown.react":33,"./components/RadioPicker.react":34,"react":50}],30:[function(require,module,exports){
 'use strict';
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
@@ -2974,7 +3111,7 @@ function TaskCard(props) {
 }
 
 module.exports = TaskCard;
-},{"../config":1,"./BehaviorCard.react":23,"./components/Button.react":30,"./components/Checkbox.react":31,"./components/Dropdown.react":32,"react":49}],30:[function(require,module,exports){
+},{"../config":1,"./BehaviorCard.react":24,"./components/Button.react":31,"./components/Checkbox.react":32,"./components/Dropdown.react":33,"react":50}],31:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -3041,7 +3178,7 @@ var Button = function (_React$Component) {
 }(React.Component);
 
 module.exports = Button;
-},{"React":40}],31:[function(require,module,exports){
+},{"React":41}],32:[function(require,module,exports){
 'use strict';
 
 var React = require('React');
@@ -3065,7 +3202,7 @@ function Checkbox(props) {
 }
 
 module.exports = Checkbox;
-},{"React":40}],32:[function(require,module,exports){
+},{"React":41}],33:[function(require,module,exports){
 'use strict';
 
 var React = require('React');
@@ -3075,9 +3212,11 @@ var React = require('React');
  * options: Array<string>
  * selected: string // which option is selected
  * onChange: (string) => void
+ * noNoneOption: optional boolean // if provided, won't use NONE option
  */
 var Dropdown = function Dropdown(props) {
   var options = props.options,
+      noNoneOption = props.noNoneOption,
       selected = props.selected,
       _onChange = props.onChange;
 
@@ -3088,11 +3227,13 @@ var Dropdown = function Dropdown(props) {
       option
     );
   });
-  optionTags.push(React.createElement(
-    'option',
-    { key: 'option_null', value: null },
-    'NONE'
-  ));
+  if (!noNoneOption) {
+    optionTags.push(React.createElement(
+      'option',
+      { key: 'option_null', value: null },
+      'NONE'
+    ));
+  }
 
   return React.createElement(
     'select',
@@ -3110,7 +3251,7 @@ var Dropdown = function Dropdown(props) {
 };
 
 module.exports = Dropdown;
-},{"React":40}],33:[function(require,module,exports){
+},{"React":41}],34:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -3199,7 +3340,7 @@ var RadioPicker = function (_React$Component) {
 }(React.Component);
 
 module.exports = RadioPicker;
-},{"React":40}],34:[function(require,module,exports){
+},{"React":41}],35:[function(require,module,exports){
 'use strict';
 
 var _require = require('../config'),
@@ -3232,7 +3373,7 @@ module.exports = {
   canvasToGrid: canvasToGrid,
   gridToCanvas: gridToCanvas
 };
-},{"../config":1,"../utils/vectors":37}],35:[function(require,module,exports){
+},{"../config":1,"../utils/vectors":38}],36:[function(require,module,exports){
 "use strict";
 
 var invariant = function invariant(condition, message) {
@@ -3242,7 +3383,7 @@ var invariant = function invariant(condition, message) {
 };
 
 module.exports = { invariant: invariant };
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 "use strict";
 
 var floor = Math.floor,
@@ -3289,7 +3430,7 @@ module.exports = {
   oneOf: oneOf,
   deleteFromArray: deleteFromArray
 };
-},{}],37:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 "use strict";
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -3410,7 +3551,7 @@ module.exports = {
   floor: floor,
   ceil: ceil
 };
-},{}],38:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 (function (process){
 /** @license React v16.12.0
  * react.development.js
@@ -5734,7 +5875,7 @@ module.exports = react;
 }
 
 }).call(this,require('_process'))
-},{"_process":59,"object-assign":41,"prop-types/checkPropTypes":42}],39:[function(require,module,exports){
+},{"_process":60,"object-assign":42,"prop-types/checkPropTypes":43}],40:[function(require,module,exports){
 /** @license React v16.12.0
  * react.production.min.js
  *
@@ -5761,7 +5902,7 @@ b,c){return W().useImperativeHandle(a,b,c)},useDebugValue:function(){},useLayout
 if(null!=b){void 0!==b.ref&&(g=b.ref,l=J.current);void 0!==b.key&&(d=""+b.key);if(a.type&&a.type.defaultProps)var f=a.type.defaultProps;for(k in b)K.call(b,k)&&!L.hasOwnProperty(k)&&(e[k]=void 0===b[k]&&void 0!==f?f[k]:b[k])}var k=arguments.length-2;if(1===k)e.children=c;else if(1<k){f=Array(k);for(var m=0;m<k;m++)f[m]=arguments[m+2];e.children=f}return{$$typeof:p,type:a.type,key:d,ref:g,props:e,_owner:l}},createFactory:function(a){var b=M.bind(null,a);b.type=a;return b},isValidElement:N,version:"16.12.0",
 __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED:{ReactCurrentDispatcher:I,ReactCurrentBatchConfig:{suspense:null},ReactCurrentOwner:J,IsSomeRendererActing:{current:!1},assign:h}},Y={default:X},Z=Y&&X||Y;module.exports=Z.default||Z;
 
-},{"object-assign":41}],40:[function(require,module,exports){
+},{"object-assign":42}],41:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -5772,7 +5913,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 }).call(this,require('_process'))
-},{"./cjs/react.development.js":38,"./cjs/react.production.min.js":39,"_process":59}],41:[function(require,module,exports){
+},{"./cjs/react.development.js":39,"./cjs/react.production.min.js":40,"_process":60}],42:[function(require,module,exports){
 /*
 object-assign
 (c) Sindre Sorhus
@@ -5864,7 +6005,7 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 	return to;
 };
 
-},{}],42:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -5970,7 +6111,7 @@ checkPropTypes.resetWarningCache = function() {
 module.exports = checkPropTypes;
 
 }).call(this,require('_process'))
-},{"./lib/ReactPropTypesSecret":43,"_process":59}],43:[function(require,module,exports){
+},{"./lib/ReactPropTypesSecret":44,"_process":60}],44:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -5984,7 +6125,7 @@ var ReactPropTypesSecret = 'SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED';
 
 module.exports = ReactPropTypesSecret;
 
-},{}],44:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 (function (process){
 /** @license React v16.12.0
  * react-dom.development.js
@@ -33783,7 +33924,7 @@ module.exports = reactDom;
 }
 
 }).call(this,require('_process'))
-},{"_process":59,"object-assign":41,"prop-types/checkPropTypes":42,"react":49,"scheduler":55,"scheduler/tracing":56}],45:[function(require,module,exports){
+},{"_process":60,"object-assign":42,"prop-types/checkPropTypes":43,"react":50,"scheduler":56,"scheduler/tracing":57}],46:[function(require,module,exports){
 /** @license React v16.12.0
  * react-dom.production.min.js
  *
@@ -34075,7 +34216,7 @@ xe,ye,Ca.injectEventPluginsByName,fa,Sc,function(a){ya(a,Rc)},cb,db,Pd,Ba,Sj,{cu
 (function(a){var b=a.findFiberByHostInstance;return ok(n({},a,{overrideHookState:null,overrideProps:null,setSuspenseHandler:null,scheduleUpdate:null,currentDispatcherRef:Ea.ReactCurrentDispatcher,findHostInstanceByFiber:function(a){a=ic(a);return null===a?null:a.stateNode},findFiberByHostInstance:function(a){return b?b(a):null},findHostInstancesForRefresh:null,scheduleRefresh:null,scheduleRoot:null,setRefreshHandler:null,getCurrentFiber:null}))})({findFiberByHostInstance:Fc,bundleType:0,version:"16.12.0",
 rendererPackageName:"react-dom"});var Dk={default:Ck},Ek=Dk&&Ck||Dk;module.exports=Ek.default||Ek;
 
-},{"object-assign":41,"react":49,"scheduler":55}],46:[function(require,module,exports){
+},{"object-assign":42,"react":50,"scheduler":56}],47:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -34117,13 +34258,13 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 }).call(this,require('_process'))
-},{"./cjs/react-dom.development.js":44,"./cjs/react-dom.production.min.js":45,"_process":59}],47:[function(require,module,exports){
-arguments[4][38][0].apply(exports,arguments)
-},{"_process":59,"dup":38,"object-assign":41,"prop-types/checkPropTypes":42}],48:[function(require,module,exports){
+},{"./cjs/react-dom.development.js":45,"./cjs/react-dom.production.min.js":46,"_process":60}],48:[function(require,module,exports){
 arguments[4][39][0].apply(exports,arguments)
-},{"dup":39,"object-assign":41}],49:[function(require,module,exports){
+},{"_process":60,"dup":39,"object-assign":42,"prop-types/checkPropTypes":43}],49:[function(require,module,exports){
 arguments[4][40][0].apply(exports,arguments)
-},{"./cjs/react.development.js":47,"./cjs/react.production.min.js":48,"_process":59,"dup":40}],50:[function(require,module,exports){
+},{"dup":40,"object-assign":42}],50:[function(require,module,exports){
+arguments[4][41][0].apply(exports,arguments)
+},{"./cjs/react.development.js":48,"./cjs/react.production.min.js":49,"_process":60,"dup":41}],51:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -34799,7 +34940,7 @@ exports.compose = compose;
 exports.createStore = createStore;
 
 }).call(this,require('_process'))
-},{"_process":59,"symbol-observable":57}],51:[function(require,module,exports){
+},{"_process":60,"symbol-observable":58}],52:[function(require,module,exports){
 (function (process){
 /** @license React v0.18.0
  * scheduler-tracing.development.js
@@ -35226,7 +35367,7 @@ exports.unstable_unsubscribe = unstable_unsubscribe;
 }
 
 }).call(this,require('_process'))
-},{"_process":59}],52:[function(require,module,exports){
+},{"_process":60}],53:[function(require,module,exports){
 /** @license React v0.18.0
  * scheduler-tracing.production.min.js
  *
@@ -35238,7 +35379,7 @@ exports.unstable_unsubscribe = unstable_unsubscribe;
 
 'use strict';Object.defineProperty(exports,"__esModule",{value:!0});var b=0;exports.__interactionsRef=null;exports.__subscriberRef=null;exports.unstable_clear=function(a){return a()};exports.unstable_getCurrent=function(){return null};exports.unstable_getThreadID=function(){return++b};exports.unstable_trace=function(a,d,c){return c()};exports.unstable_wrap=function(a){return a};exports.unstable_subscribe=function(){};exports.unstable_unsubscribe=function(){};
 
-},{}],53:[function(require,module,exports){
+},{}],54:[function(require,module,exports){
 (function (process){
 /** @license React v0.18.0
  * scheduler.development.js
@@ -36146,7 +36287,7 @@ exports.unstable_Profiling = unstable_Profiling;
 }
 
 }).call(this,require('_process'))
-},{"_process":59}],54:[function(require,module,exports){
+},{"_process":60}],55:[function(require,module,exports){
 /** @license React v0.18.0
  * scheduler.production.min.js
  *
@@ -36170,7 +36311,7 @@ exports.unstable_scheduleCallback=function(a,b,c){var d=exports.unstable_now();i
 exports.unstable_wrapCallback=function(a){var b=R;return function(){var c=R;R=b;try{return a.apply(this,arguments)}finally{R=c}}};exports.unstable_getCurrentPriorityLevel=function(){return R};exports.unstable_shouldYield=function(){var a=exports.unstable_now();V(a);var b=L(N);return b!==Q&&null!==Q&&null!==b&&null!==b.callback&&b.startTime<=a&&b.expirationTime<Q.expirationTime||k()};exports.unstable_requestPaint=Z;exports.unstable_continueExecution=function(){T||S||(T=!0,f(X))};
 exports.unstable_pauseExecution=function(){};exports.unstable_getFirstCallbackNode=function(){return L(N)};exports.unstable_Profiling=null;
 
-},{}],55:[function(require,module,exports){
+},{}],56:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -36181,7 +36322,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 }).call(this,require('_process'))
-},{"./cjs/scheduler.development.js":53,"./cjs/scheduler.production.min.js":54,"_process":59}],56:[function(require,module,exports){
+},{"./cjs/scheduler.development.js":54,"./cjs/scheduler.production.min.js":55,"_process":60}],57:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -36192,7 +36333,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 }).call(this,require('_process'))
-},{"./cjs/scheduler-tracing.development.js":51,"./cjs/scheduler-tracing.production.min.js":52,"_process":59}],57:[function(require,module,exports){
+},{"./cjs/scheduler-tracing.development.js":52,"./cjs/scheduler-tracing.production.min.js":53,"_process":60}],58:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -36224,7 +36365,7 @@ if (typeof self !== 'undefined') {
 var result = (0, _ponyfill2['default'])(root);
 exports['default'] = result;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./ponyfill.js":58}],58:[function(require,module,exports){
+},{"./ponyfill.js":59}],59:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -36248,7 +36389,7 @@ function symbolObservablePonyfill(root) {
 
 	return result;
 };
-},{}],59:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 

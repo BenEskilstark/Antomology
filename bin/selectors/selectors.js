@@ -157,6 +157,10 @@ var getEmptyNeighborPositions = function getEmptyNeighborPositions(entity, entit
   return emptyPositions;
 };
 
+var insideWorld = function insideWorld(pos) {
+  return pos.x > 0 && pos.x < config.width && pos.y > 0 && pos.y < config.height;
+};
+
 /////////////////////////////////////////////////////////////////
 // Entities by type
 /////////////////////////////////////////////////////////////////
@@ -245,7 +249,8 @@ var selectors = {
   getNeighborhoodLocation: getNeighborhoodLocation,
   getNeighborhoodEntities: getNeighborhoodEntities,
   getEmptyNeighborPositions: getEmptyNeighborPositions,
-  getEntitiesByType: getEntitiesByType
+  getEntitiesByType: getEntitiesByType,
+  insideWorld: insideWorld
 };
 window.selectors = selectors; // for testing
 

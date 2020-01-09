@@ -8,12 +8,13 @@ import type {Store, Game} from '../types';
  */
 const initRenderSystem = (store: Store): void => {
 
-  let time = store.getState().game.time;
+  let time = -1;
   let canvas = null;
   let ctx = null;
   let svg = null;
   store.subscribe(() => {
     const state = store.getState();
+    if (state.game == null) return
     // only check on a new tick
     if (state.game.time == time && state.game.tickInterval != null) {
       return;
@@ -49,8 +50,16 @@ const render = (state: State, ctx: any): void => {
     config.canvasHeight / config.height,
   );
 
-  // render entities
+  // render non-location entities
   for (const id in game.entities) {
+    const entity = game.entities[id];
+    if (entity.position == null || entity.type == 'LOCATION') {
+      continue;
+    }
+    renderEntity(state, ctx, entity);
+  }
+  // render locations last so they go on top
+  for (const id of game.locations) {
     const entity = game.entities[id];
     if (entity.position == null) {
       continue;
@@ -129,6 +138,13 @@ const renderEntity = (state: State, ctx: any, entity: Entity): void => {
     case 'LOCATION': {
       ctx.fillStyle = 'rgba(50, 50, 50, 0.2)';
       ctx.fillRect(0, 0, entity.width, entity.height);
+      // gotta flip back for location label
+      ctx.save();
+      ctx.scale(1, -1);
+      ctx.fillStyle = 'black';
+      ctx.font = '1px Consolas';
+      ctx.fillText(entity.name, 0, -1 * entity.height);
+      ctx.restore();
       break;
     }
     case 'FOOD': {
@@ -149,9 +165,14 @@ const renderEntity = (state: State, ctx: any, entity: Entity): void => {
       ctx.fillStyle = 'white';
       if (!entity.alive) {
         ctx.fillStyle = 'rgba(100, 100, 100, 0.5)';
+      } else if (
+        entity.calories <
+        config.larvaStartingCalories * config.antStarvationWarningThreshold
+      ) {
+        ctx.fillStyle = 'rgba(250, 50, 0, 0.9)';
       }
       ctx.beginPath();
-      const radius = entity.width / 2 * 0.6;
+      const radius = entity.width / 2 * 0.5 + entity.calories / 10000;
       ctx.arc(entity.width / 2, entity.height / 2, radius, 0, Math.PI * 2);
       ctx.closePath();
       ctx.fill();
@@ -160,10 +181,7 @@ const renderEntity = (state: State, ctx: any, entity: Entity): void => {
     case 'PUPA': {
       ctx.fillStyle = 'white';
       ctx.beginPath();
-      const radius = entity.width / 2 * 1.05;
-      ctx.arc(entity.width / 2, entity.height / 2, radius, 0, Math.PI * 2);
-      ctx.closePath();
-      ctx.fill();
+      ctx.fillRect(0, 0, entity.width, entity.height);
       break;
     }
   }

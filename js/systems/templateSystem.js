@@ -7,9 +7,10 @@ import type {Store} from '../types';
  */
 const initTemplateSystem = (store: Store): void => {
 
-  let time = store.getState().game.time;
+  let time = -1
   store.subscribe(() => {
     const state = store.getState();
+    if (state.game == null) return;
     // only check on a new tick
     if (state.game.time == time) {
       return;

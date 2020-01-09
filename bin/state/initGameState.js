@@ -31,6 +31,7 @@ var initGameState = function initGameState() {
     tickInterval: null,
     antMode: 'PICKUP',
     userMode: 'SELECT',
+    nextLocationName: 'Give Locations Unique Names',
     mouse: {
       isLeftDown: false,
       isRightDown: false,
@@ -51,7 +52,7 @@ var initGameState = function initGameState() {
   };
 
   // seed start location
-  var colonyEntrance = makeLocation('Colony Entrance', 1, 1, { x: 25, y: 37 });
+  var colonyEntrance = makeLocation('Colony Entrance', 1, 1, { x: 25, y: 29 });
   gameState.entities[colonyEntrance.id] = colonyEntrance;
   gameState.locations.push(colonyEntrance.id);
 
@@ -61,7 +62,7 @@ var initGameState = function initGameState() {
   // seed bottom 3/4's with dirt
   for (var x = 0; x < config.width; x++) {
     for (var y = 0; y < config.height; y++) {
-      if (y < config.height * 0.75 && Math.random() < 0.99) {
+      if (y < config.height * 0.6 && Math.random() < 0.99) {
         if (x == colonyEntrance.position.x && y == colonyEntrance.position.y) {
           continue;
         }
@@ -76,21 +77,21 @@ var initGameState = function initGameState() {
   }
 
   // seed ants
-  var ant = makeAnt({ x: 25, y: 38 }, 'QUEEN');
+  var ant = makeAnt({ x: 25, y: 30 }, 'QUEEN');
   gameState.entities[ant.id] = ant;
   gameState.ants.push(ant.id);
-  var ant1 = makeAnt({ x: 20, y: 38 }, 'WORKER');
+  var ant1 = makeAnt({ x: 20, y: 30 }, 'WORKER');
   gameState.entities[ant1.id] = ant1;
   gameState.ants.push(ant1.id);
-  var ant2 = makeAnt({ x: 30, y: 38 }, 'WORKER');
+  var ant2 = makeAnt({ x: 30, y: 30 }, 'WORKER');
   gameState.entities[ant2.id] = ant2;
   gameState.ants.push(ant2.id);
 
   // seed food
-  for (var i = 0; i < 10; i++) {
+  for (var i = 0; i < 15; i++) {
     var position = {
       x: randomIn(0, config.width),
-      y: randomIn(Math.ceil(config.height * 0.75) + 1, config.height)
+      y: randomIn(Math.ceil(config.height * 0.6) + 1, config.height)
     };
     var food = makeFood(position, 1000, 'Crumb');
     gameState.entities[food.id] = food;

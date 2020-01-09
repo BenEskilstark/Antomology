@@ -32,18 +32,33 @@ function Sidebar(props: Props): React.Node {
         height: config.canvasHeight,
       }}
     >
-      Left-click and drag will:
-      <RadioPicker
-        options={['SELECT', 'MARK', 'CREATE_LOCATION']}
-        selected={game.userMode}
-        onChange={(userMode) => dispatch({type: 'SET_USER_MODE', userMode})}
-      />
-      Right-click will cause selected ants to:
-      <RadioPicker
-        options={['PICKUP', 'EAT', 'FEED']}
-        selected={game.antMode}
-        onChange={(antMode) => dispatch({type: 'SET_ANT_MODE', antMode})}
-      />
+      <div><b>Controls</b></div>
+      <div>
+        Left-click and drag will:
+        <Dropdown
+          noNoneOption={true}
+          options={['SELECT', 'MARK', 'CREATE_LOCATION']}
+          selected={game.userMode}
+          onChange={(userMode) => dispatch({type: 'SET_USER_MODE', userMode})}
+        />
+        {
+          game.userMode === 'CREATE_LOCATION'
+            ? <input type='text' value={game.nextLocationName}
+                onChange={(ev) => {
+                  dispatch({type: 'UPDATE_NEXT_LOCATION_NAME', name: ev.target.value});
+                }} />
+            : null
+        }
+      </div>
+      <div>
+        Right-click will cause selected ants to:
+        <Dropdown
+          noNoneOption={true}
+          options={['PICKUP', 'EAT', 'FEED']}
+          selected={game.antMode}
+          onChange={(antMode) => dispatch({type: 'SET_ANT_MODE', antMode})}
+        />
+      </div>
       <div
         style={{
           border: '1px solid black',
@@ -87,6 +102,7 @@ function TaskEditor(props: Props): React.Node {
     >
       <div><b>Task Editor</b></div>
       Edit Task: <Dropdown
+        noNoneOption={true}
         options={['New Task'].concat(game.tasks.map(t => t.name))}
         selected={taskName}
         onChange={setTaskName}

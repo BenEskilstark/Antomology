@@ -14,12 +14,13 @@ var _require2 = require('../utils/vectors'),
  */
 var initRenderSystem = function initRenderSystem(store) {
 
-  var time = store.getState().game.time;
+  var time = -1;
   var canvas = null;
   var ctx = null;
   var svg = null;
   store.subscribe(function () {
     var state = store.getState();
+    if (state.game == null) return;
     // only check on a new tick
     if (state.game.time == time && state.game.tickInterval != null) {
       return;
@@ -52,16 +53,46 @@ var render = function render(state, ctx) {
   ctx.scale(1, -1);
   ctx.scale(config.canvasWidth / config.width, config.canvasHeight / config.height);
 
-  // render entities
+  // render non-location entities
   for (var id in game.entities) {
     var entity = game.entities[id];
-    if (entity.position == null) {
+    if (entity.position == null || entity.type == 'LOCATION') {
       continue;
     }
     renderEntity(state, ctx, entity);
   }
+  // render locations last so they go on top
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
 
-  // render marquees
+  try {
+    for (var _iterator = game.locations[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var _id = _step.value;
+
+      var _entity = game.entities[_id];
+      if (_entity.position == null) {
+        continue;
+      }
+      renderEntity(state, ctx, _entity);
+    }
+
+    // render marquees
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
   var mouse = game.mouse;
 
   if (mouse.isLeftDown && game.userMode !== 'MARK') {
@@ -130,6 +161,13 @@ var renderEntity = function renderEntity(state, ctx, entity) {
       {
         ctx.fillStyle = 'rgba(50, 50, 50, 0.2)';
         ctx.fillRect(0, 0, entity.width, entity.height);
+        // gotta flip back for location label
+        ctx.save();
+        ctx.scale(1, -1);
+        ctx.fillStyle = 'black';
+        ctx.font = '1px Consolas';
+        ctx.fillText(entity.name, 0, -1 * entity.height);
+        ctx.restore();
         break;
       }
     case 'FOOD':
@@ -153,9 +191,11 @@ var renderEntity = function renderEntity(state, ctx, entity) {
         ctx.fillStyle = 'white';
         if (!entity.alive) {
           ctx.fillStyle = 'rgba(100, 100, 100, 0.5)';
+        } else if (entity.calories < config.larvaStartingCalories * config.antStarvationWarningThreshold) {
+          ctx.fillStyle = 'rgba(250, 50, 0, 0.9)';
         }
         ctx.beginPath();
-        var _radius2 = entity.width / 2 * 0.6;
+        var _radius2 = entity.width / 2 * 0.5 + entity.calories / 10000;
         ctx.arc(entity.width / 2, entity.height / 2, _radius2, 0, Math.PI * 2);
         ctx.closePath();
         ctx.fill();
@@ -165,10 +205,7 @@ var renderEntity = function renderEntity(state, ctx, entity) {
       {
         ctx.fillStyle = 'white';
         ctx.beginPath();
-        var _radius3 = entity.width / 2 * 1.05;
-        ctx.arc(entity.width / 2, entity.height / 2, _radius3, 0, Math.PI * 2);
-        ctx.closePath();
-        ctx.fill();
+        ctx.fillRect(0, 0, entity.width, entity.height);
         break;
       }
   }

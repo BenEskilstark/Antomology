@@ -17,6 +17,7 @@ const initGameState = (): GameState => {
     tickInterval: null,
     antMode: 'PICKUP',
     userMode: 'SELECT',
+    nextLocationName: 'Give Locations Unique Names',
     mouse: {
       isLeftDown: false,
       isRightDown: false,
@@ -39,7 +40,7 @@ const initGameState = (): GameState => {
   // seed start location
   const colonyEntrance = makeLocation(
     'Colony Entrance',
-    1, 1, {x: 25, y: 37},
+    1, 1, {x: 25, y: 29},
   );
   gameState.entities[colonyEntrance.id] = colonyEntrance;
   gameState.locations.push(colonyEntrance.id);
@@ -58,7 +59,7 @@ const initGameState = (): GameState => {
   // seed bottom 3/4's with dirt
   for (let x = 0; x < config.width; x++) {
     for (let y = 0; y < config.height; y++) {
-      if (y < config.height * 0.75 && Math.random() < 0.99) {
+      if (y < config.height * 0.6 && Math.random() < 0.99) {
         if (x == colonyEntrance.position.x && y == colonyEntrance.position.y) {
           continue;
         }
@@ -73,21 +74,21 @@ const initGameState = (): GameState => {
   }
 
   // seed ants
-  const ant = makeAnt({x: 25, y: 38}, 'QUEEN');
+  const ant = makeAnt({x: 25, y: 30}, 'QUEEN');
   gameState.entities[ant.id] = ant;
   gameState.ants.push(ant.id);
-  const ant1 = makeAnt({x: 20, y: 38}, 'WORKER');
+  const ant1 = makeAnt({x: 20, y: 30}, 'WORKER');
   gameState.entities[ant1.id] = ant1;
   gameState.ants.push(ant1.id);
-  const ant2 = makeAnt({x: 30, y: 38}, 'WORKER');
+  const ant2 = makeAnt({x: 30, y: 30}, 'WORKER');
   gameState.entities[ant2.id] = ant2;
   gameState.ants.push(ant2.id);
 
   // seed food
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 15; i++) {
     const position = {
       x: randomIn(0, config.width),
-      y: randomIn(Math.ceil(config.height * 0.75) + 1, config.height),
+      y: randomIn(Math.ceil(config.height * 0.6) + 1, config.height),
     };
     const food = makeFood(position, 1000, 'Crumb');
     gameState.entities[food.id] = food;

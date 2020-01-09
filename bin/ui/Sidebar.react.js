@@ -41,22 +41,45 @@ function Sidebar(props) {
         height: config.canvasHeight
       }
     },
-    'Left-click and drag will:',
-    React.createElement(RadioPicker, {
-      options: ['SELECT', 'MARK', 'CREATE_LOCATION'],
-      selected: game.userMode,
-      onChange: function onChange(userMode) {
-        return dispatch({ type: 'SET_USER_MODE', userMode: userMode });
-      }
-    }),
-    'Right-click will cause selected ants to:',
-    React.createElement(RadioPicker, {
-      options: ['PICKUP', 'EAT', 'FEED'],
-      selected: game.antMode,
-      onChange: function onChange(antMode) {
-        return dispatch({ type: 'SET_ANT_MODE', antMode: antMode });
-      }
-    }),
+    React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'b',
+        null,
+        'Controls'
+      )
+    ),
+    React.createElement(
+      'div',
+      null,
+      'Left-click and drag will:',
+      React.createElement(Dropdown, {
+        noNoneOption: true,
+        options: ['SELECT', 'MARK', 'CREATE_LOCATION'],
+        selected: game.userMode,
+        onChange: function onChange(userMode) {
+          return dispatch({ type: 'SET_USER_MODE', userMode: userMode });
+        }
+      }),
+      game.userMode === 'CREATE_LOCATION' ? React.createElement('input', { type: 'text', value: game.nextLocationName,
+        onChange: function onChange(ev) {
+          dispatch({ type: 'UPDATE_NEXT_LOCATION_NAME', name: ev.target.value });
+        } }) : null
+    ),
+    React.createElement(
+      'div',
+      null,
+      'Right-click will cause selected ants to:',
+      React.createElement(Dropdown, {
+        noNoneOption: true,
+        options: ['PICKUP', 'EAT', 'FEED'],
+        selected: game.antMode,
+        onChange: function onChange(antMode) {
+          return dispatch({ type: 'SET_ANT_MODE', antMode: antMode });
+        }
+      })
+    ),
     React.createElement(
       'div',
       {
@@ -127,6 +150,7 @@ function TaskEditor(props) {
     ),
     'Edit Task: ',
     React.createElement(Dropdown, {
+      noNoneOption: true,
       options: ['New Task'].concat(game.tasks.map(function (t) {
         return t.name;
       })),

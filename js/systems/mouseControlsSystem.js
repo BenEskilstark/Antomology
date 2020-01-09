@@ -19,6 +19,7 @@ const initMouseControlsSystem = (store) => {
   let canvas = null;
   document.onmouseup = (ev) => {
     const state = store.getState();
+    if (state.game == null) return;
     const gridPos = getClickedPos(ev);
     if (gridPos == null) return;
 
@@ -33,6 +34,7 @@ const initMouseControlsSystem = (store) => {
 
   document.onmousedown = (ev) => {
     const state = store.getState();
+    if (state.game == null) return;
     const gridPos = getClickedPos(ev);
     if (gridPos == null) return;
 
@@ -46,6 +48,7 @@ const initMouseControlsSystem = (store) => {
 
   document.onmousemove = (ev) => {
     const state = store.getState();
+    if (state.game == null) return;
     const gridPos = getClickedPos(ev);
     if (gridPos == null) return;
     dispatch({type: 'SET_MOUSE_POS', curPos: gridPos});
@@ -108,7 +111,7 @@ const handleLeftClick = (
       locPosition.y = locPosition.y + dimensions.y;
     }
     const newLocation = makeLocation(
-      'test', // TODO
+      state.game.nextLocationName,
       Math.abs(dimensions.x) + 1, // off by one
       Math.abs(dimensions.y) + 1,
       locPosition,

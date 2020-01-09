@@ -1,19 +1,19 @@
 
  - - - - - - TODO - - - - - -
- - test every interaction
+ - make pickup/feed/eat more intuitive
+ - On create task, switch dropdown to editing that one
  - button for exporting tasks as json
  - button for importing task jsons
- - prevent ants from moving off-screen
  - Make larva, eggs, pupa, selectable
  - egg,larva, pupa UI cards
  - prioritize feeding larva
- - Call out ants near death of old age
 
  - - - - - - NEXT - - - - - -
- - switch dead ants to their own entity type
+ - switch dead ants/larva to their own entity type
  - RANDOM move behavior for staying inside a location
  - ant calories should only go down when they do something
- - UI for naming locations, name of location floating in space
+ - compute old-age death for ants
+ - Call out ants near death of old age
 
  - - - - -  LATER - - - - - -
  - A*-like for ants moving towards location
@@ -43,7 +43,9 @@
     - in keyboardControlSystem/onmousedown for what was left clicked on
     - in keyboardControlSystem/onmousedown for what was right clicked on
     - in selectors/getFreeNeighborPositions
+    - in foodSpawnSystem
  - get optional chaining working
+ - after fixing Go To Clicked Location bug, can store locations as strings on behaviors
 
 
  - - - - - - BUGS - - - - - -
@@ -54,6 +56,8 @@
  - update Go To Clicked Location to always point at last location instead of first
  - two ants can eat the same food at the same time
  - selection marquee doesn't work 100% from every angle
+ - getNeighborhoodLocation fails every once in a while
+ - updateTask doesn't always work...
 
 
  - - - - - - DONE - - - - - -
@@ -120,3 +124,11 @@
     - remove function inside SWITCH_TASK behavior
     - implement Add Behavior button in TaskCard
  - Ant egg/larva/pupa life-cycles
+
+ - test every interaction
+ - make food spawn at random
+ - visually distinguish starving/fed larva
+ - prevent ants from moving off-screen
+ - only lay eggs on top of dirt
+ - UI for naming locations, name of location floating in space
+ - making another location with same name replaces it

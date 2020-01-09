@@ -16,21 +16,24 @@ var config = {
   // colony entrance location id:
   colonyEntrance: 0,
 
+  foodSpawnRate: 0.02, // ~once per 5 seconds
+  foodSpawnCalories: 1000,
+
   // ant-specific values
   maxSelectableAnts: 4,
   antPickupEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'DEAD_ANT'],
   antBlockingEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA'],
   antEatEntities: ['FOOD', 'DEAD_ANT'],
-  antStartingCalories: 2000,
+  antStartingCalories: 4000,
   antCaloriesPerEat: 1000,
   antStarvationWarningThreshold: 0.3,
 
   // life-cycle related
   antMaxAge: 10000,
-  eggHatchAge: 20,
-  larvaStartCalories: 1000,
-  larvaEndCalories: 2000,
-  pupaHatchAge: 20
+  eggHatchAge: 300,
+  larvaStartingCalories: 2000,
+  larvaEndCalories: 3000,
+  pupaHatchAge: 200
 };
 
 module.exports = { config: config };

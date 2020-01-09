@@ -13,28 +13,43 @@ var gameReducer = function gameReducer(game, action) {
       {
         var entity = action.entity;
 
-        game.entities[entity.id] = entity;
+        var nextID = entity.id;
+        // if trying to make a location with the same name as one that already exists,
+        // just update the position of the currently-existing entity for that location
+        var sameLocationName = false;
+        if (entity.type == 'LOCATION') {
+          var locationIDWithName = game.locations.filter(function (l) {
+            return game.entities[l].name === entity.name;
+          })[0];
+          if (locationIDWithName != null) {
+            sameLocationName = true;
+            nextID = locationIDWithName;
+          }
+        }
+        game.entities[nextID] = entity;
         switch (entity.type) {
           case 'LOCATION':
-            game.locations.push(entity.id);
+            if (!sameLocationName) {
+              game.locations.push(nextID);
+            } // else it's already there
             break;
           case 'ANT':
-            game.ants.push(entity.id);
+            game.ants.push(nextID);
             break;
           case 'DIRT':
-            game.dirt.push(entity.id);
+            game.dirt.push(nextID);
             break;
           case 'FOOD':
-            game.food.push(entity.id);
+            game.food.push(nextID);
             break;
           case 'EGG':
-            game.eggs.push(entity.id);
+            game.eggs.push(nextID);
             break;
           case 'LARVA':
-            game.larva.push(entity.id);
+            game.larva.push(nextID);
             break;
           case 'PUPA':
-            game.pupa.push(entity.id);
+            game.pupa.push(nextID);
             break;
         }
         return game;
@@ -89,6 +104,14 @@ var gameReducer = function gameReducer(game, action) {
         oldTask.repeating = _task.repeating;
         oldTask.behaviorQueue = _task.behaviorQueue;
         return game;
+      }
+    case 'UPDATE_NEXT_LOCATION_NAME':
+      {
+        var name = action.name;
+
+        return _extends({}, game, {
+          nextLocationName: name
+        });
       }
     case 'ASSIGN_TASK':
       {

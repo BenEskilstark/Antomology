@@ -129,6 +129,10 @@ const getEmptyNeighborPositions = (
   return emptyPositions;
 };
 
+const insideWorld = (pos: Vector): boolean => {
+  return pos.x > 0 && pos.x < config.width && pos.y > 0 && pos.y < config.height;
+};
+
 /////////////////////////////////////////////////////////////////
 // Entities by type
 /////////////////////////////////////////////////////////////////
@@ -181,6 +185,7 @@ const selectors = {
   getNeighborhoodEntities,
   getEmptyNeighborPositions,
   getEntitiesByType,
+  insideWorld,
 };
 window.selectors = selectors; // for testing
 

@@ -42,6 +42,7 @@ var rootReducer = function rootReducer(state, action) {
     case 'SET_SELECTED_ENTITIES':
     case 'CREATE_TASK':
     case 'UPDATE_TASK':
+    case 'UPDATE_NEXT_LOCATION_NAME':
     case 'ASSIGN_TASK':
     case 'SET_USER_MODE':
     case 'SET_ANT_MODE':

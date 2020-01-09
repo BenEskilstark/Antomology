@@ -8,7 +8,7 @@ import type {Vector, Size, Entity, Larva, AntSubType} from '../types';
 const makeLarva = (position: Vector, subType: AntSubType): Larva => {
   return {
     ...makeEntity('LARVA', 1, 1, position),
-    calories: config.larvaStartCalories,
+    calories: config.larvaStartingCalories,
     alive: true,
     subType,
   };

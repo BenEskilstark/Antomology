@@ -7,9 +7,11 @@ var React = require('React');
  * options: Array<string>
  * selected: string // which option is selected
  * onChange: (string) => void
+ * noNoneOption: optional boolean // if provided, won't use NONE option
  */
 var Dropdown = function Dropdown(props) {
   var options = props.options,
+      noNoneOption = props.noNoneOption,
       selected = props.selected,
       _onChange = props.onChange;
 
@@ -20,11 +22,13 @@ var Dropdown = function Dropdown(props) {
       option
     );
   });
-  optionTags.push(React.createElement(
-    'option',
-    { key: 'option_null', value: null },
-    'NONE'
-  ));
+  if (!noNoneOption) {
+    optionTags.push(React.createElement(
+      'option',
+      { key: 'option_null', value: null },
+      'NONE'
+    ));
+  }
 
   return React.createElement(
     'select',

@@ -37,7 +37,8 @@ var _require7 = require('../selectors/selectors'),
     getNeighborhoodLocation = _require7.getNeighborhoodLocation,
     getNeighborhoodEntities = _require7.getNeighborhoodEntities,
     getEmptyNeighborPositions = _require7.getEmptyNeighborPositions,
-    getEntitiesByType = _require7.getEntitiesByType;
+    getEntitiesByType = _require7.getEntitiesByType,
+    insideWorld = _require7.insideWorld;
 
 var _require8 = require('../entities/egg'),
     makeEgg = _require8.makeEgg;
@@ -367,6 +368,12 @@ var evaluateCondition = function evaluateCondition(game, ant, condition) {
         }
         break;
       }
+    case 'BLOCKED':
+      {
+        // comparator must be EQUALS
+        isTrue = ant.blocked;
+        break;
+      }
     case 'RANDOM':
       {
         var value = object;
@@ -378,12 +385,6 @@ var evaluateCondition = function evaluateCondition(game, ant, condition) {
         } else if (comparator === 'GREATER_THAN') {
           isTrue = rand > value;
         }
-        break;
-      }
-    case 'BLOCKED':
-      {
-        // comparator must be EQUALS
-        isTrue = ant.blocked;
         break;
       }
     case 'CALORIES':
@@ -442,7 +443,7 @@ var performAction = function performAction(game, ant, action) {
         var loc = object;
         if (object === 'RANDOM') {
           // randomly select loc based on free neighbors
-          var _freePositions = getEmptyNeighborPositions(ant, getEntitiesByType(game, config.antBlockingEntities));
+          var _freePositions = getEmptyNeighborPositions(ant, getEntitiesByType(game, config.antBlockingEntities)).filter(insideWorld);
           if (_freePositions.length == 0) {
             break; // can't move
           }
@@ -477,7 +478,7 @@ var performAction = function performAction(game, ant, action) {
         moveVec[moveAxis] += distVec[moveAxis] > 0 ? 1 : -1;
         var nextPos = add(moveVec, ant.position);
         var occupied = collidesWith({ position: nextPos, width: 1, height: 1 }, getEntitiesByType(game, config.antBlockingEntities));
-        if (occupied.length == 0) {
+        if (occupied.length == 0 && insideWorld(nextPos)) {
           ant.prevPosition = ant.position;
           ant.position = nextPos;
         } else {
@@ -496,13 +497,15 @@ var performAction = function performAction(game, ant, action) {
           }
           nextPos = add(moveVec, ant.position);
           occupied = collidesWith({ position: nextPos, width: 1, height: 1 }, getEntitiesByType(game, config.antBlockingEntities));
-          if (occupied.length == 0) {
+          if (occupied.length == 0 && insideWorld(nextPos)) {
             ant.position = nextPos;
             ant.blocked = false;
             ant.blockedBy = null;
           } else {
-            ant.blocked = true;
-            ant.blockedBy = occupied[0];
+            if (occupied.length > 0) {
+              ant.blocked = true;
+              ant.blockedBy = occupied[0];
+            }
           }
         }
         break;
@@ -602,8 +605,9 @@ var performAction = function performAction(game, ant, action) {
         if (ant.subType != 'QUEEN') {
           break; // only queen lays eggs
         }
-        var _putDown = collidesWith(ant, getEntitiesByType(game, config.antBlockingEntities));
-        if (_putDown.length == 0) {
+        var nothingInTheWay = collidesWith(ant, getEntitiesByType(game, config.antBlockingEntities)).length === 0;
+        var dirtBelow = collidesWith({ position: { x: ant.position.x, y: ant.position.y - 1 } }, getEntitiesByType(game, ['DIRT'])).length > 0;
+        if (nothingInTheWay && dirtBelow) {
           var _egg = makeEgg(ant.position, 'WORKER'); // TODO
           game.entities[_egg.id] = _egg;
           game.eggs.push(_egg.id);

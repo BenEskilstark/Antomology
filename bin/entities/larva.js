@@ -10,7 +10,7 @@ var _require2 = require('../config'),
 
 var makeLarva = function makeLarva(position, subType) {
   return _extends({}, makeEntity('LARVA', 1, 1, position), {
-    calories: config.larvaStartCalories,
+    calories: config.larvaStartingCalories,
     alive: true,
     subType: subType
   });

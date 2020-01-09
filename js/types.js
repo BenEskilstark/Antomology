@@ -53,6 +53,8 @@ export type GameState = {
   userMode: UserMode,
   mouse: Mouse,
 
+  nextLocationName: string,
+
   selectedEntities: Array<EntityID>,
   // ALL entities (including ants) here:
   entities: {[EntityID]: Entity},
@@ -217,6 +219,7 @@ export type Action =
   {type: 'DESTROY_ENTITY', id: EntityID} |
   {type: 'UPDATE_TASK', task: Task, originalName: string} |
   {type: 'CREATE_TASK', task: Task} |
+  {TYPE: 'UPDATE_NEXT_LOCATION_NAME', name: string} |
   {type: 'ASSIGN_TASK', task: Task, ants: Array<EntityID>} |
   {type: 'SET_USER_MODE', userMode: UserMode} |
   {type: 'SET_ANT_MODE', antMode: AntMode} |

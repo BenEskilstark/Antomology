@@ -5,9 +5,10 @@
  */
 var initTemplateSystem = function initTemplateSystem(store) {
 
-  var time = store.getState().game.time;
+  var time = -1;
   store.subscribe(function () {
     var state = store.getState();
+    if (state.game == null) return;
     // only check on a new tick
     if (state.game.time == time) {
       return;

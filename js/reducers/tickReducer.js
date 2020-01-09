@@ -19,6 +19,7 @@ const {
   getNeighborhoodEntities,
   getEmptyNeighborPositions,
   getEntitiesByType,
+  insideWorld,
 } = require('../selectors/selectors');
 const {makeEgg} = require('../entities/egg');
 const {makeLarva} = require('../entities/larva');
@@ -228,6 +229,11 @@ const evaluateCondition = (
       }
       break;
     }
+    case 'BLOCKED': {
+      // comparator must be EQUALS
+      isTrue = ant.blocked;
+      break;
+    }
     case 'RANDOM': {
       const value = object;
       const rand = Math.random();
@@ -238,11 +244,6 @@ const evaluateCondition = (
       } else if (comparator === 'GREATER_THAN') {
         isTrue = rand > value;
       }
-      break;
-    }
-    case 'BLOCKED': {
-      // comparator must be EQUALS
-      isTrue = ant.blocked;
       break;
     }
     case 'CALORIES': {
@@ -301,7 +302,7 @@ const performAction = (
         // randomly select loc based on free neighbors
         let freePositions = getEmptyNeighborPositions(
           ant, getEntitiesByType(game, config.antBlockingEntities),
-        );
+        ).filter(insideWorld);
         if (freePositions.length == 0) {
           break; // can't move
         }
@@ -337,7 +338,7 @@ const performAction = (
         {position: nextPos, width: 1, height: 1},
           getEntitiesByType(game, config.antBlockingEntities),
       );
-      if (occupied.length == 0) {
+      if (occupied.length == 0 && insideWorld(nextPos)) {
         ant.prevPosition = ant.position;
         ant.position = nextPos;
       } else { // else try moving along the other axis
@@ -358,13 +359,15 @@ const performAction = (
           {position: nextPos, width: 1, height: 1},
           getEntitiesByType(game, config.antBlockingEntities),
         );
-        if (occupied.length == 0) {
+        if (occupied.length == 0 && insideWorld(nextPos)) {
           ant.position = nextPos;
           ant.blocked = false;
           ant.blockedBy = null;
         } else {
-          ant.blocked = true;
-          ant.blockedBy = occupied[0];
+          if (occupied.length > 0) {
+            ant.blocked = true;
+            ant.blockedBy = occupied[0];
+          }
         }
       }
       break;
@@ -466,11 +469,15 @@ const performAction = (
       if (ant.subType != 'QUEEN') {
         break; // only queen lays eggs
       }
-      const putDown = collidesWith(
+      const nothingInTheWay = collidesWith(
         ant,
         getEntitiesByType(game, config.antBlockingEntities),
-      );
-      if (putDown.length == 0) {
+      ).length === 0;
+      const dirtBelow = collidesWith(
+        {position: {x: ant.position.x, y: ant.position.y - 1}},
+        getEntitiesByType(game, ['DIRT']),
+      ).length > 0;
+      if (nothingInTheWay && dirtBelow) {
         const egg = makeEgg(ant.position, 'WORKER'); // TODO
         game.entities[egg.id] = egg;
         game.eggs.push(egg.id);

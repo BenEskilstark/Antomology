@@ -50,3 +50,9 @@ Date  Time Started  Time Spent  Work Completed
 1/8      9:45am     30min       AddBehavior button
          2:50pm     1hr 30min   Add ant life cycle of egg/larva/pupa + implement feeding
 
+1/9      9:20am     2hr         Make food spawn at random. Prevent ants moving off grid
+                                Only lay eggs on top of dirt. UI for naming locations
+                                Location labels in the world.
+                                Making another location with same name replaces it
+                                (14hr 10min --> 27hr 50min)
+
