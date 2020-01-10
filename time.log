@@ -59,4 +59,6 @@ Date  Time Started  Time Spent  Work Completed
 1/10     9:30am     2hr 10min   Fixed numerous bugs
                                 Implement PICKUP for every type
                                 Button for exporting a task to JSON
+         2:15pm     50min       Make eggs/larva/pupa selectable
+                                Make mouse controls more intuitive
 

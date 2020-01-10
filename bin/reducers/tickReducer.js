@@ -587,7 +587,36 @@ var performAction = function performAction(game, ant, action) {
       {
         var feedableEntities = getNeighborhoodEntities(ant, getEntitiesByType(game, ['ANT', 'LARVA']));
         if (ant.holding != null && ant.holding.type === 'FOOD' && feedableEntities.length > 0) {
+          // prefer to feed larva if possible
           var fedEntity = oneOf(feedableEntities);
+          var _iteratorNormalCompletion5 = true;
+          var _didIteratorError5 = false;
+          var _iteratorError5 = undefined;
+
+          try {
+            for (var _iterator5 = feedableEntities[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+              var e = _step5.value;
+
+              if (e.type === 'LARVA') {
+                fedEntity = e;
+                break;
+              }
+            }
+          } catch (err) {
+            _didIteratorError5 = true;
+            _iteratorError5 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                _iterator5.return();
+              }
+            } finally {
+              if (_didIteratorError5) {
+                throw _iteratorError5;
+              }
+            }
+          }
+
           fedEntity.calories += ant.holding.calories;
           delete game.entities[ant.holding.id];
           game.food = deleteFromArray(game.food, ant.holding.id);

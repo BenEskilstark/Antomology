@@ -185,6 +185,11 @@ var renderEntity = function renderEntity(state, ctx, entity) {
         ctx.arc(entity.width / 2, entity.height / 2, _radius, 0, Math.PI * 2);
         ctx.closePath();
         ctx.fill();
+        if (state.game.selectedEntities.includes(entity.id)) {
+          ctx.strokeStyle = 'black';
+          ctx.lineWidth = 2 / (config.canvasWidth / config.width);
+          ctx.stroke();
+        }
         break;
       }
     case 'LARVA':
@@ -200,6 +205,11 @@ var renderEntity = function renderEntity(state, ctx, entity) {
         ctx.arc(entity.width / 2, entity.height / 2, _radius2, 0, Math.PI * 2);
         ctx.closePath();
         ctx.fill();
+        if (state.game.selectedEntities.includes(entity.id)) {
+          ctx.strokeStyle = 'black';
+          ctx.lineWidth = 2 / (config.canvasWidth / config.width);
+          ctx.stroke();
+        }
         break;
       }
     case 'PUPA':
@@ -207,6 +217,11 @@ var renderEntity = function renderEntity(state, ctx, entity) {
         ctx.fillStyle = 'white';
         ctx.beginPath();
         ctx.fillRect(0, 0, entity.width, entity.height);
+        if (state.game.selectedEntities.includes(entity.id)) {
+          ctx.strokeStyle = 'black';
+          ctx.lineWidth = 2 / (config.canvasWidth / config.width);
+          ctx.strokeRect(0, 0, entity.width, entity.height);
+        }
         break;
       }
   }

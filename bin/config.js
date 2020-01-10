@@ -16,11 +16,15 @@ var config = {
   // colony entrance location id:
   colonyEntrance: 0,
 
+  // food
   foodSpawnRate: 0.02, // ~once per 5 seconds
   foodSpawnCalories: 1000,
 
-  // ant-specific values
+  // selection
   maxSelectableAnts: 3,
+  selectableEntities: ['ANT', 'EGG', 'LARVA', 'PUPA'],
+
+  // ant-specific values
   antPickupEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'DEAD_ANT'],
   antBlockingEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA'],
   antEatEntities: ['FOOD', 'DEAD_ANT'],

@@ -5,7 +5,7 @@ const {config} = require('../config');
 const Button = require('./components/Button.react');
 const RadioPicker = require('./components/RadioPicker.react');
 const Dropdown = require('./components/Dropdown.react');
-const AntCard = require('./AntCard.react');
+const StatusCard = require('./StatusCard.react');
 const TaskCard = require('./TaskCard.react');
 const {getSelectedAntIDs} = require('../selectors/selectors');
 const {useState, useMemo, useEffect} = React;
@@ -20,10 +20,11 @@ type Props = {
 function Sidebar(props: Props): React.Node {
   const {state, dispatch} = props;
   const {game} = state;
-  // TODO allow selecting eggs, larva, pupa
-  const selectedAnts = getSelectedAntIDs(game).map(id => game.entities[id]);
-  const antCards = selectedAnts.map(ant => (
-    <AntCard state={state} ant={ant} dispatch={dispatch} key={'antCard_' + ant.id} />
+  const selectedEntities = game.selectedEntities.map(id => game.entities[id]);
+  const antCards = selectedEntities.map(entity => (
+    <StatusCard
+      state={state} entity={entity} dispatch={dispatch}
+      key={'statusCard_' + entity.id} />
   ));
   return (
     <div
@@ -70,7 +71,7 @@ function Sidebar(props: Props): React.Node {
           options={game.tasks.map(t => t.name)}
           selected={'NONE'}
           onChange={(nextName) => {
-            if (selectedAnts.length == 0) return;
+            if (selectedEntities.length == 0) return;
             const nextTask = game.tasks.filter(t => t.name === nextName)[0];
             dispatch({type: 'ASSIGN_TASK', task: nextTask, ants: getSelectedAntIDs(game)});
           }}

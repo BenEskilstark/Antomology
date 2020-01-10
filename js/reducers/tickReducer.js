@@ -459,7 +459,14 @@ const performAction = (
         ant.holding != null && ant.holding.type === 'FOOD' &&
         feedableEntities.length > 0
       ) {
-        const fedEntity = oneOf(feedableEntities);
+        // prefer to feed larva if possible
+        let fedEntity = oneOf(feedableEntities);
+        for (const e of feedableEntities) {
+          if (e.type === 'LARVA') {
+            fedEntity = e;
+            break;
+          }
+        }
         fedEntity.calories += ant.holding.calories;
         delete game.entities[ant.holding.id];
         game.food = deleteFromArray(game.food, ant.holding.id);

@@ -128,12 +128,12 @@ const handleLeftClick = (
       {position: {x, y}, width: Math.abs(dims.x) + 1, height: Math.abs(dims.y) + 1};
     const clickedAnts = collidesWith(
       marqueeLocation,
-      getEntitiesByType(state.game, ['ANT']),
+      getEntitiesByType(state.game, config.selectableEntities),
     );
     if (clickedAnts.length > 0) {
       dispatch({
         type: 'SET_SELECTED_ENTITIES',
-        entityIDs: clickedAnts.slice(0, config.maxSelectableAnts).map(entity => entity.id),
+        entityIDs: clickedAnts.slice(0, config.maxSelectableAnts).map(e => e.id),
       });
     } else if (state.game.selectedEntities.length > 0) {
       dispatch({
@@ -178,20 +178,44 @@ const handleRightClick = (state: State, dispatch: Dispatch, gridPos: Vector): vo
     if (state.game.antMode === 'EAT') {
       task.behaviorQueue.push(eatClicked);
     } else if (state.game.antMode === 'PICKUP') {
-      task.behaviorQueue.push({
-        type: 'IF',
-        condition: {
-          type: 'HOLDING',
-          comparator: 'EQUALS',
-          payload: {
-            object: 'NOTHING',
+      if (
+        clickedEntity != null &&
+        (clickedEntity.type === 'LARVA' || clickedEntity.type === 'ANT')
+      ) {
+        task.behaviorQueue.push(createDoAction('FEED', null));
+      } else {
+        task.behaviorQueue.push({
+          type: 'IF',
+          condition: {
+            type: 'HOLDING',
+            comparator: 'EQUALS',
+            payload: {
+              object: 'NOTHING',
+            },
           },
-        },
-        behavior: pickupClicked,
-        elseBehavior: putdownClicked,
-      });
+          behavior: pickupClicked,
+          elseBehavior: putdownClicked,
+        });
+      }
     } else if (state.game.antMode === 'FEED') {
-      task.behaviorQueue.push(createDoAction('FEED', null));
+      if (
+        clickedEntity != null && clickedEntity.type === 'FOOD'
+      ) {
+        task.behaviorQueue.push({
+          type: 'IF',
+          condition: {
+            type: 'HOLDING',
+            comparator: 'EQUALS',
+            payload: {
+              object: 'NOTHING',
+            },
+          },
+          behavior: pickupClicked,
+          elseBehavior: putdownClicked,
+        });
+      } else {
+        task.behaviorQueue.push(createDoAction('FEED', null));
+      }
     }
     dispatch({
       type: 'ASSIGN_TASK',

@@ -10,7 +10,7 @@ var _require = require('../config'),
 var Button = require('./components/Button.react');
 var RadioPicker = require('./components/RadioPicker.react');
 var Dropdown = require('./components/Dropdown.react');
-var AntCard = require('./AntCard.react');
+var StatusCard = require('./StatusCard.react');
 var TaskCard = require('./TaskCard.react');
 
 var _require2 = require('../selectors/selectors'),
@@ -25,13 +25,14 @@ function Sidebar(props) {
   var state = props.state,
       dispatch = props.dispatch;
   var game = state.game;
-  // TODO allow selecting eggs, larva, pupa
 
-  var selectedAnts = getSelectedAntIDs(game).map(function (id) {
+  var selectedEntities = game.selectedEntities.map(function (id) {
     return game.entities[id];
   });
-  var antCards = selectedAnts.map(function (ant) {
-    return React.createElement(AntCard, { state: state, ant: ant, dispatch: dispatch, key: 'antCard_' + ant.id });
+  var antCards = selectedEntities.map(function (entity) {
+    return React.createElement(StatusCard, {
+      state: state, entity: entity, dispatch: dispatch,
+      key: 'statusCard_' + entity.id });
   });
   return React.createElement(
     'div',
@@ -103,7 +104,7 @@ function Sidebar(props) {
         }),
         selected: 'NONE',
         onChange: function onChange(nextName) {
-          if (selectedAnts.length == 0) return;
+          if (selectedEntities.length == 0) return;
           var nextTask = game.tasks.filter(function (t) {
             return t.name === nextName;
           })[0];

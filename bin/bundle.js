@@ -17,11 +17,15 @@ var config = {
   // colony entrance location id:
   colonyEntrance: 0,
 
+  // food
   foodSpawnRate: 0.02, // ~once per 5 seconds
   foodSpawnCalories: 1000,
 
-  // ant-specific values
+  // selection
   maxSelectableAnts: 3,
+  selectableEntities: ['ANT', 'EGG', 'LARVA', 'PUPA'],
+
+  // ant-specific values
   antPickupEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'DEAD_ANT'],
   antBlockingEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA'],
   antEatEntities: ['FOOD', 'DEAD_ANT'],
@@ -226,7 +230,7 @@ store.subscribe(function () {
 function renderGame(store) {
   ReactDOM.render(React.createElement(Main, { state: store.getState(), dispatch: store.dispatch }), document.getElementById('container'));
 }
-},{"./reducers/rootReducer":13,"./systems/initSystems":20,"./ui/Main.react":28,"react":50,"react-dom":47,"redux":51}],11:[function(require,module,exports){
+},{"./reducers/rootReducer":13,"./systems/initSystems":20,"./ui/Main.react":27,"react":50,"react-dom":47,"redux":51}],11:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -1118,7 +1122,36 @@ var performAction = function performAction(game, ant, action) {
       {
         var feedableEntities = getNeighborhoodEntities(ant, getEntitiesByType(game, ['ANT', 'LARVA']));
         if (ant.holding != null && ant.holding.type === 'FOOD' && feedableEntities.length > 0) {
+          // prefer to feed larva if possible
           var fedEntity = oneOf(feedableEntities);
+          var _iteratorNormalCompletion5 = true;
+          var _didIteratorError5 = false;
+          var _iteratorError5 = undefined;
+
+          try {
+            for (var _iterator5 = feedableEntities[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+              var e = _step5.value;
+
+              if (e.type === 'LARVA') {
+                fedEntity = e;
+                break;
+              }
+            }
+          } catch (err) {
+            _didIteratorError5 = true;
+            _iteratorError5 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                _iterator5.return();
+              }
+            } finally {
+              if (_didIteratorError5) {
+                throw _iteratorError5;
+              }
+            }
+          }
+
           fedEntity.calories += ant.holding.calories;
           delete game.entities[ant.holding.id];
           game.food = deleteFromArray(game.food, ant.holding.id);
@@ -2051,12 +2084,12 @@ var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
     var x = dims.x > 0 ? mouse.downPos.x : mouse.curPos.x;
     var y = dims.y > 0 ? mouse.downPos.y : mouse.curPos.y;
     var marqueeLocation = { position: { x: x, y: y }, width: Math.abs(dims.x) + 1, height: Math.abs(dims.y) + 1 };
-    var clickedAnts = collidesWith(marqueeLocation, getEntitiesByType(state.game, ['ANT']));
+    var clickedAnts = collidesWith(marqueeLocation, getEntitiesByType(state.game, config.selectableEntities));
     if (clickedAnts.length > 0) {
       dispatch({
         type: 'SET_SELECTED_ENTITIES',
-        entityIDs: clickedAnts.slice(0, config.maxSelectableAnts).map(function (entity) {
-          return entity.id;
+        entityIDs: clickedAnts.slice(0, config.maxSelectableAnts).map(function (e) {
+          return e.id;
         })
       });
     } else if (state.game.selectedEntities.length > 0) {
@@ -2093,20 +2126,39 @@ var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
     if (state.game.antMode === 'EAT') {
       task.behaviorQueue.push(eatClicked);
     } else if (state.game.antMode === 'PICKUP') {
-      task.behaviorQueue.push({
-        type: 'IF',
-        condition: {
-          type: 'HOLDING',
-          comparator: 'EQUALS',
-          payload: {
-            object: 'NOTHING'
-          }
-        },
-        behavior: pickupClicked,
-        elseBehavior: putdownClicked
-      });
+      if (clickedEntity != null && (clickedEntity.type === 'LARVA' || clickedEntity.type === 'ANT')) {
+        task.behaviorQueue.push(createDoAction('FEED', null));
+      } else {
+        task.behaviorQueue.push({
+          type: 'IF',
+          condition: {
+            type: 'HOLDING',
+            comparator: 'EQUALS',
+            payload: {
+              object: 'NOTHING'
+            }
+          },
+          behavior: pickupClicked,
+          elseBehavior: putdownClicked
+        });
+      }
     } else if (state.game.antMode === 'FEED') {
-      task.behaviorQueue.push(createDoAction('FEED', null));
+      if (clickedEntity != null && clickedEntity.type === 'FOOD') {
+        task.behaviorQueue.push({
+          type: 'IF',
+          condition: {
+            type: 'HOLDING',
+            comparator: 'EQUALS',
+            payload: {
+              object: 'NOTHING'
+            }
+          },
+          behavior: pickupClicked,
+          elseBehavior: putdownClicked
+        });
+      } else {
+        task.behaviorQueue.push(createDoAction('FEED', null));
+      }
     }
     dispatch({
       type: 'ASSIGN_TASK',
@@ -2307,6 +2359,11 @@ var renderEntity = function renderEntity(state, ctx, entity) {
         ctx.arc(entity.width / 2, entity.height / 2, _radius, 0, Math.PI * 2);
         ctx.closePath();
         ctx.fill();
+        if (state.game.selectedEntities.includes(entity.id)) {
+          ctx.strokeStyle = 'black';
+          ctx.lineWidth = 2 / (config.canvasWidth / config.width);
+          ctx.stroke();
+        }
         break;
       }
     case 'LARVA':
@@ -2322,6 +2379,11 @@ var renderEntity = function renderEntity(state, ctx, entity) {
         ctx.arc(entity.width / 2, entity.height / 2, _radius2, 0, Math.PI * 2);
         ctx.closePath();
         ctx.fill();
+        if (state.game.selectedEntities.includes(entity.id)) {
+          ctx.strokeStyle = 'black';
+          ctx.lineWidth = 2 / (config.canvasWidth / config.width);
+          ctx.stroke();
+        }
         break;
       }
     case 'PUPA':
@@ -2329,6 +2391,11 @@ var renderEntity = function renderEntity(state, ctx, entity) {
         ctx.fillStyle = 'white';
         ctx.beginPath();
         ctx.fillRect(0, 0, entity.width, entity.height);
+        if (state.game.selectedEntities.includes(entity.id)) {
+          ctx.strokeStyle = 'black';
+          ctx.lineWidth = 2 / (config.canvasWidth / config.width);
+          ctx.strokeRect(0, 0, entity.width, entity.height);
+        }
         break;
       }
   }
@@ -2337,86 +2404,6 @@ var renderEntity = function renderEntity(state, ctx, entity) {
 
 module.exports = { initRenderSystem: initRenderSystem };
 },{"../config":1,"../utils/vectors":38}],23:[function(require,module,exports){
-'use strict';
-
-var React = require('react');
-
-var _require = require('../config'),
-    config = _require.config;
-
-var Dropdown = require('./components/Dropdown.react');
-var Button = require('./components/Button.react');
-
-function AntCard(props) {
-  var state = props.state,
-      dispatch = props.dispatch,
-      ant = props.ant;
-
-
-  var hungryStr = ant.calories < config.antStartingCalories * config.antStarvationWarningThreshold ? ' - Hungry' : '';
-
-  return React.createElement(
-    'div',
-    {
-      className: 'antCard',
-      style: {
-        border: '1px solid black'
-      }
-    },
-    React.createElement(
-      'div',
-      null,
-      React.createElement(
-        'b',
-        null,
-        ant.subType
-      )
-    ),
-    React.createElement(
-      'div',
-      null,
-      'Calories: ',
-      ant.calories,
-      hungryStr
-    ),
-    React.createElement(
-      'div',
-      null,
-      'HP: 10/10'
-    ),
-    React.createElement(
-      'div',
-      null,
-      'Current Task:',
-      React.createElement(Dropdown, {
-        options: state.game.tasks.map(function (task) {
-          return task.name;
-        }),
-        selected: ant.task != null ? ant.task.name : null,
-        onChange: function onChange(nextTaskName) {
-          var nextTask = state.game.tasks.filter(function (t) {
-            return t.name === nextTaskName;
-          })[0];
-          dispatch({ type: 'ASSIGN_TASK', task: nextTask, ants: [ant.id] });
-        }
-      }),
-      React.createElement(Button, {
-        label: 'Deselect',
-        onClick: function onClick() {
-          dispatch({
-            type: 'SET_SELECTED_ENTITIES',
-            entityIDs: state.game.selectedEntities.filter(function (id) {
-              return id != ant.id;
-            })
-          });
-        }
-      })
-    )
-  );
-};
-
-module.exports = AntCard;
-},{"../config":1,"./components/Button.react":31,"./components/Dropdown.react":33,"react":50}],24:[function(require,module,exports){
 'use strict';
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
@@ -2737,7 +2724,7 @@ function DoActionCard(props) {
 }
 
 module.exports = BehaviorCard;
-},{"../config":1,"../selectors/selectors":15,"./components/Button.react":31,"./components/Checkbox.react":32,"./components/Dropdown.react":33,"react":50}],25:[function(require,module,exports){
+},{"../config":1,"../selectors/selectors":15,"./components/Button.react":31,"./components/Checkbox.react":32,"./components/Dropdown.react":33,"react":50}],24:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -2750,7 +2737,7 @@ function Canvas(props) {
 }
 
 module.exports = Canvas;
-},{"react":50}],26:[function(require,module,exports){
+},{"react":50}],25:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -2770,7 +2757,7 @@ function Game(props) {
 }
 
 module.exports = Game;
-},{"./Canvas.react":25,"./Sidebar.react":29,"react":50}],27:[function(require,module,exports){
+},{"./Canvas.react":24,"./Sidebar.react":28,"react":50}],26:[function(require,module,exports){
 'use strict';
 
 function _objectDestructuringEmpty(obj) { if (obj == null) throw new TypeError("Cannot destructure undefined"); }
@@ -2797,7 +2784,7 @@ function Lobby(props) {
 }
 
 module.exports = Lobby;
-},{"../selectors/selectors":15,"./components/Button.react":31,"react":50}],28:[function(require,module,exports){
+},{"../selectors/selectors":15,"./components/Button.react":31,"react":50}],27:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -2871,7 +2858,7 @@ function getModal(props) {
 }
 
 module.exports = Main;
-},{"../config":1,"./Game.react":26,"./Lobby.react":27,"./components/Button.react":31,"react":50}],29:[function(require,module,exports){
+},{"../config":1,"./Game.react":25,"./Lobby.react":26,"./components/Button.react":31,"react":50}],28:[function(require,module,exports){
 'use strict';
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
@@ -2884,7 +2871,7 @@ var _require = require('../config'),
 var Button = require('./components/Button.react');
 var RadioPicker = require('./components/RadioPicker.react');
 var Dropdown = require('./components/Dropdown.react');
-var AntCard = require('./AntCard.react');
+var StatusCard = require('./StatusCard.react');
 var TaskCard = require('./TaskCard.react');
 
 var _require2 = require('../selectors/selectors'),
@@ -2899,13 +2886,14 @@ function Sidebar(props) {
   var state = props.state,
       dispatch = props.dispatch;
   var game = state.game;
-  // TODO allow selecting eggs, larva, pupa
 
-  var selectedAnts = getSelectedAntIDs(game).map(function (id) {
+  var selectedEntities = game.selectedEntities.map(function (id) {
     return game.entities[id];
   });
-  var antCards = selectedAnts.map(function (ant) {
-    return React.createElement(AntCard, { state: state, ant: ant, dispatch: dispatch, key: 'antCard_' + ant.id });
+  var antCards = selectedEntities.map(function (entity) {
+    return React.createElement(StatusCard, {
+      state: state, entity: entity, dispatch: dispatch,
+      key: 'statusCard_' + entity.id });
   });
   return React.createElement(
     'div',
@@ -2977,7 +2965,7 @@ function Sidebar(props) {
         }),
         selected: 'NONE',
         onChange: function onChange(nextName) {
-          if (selectedAnts.length == 0) return;
+          if (selectedEntities.length == 0) return;
           var nextTask = game.tasks.filter(function (t) {
             return t.name === nextName;
           })[0];
@@ -3041,7 +3029,269 @@ function TaskEditor(props) {
 }
 
 module.exports = Sidebar;
-},{"../config":1,"../selectors/selectors":15,"./AntCard.react":23,"./TaskCard.react":30,"./components/Button.react":31,"./components/Dropdown.react":33,"./components/RadioPicker.react":34,"react":50}],30:[function(require,module,exports){
+},{"../config":1,"../selectors/selectors":15,"./StatusCard.react":29,"./TaskCard.react":30,"./components/Button.react":31,"./components/Dropdown.react":33,"./components/RadioPicker.react":34,"react":50}],29:[function(require,module,exports){
+'use strict';
+
+var React = require('react');
+
+var _require = require('../config'),
+    config = _require.config;
+
+var Dropdown = require('./components/Dropdown.react');
+var Button = require('./components/Button.react');
+
+function StatusCard(props) {
+  var state = props.state,
+      dispatch = props.dispatch,
+      entity = props.entity;
+
+  var card = null;
+  switch (entity.type) {
+    case 'ANT':
+      card = React.createElement(AntCard, props);
+      break;
+    case 'EGG':
+      card = React.createElement(EggCard, props);
+      break;
+    case 'LARVA':
+      card = React.createElement(LarvaCard, props);
+      break;
+    case 'PUPA':
+      card = React.createElement(PupaCard, props);
+      break;
+  }
+
+  return card;
+}
+
+function AntCard(props) {
+  var state = props.state,
+      dispatch = props.dispatch,
+      entity = props.entity;
+
+  var ant = entity;
+
+  var hungryStr = ant.calories < config.antStartingCalories * config.antStarvationWarningThreshold ? ' - Hungry' : '';
+
+  return React.createElement(
+    'div',
+    {
+      className: 'antCard',
+      style: {
+        border: '1px solid black'
+      }
+    },
+    React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'b',
+        null,
+        ant.subType,
+        ' ',
+        ant.type
+      )
+    ),
+    React.createElement(
+      'div',
+      null,
+      'Calories: ',
+      ant.calories,
+      hungryStr
+    ),
+    React.createElement(
+      'div',
+      null,
+      'HP: 10/10'
+    ),
+    React.createElement(
+      'div',
+      null,
+      'Current Task:',
+      React.createElement(Dropdown, {
+        options: state.game.tasks.map(function (task) {
+          return task.name;
+        }),
+        selected: ant.task != null ? ant.task.name : null,
+        onChange: function onChange(nextTaskName) {
+          var nextTask = state.game.tasks.filter(function (t) {
+            return t.name === nextTaskName;
+          })[0];
+          dispatch({ type: 'ASSIGN_TASK', task: nextTask, ants: [ant.id] });
+        }
+      }),
+      React.createElement(DeselectButton, props)
+    )
+  );
+};
+
+function DeselectButton(props) {
+  var state = props.state,
+      dispatch = props.dispatch,
+      entity = props.entity;
+
+  return React.createElement(Button, {
+    label: 'Deselect',
+    onClick: function onClick() {
+      dispatch({
+        type: 'SET_SELECTED_ENTITIES',
+        entityIDs: state.game.selectedEntities.filter(function (id) {
+          return id != entity.id;
+        })
+      });
+    }
+  });
+}
+
+function EggCard(props) {
+  var state = props.state,
+      dispatch = props.dispatch,
+      entity = props.entity;
+
+  var egg = entity;
+
+  return React.createElement(
+    'div',
+    {
+      className: 'antCard',
+      style: {
+        border: '1px solid black'
+      }
+    },
+    React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'b',
+        null,
+        egg.type
+      )
+    ),
+    React.createElement(
+      'div',
+      null,
+      'Time to hatch: ',
+      config.eggHatchAge - egg.age
+    ),
+    React.createElement(
+      'div',
+      null,
+      'HP: 10/10'
+    ),
+    React.createElement(
+      'div',
+      null,
+      'Will become: LARVA then ',
+      egg.subType,
+      ' ANT'
+    ),
+    React.createElement(DeselectButton, props)
+  );
+}
+
+function LarvaCard(props) {
+  var state = props.state,
+      dispatch = props.dispatch,
+      entity = props.entity;
+
+  var larva = entity;
+
+  var hungryStr = larva.calories < config.larvaStartingCalories * config.antStarvationWarningThreshold ? ' - Hungry' : '';
+
+  return React.createElement(
+    'div',
+    {
+      className: 'antCard',
+      style: {
+        border: '1px solid black'
+      }
+    },
+    React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'b',
+        null,
+        larva.type
+      )
+    ),
+    React.createElement(
+      'div',
+      null,
+      'Calories: ',
+      larva.calories,
+      hungryStr
+    ),
+    React.createElement(
+      'div',
+      null,
+      'Calories needed to hatch: ',
+      config.larvaEndCalories - larva.calories
+    ),
+    React.createElement(
+      'div',
+      null,
+      'HP: 10/10'
+    ),
+    React.createElement(
+      'div',
+      null,
+      'Will become: PUPA then ',
+      larva.subType,
+      ' ANT'
+    ),
+    React.createElement(DeselectButton, props)
+  );
+}
+
+function PupaCard(props) {
+  var state = props.state,
+      dispatch = props.dispatch,
+      entity = props.entity;
+
+  var pupa = entity;
+
+  return React.createElement(
+    'div',
+    {
+      className: 'antCard',
+      style: {
+        border: '1px solid black'
+      }
+    },
+    React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'b',
+        null,
+        pupa.type
+      )
+    ),
+    React.createElement(
+      'div',
+      null,
+      'Time to hatch: ',
+      config.pupaHatchAge - pupa.age
+    ),
+    React.createElement(
+      'div',
+      null,
+      'HP: 10/10'
+    ),
+    React.createElement(
+      'div',
+      null,
+      'Will become: ',
+      pupa.subType,
+      ' ANT'
+    ),
+    React.createElement(DeselectButton, props)
+  );
+}
+
+module.exports = StatusCard;
+},{"../config":1,"./components/Button.react":31,"./components/Dropdown.react":33,"react":50}],30:[function(require,module,exports){
 'use strict';
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
@@ -3167,7 +3417,7 @@ function TaskCard(props) {
 }
 
 module.exports = TaskCard;
-},{"../config":1,"./BehaviorCard.react":24,"./components/Button.react":31,"./components/Checkbox.react":32,"./components/Dropdown.react":33,"react":50}],31:[function(require,module,exports){
+},{"../config":1,"./BehaviorCard.react":23,"./components/Button.react":31,"./components/Checkbox.react":32,"./components/Dropdown.react":33,"react":50}],31:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();

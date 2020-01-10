@@ -160,6 +160,11 @@ const renderEntity = (state: State, ctx: any, entity: Entity): void => {
       ctx.arc(entity.width / 2, entity.height / 2, radius, 0, Math.PI * 2);
       ctx.closePath();
       ctx.fill();
+      if (state.game.selectedEntities.includes(entity.id)) {
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 2 / (config.canvasWidth / config.width);
+        ctx.stroke();
+      }
       break;
     }
     case 'LARVA': {
@@ -177,12 +182,22 @@ const renderEntity = (state: State, ctx: any, entity: Entity): void => {
       ctx.arc(entity.width / 2, entity.height / 2, radius, 0, Math.PI * 2);
       ctx.closePath();
       ctx.fill();
+      if (state.game.selectedEntities.includes(entity.id)) {
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 2 / (config.canvasWidth / config.width);
+        ctx.stroke();
+      }
       break;
     }
     case 'PUPA': {
       ctx.fillStyle = 'white';
       ctx.beginPath();
       ctx.fillRect(0, 0, entity.width, entity.height);
+      if (state.game.selectedEntities.includes(entity.id)) {
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 2 / (config.canvasWidth / config.width);
+        ctx.strokeRect(0, 0, entity.width, entity.height);
+      }
       break;
     }
   }

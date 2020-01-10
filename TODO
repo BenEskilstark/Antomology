@@ -1,21 +1,17 @@
 
  - - - - - - TODO - - - - - -
- - Make larva, eggs, pupa, selectable
- - egg,larva, pupa UI cards
- - prioritize feeding larva
- - make pickup/feed/eat more intuitive
  - On create task, switch dropdown to editing that one
  - button for importing task jsons
+ - switch dead ants/larva to their own entity type
 
  - - - - - - NEXT - - - - - -
- - switch dead ants/larva to their own entity type
  - RANDOM move behavior for staying inside a location
- - ant calories should only go down when they do something
  - compute old-age death for ants
  - Call out ants near death of old age
+ - ant calories should only go down when they do something?
 
  - - - - -  LATER - - - - - -
- - A*-like for ants moving towards location
+ - A*-like for ants moving towards location?
  - implement pan/zoom with grid-to-canvas size conversion
  - add background layer
  - support canvas resize
@@ -45,6 +41,7 @@
 
  - - - - - - BUGS - - - - - -
  - number input (in e.g. RANDOM condition) doesn't like being cleared out temporarily
+ - picked-up larva never hatch and then die on putdown. Should probably just wait to hatch
 
  - - - - - - DONE - - - - - -
  - clicking to select ants
@@ -134,3 +131,9 @@
    - updateTask doesn't always actually update
  - implement PICKUP for FOOD, DIRT, EGG, etc.
  - implement EAT for behavior checking neighbor
+ - Make larva, eggs, pupa, selectable
+ - egg,larva, pupa UI cards
+ - prioritize feeding larva
+ - make pickup/feed/eat more intuitive
+   - PUTDOWN on ant/larva feeds
+   - FEED on food picks it up
