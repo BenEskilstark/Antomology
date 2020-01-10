@@ -21,7 +21,7 @@ var config = {
   foodSpawnCalories: 1000,
 
   // ant-specific values
-  maxSelectableAnts: 4,
+  maxSelectableAnts: 3,
   antPickupEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'DEAD_ANT'],
   antBlockingEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA'],
   antEatEntities: ['FOOD', 'DEAD_ANT'],
@@ -565,7 +565,6 @@ var _require6 = require('../utils/helpers'),
 var _require7 = require('../selectors/selectors'),
     collides = _require7.collides,
     collidesWith = _require7.collidesWith,
-    getNeighborhoodLocation = _require7.getNeighborhoodLocation,
     getNeighborhoodEntities = _require7.getNeighborhoodEntities,
     getEmptyNeighborPositions = _require7.getEmptyNeighborPositions,
     getEntitiesByType = _require7.getEntitiesByType,
@@ -896,6 +895,10 @@ var evaluateCondition = function evaluateCondition(game, ant, condition) {
           isTrue = neighbors.filter(function (n) {
             return n.marked > 0;
           }).length > 0;
+        } else if (object != null && object.id !== null) {
+          isTrue = neighbors.filter(function (n) {
+            return n.id === object.id;
+          }).length > 0;
         }
         break;
       }
@@ -1046,27 +1049,24 @@ var performAction = function performAction(game, ant, action) {
         var entityToPickup = object;
         if (entityToPickup === 'BLOCKER') {
           entityToPickup = ant.blockedBy;
-          ant.blocked = false;
-          ant.blockedBy = null;
         } else if (entityToPickup === 'MARKED') {
-          var markedNeighbors = getNeighborhoodEntities(ant, game.entities, 1 /* radius */
-          ).filter(function (e) {
+          entityToPickup = oneOf(getNeighborhoodEntities(ant, game.entities).filter(function (e) {
             return e.marked > 0;
-          });
-          if (markedNeighbors.length > 0) {
-            entityToPickup = oneOf(markedNeighbors);
-            ant.blocked = false;
-            ant.blockedBy = null;
-          } else {
-            entityToPickup = null;
-          }
+          }));
+        } else if (entityToPickup === 'DIRT' || entityToPickup === 'FOOD' || entityToPickup === 'EGG' || entityToPickup === 'LARVA' || entityToPickup === 'PUPA' || entityToPickup === 'DEAD_ANT') {
+          entityToPickup = oneOf(getNeighborhoodEntities(ant, getEntitiesByType(game, [entityToPickup])));
+        } else if (entityToPickup != null && entityToPickup.position != null) {
+          entityToPickup = getNeighborhoodEntities(ant, getEntitiesByType(game, config.antPickupEntities)).filter(function (e) {
+            return e.id === entityToPickup.id;
+          })[0];
         }
-        if (entityToPickup == null) {
+        if (entityToPickup == null || entityToPickup.position == null) {
           break;
         }
-        var neighborhood = getNeighborhoodLocation(entityToPickup);
-        if (collides(ant, neighborhood) && ant.holding == null) {
+        if (ant.holding == null) {
           ant.holding = entityToPickup;
+          ant.blocked = false;
+          ant.blockedBy = null;
           entityToPickup.position = null;
           // reduce mark quantity
           entityToPickup.marked = Math.max(0, entityToPickup.marked - 1);
@@ -1079,9 +1079,8 @@ var performAction = function performAction(game, ant, action) {
         if (locationToPutdown == null) {
           locationToPutdown = { position: ant.position };
         }
-        var _neighborhood = getNeighborhoodLocation(locationToPutdown);
-        var putDown = collidesWith(locationToPutdown, getEntitiesByType(game, config.antBlockingEntities));
-        if (collides(ant, _neighborhood) && ant.holding != null && putDown.length == 0) {
+        var putDownFree = collidesWith(locationToPutdown, getEntitiesByType(game, config.antBlockingEntities)).length === 0;
+        if (collides(ant, locationToPutdown) && ant.holding != null && putDownFree) {
           ant.holding.position = locationToPutdown.position;
           ant.holding = null;
           // move the ant out of the way
@@ -1094,34 +1093,35 @@ var performAction = function performAction(game, ant, action) {
       }
     case 'EAT':
       {
-        // TODO: very similar to PICKUP
         var entityToEat = object;
+        var neighborFood = getNeighborhoodEntities(ant, getEntitiesByType(game, ['FOOD']));
         if (entityToEat == null) {
-          break;
+          entityToEat = oneOf(neighborFood);
+        } else if (entityToEat.id != null) {
+          entityToEat = neighborFood.filter(function (f) {
+            return f.id == entityToEat.id;
+          })[0];
         }
-        var _neighborhood2 = getNeighborhoodLocation(entityToEat);
-        if (collides(ant, _neighborhood2)) {
-          var caloriesEaten = Math.max(config.antCaloriesPerEat, entityToEat.calories);
-          ant.calories += caloriesEaten;
-          entityToEat.calories -= caloriesEaten;
-          // remove the food item if it has no more calories
-          if (entityToEat.calories <= 0) {
-            delete game.entities[entityToEat.id];
-            game.food = deleteFromArray(game.food, entityToEat.id);
-          }
+        if (entityToEat == null) break;
+
+        var caloriesEaten = Math.min(config.antCaloriesPerEat, entityToEat.calories);
+        ant.calories += caloriesEaten;
+        entityToEat.calories -= caloriesEaten;
+        // remove the food item if it has no more calories
+        if (entityToEat.calories <= 0) {
+          delete game.entities[entityToEat.id];
+          game.food = deleteFromArray(game.food, entityToEat.id);
         }
         break;
       }
     case 'FEED':
       {
-        // TODO: very similar to PUTDOWN
-        var _neighborhood3 = getNeighborhoodLocation(ant);
-        var feedableEntities = collidesWith(_neighborhood3, getEntitiesByType(game, ['ANT', 'LARVA'])).filter(function (e) {
-          return e.id != ant.id;
-        });
+        var feedableEntities = getNeighborhoodEntities(ant, getEntitiesByType(game, ['ANT', 'LARVA']));
         if (ant.holding != null && ant.holding.type === 'FOOD' && feedableEntities.length > 0) {
           var fedEntity = oneOf(feedableEntities);
           fedEntity.calories += ant.holding.calories;
+          delete game.entities[ant.holding.id];
+          game.food = deleteFromArray(game.food, ant.holding.id);
           ant.holding = null;
         }
         break;
@@ -1164,6 +1164,8 @@ module.exports = { tickReducer: tickReducer };
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 var _require = require('../utils/errors'),
     invariant = _require.invariant;
 
@@ -1201,11 +1203,11 @@ var collides = function collides(entityA, entityB) {
   if (dist.y === 0) {
     yOverlap = true;
   } else if (dist.y < 0) {
-    if (entityB.position.y + entityB.width > entityA.position.y && entityB.position.y + entityB.width <= entityA.position.y + entityA.width) {
+    if (entityB.position.y + entityB.height > entityA.position.y && entityB.position.y + entityB.height <= entityA.position.y + entityA.height) {
       yOverlap = true;
     }
   } else {
-    if (entityA.position.y + entityA.width > entityB.position.y && entityA.position.y + entityA.width <= entityB.position.y + entityB.width) {
+    if (entityA.position.y + entityA.height > entityB.position.y && entityA.position.y + entityA.height <= entityB.position.y + entityB.height) {
       yOverlap = true;
     }
   }
@@ -1267,26 +1269,10 @@ var collidesWith = function collidesWith(entityA, entities) {
 // Neighbors
 /////////////////////////////////////////////////////////////////
 
-var getNeighborhoodLocation = function getNeighborhoodLocation(entity, radius) {
-  var rad = radius != null ? radius : 1;
-  return {
-    position: add(entity.position, { x: -rad, y: -rad }),
-    width: rad * 2 + 1, // +1 to include inner space itself
-    height: rad * 2 + 1
-  };
-};
-
 // get all entities in the radius of the given entity excluding itself
+// TODO only supports entities of size = 1
 var getNeighborhoodEntities = function getNeighborhoodEntities(entity, entities, radius) {
-  var rad = radius != null ? radius : 1;
-  var neighborhoodLocation = getNeighborhoodLocation(entity, rad);
-  return collidesWith(neighborhoodLocation, entities).filter(function (e) {
-    return e.id != entity.id;
-  });
-};
-
-var getEmptyNeighborPositions = function getEmptyNeighborPositions(entity, entities) {
-  var emptyPositions = [];
+  var neighborEntities = [];
   var neighborPositions = [{ x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: -1 }];
   var _iteratorNormalCompletion2 = true;
   var _didIteratorError2 = false;
@@ -1296,10 +1282,7 @@ var getEmptyNeighborPositions = function getEmptyNeighborPositions(entity, entit
     for (var _iterator2 = neighborPositions[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
       var neighborVec = _step2.value;
 
-      var free = collidesWith(_extends({}, entity, { position: add(entity.position, neighborVec) }), entities);
-      if (free.length === 0) {
-        emptyPositions.push(add(entity.position, neighborVec));
-      }
+      neighborEntities.push.apply(neighborEntities, _toConsumableArray(collidesWith(_extends({}, entity, { position: add(entity.position, neighborVec) }), entities)));
     }
   } catch (err) {
     _didIteratorError2 = true;
@@ -1312,6 +1295,40 @@ var getEmptyNeighborPositions = function getEmptyNeighborPositions(entity, entit
     } finally {
       if (_didIteratorError2) {
         throw _iteratorError2;
+      }
+    }
+  }
+
+  return neighborEntities;
+};
+
+var getEmptyNeighborPositions = function getEmptyNeighborPositions(entity, entities) {
+  var emptyPositions = [];
+  var neighborPositions = [{ x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: -1 }];
+  var _iteratorNormalCompletion3 = true;
+  var _didIteratorError3 = false;
+  var _iteratorError3 = undefined;
+
+  try {
+    for (var _iterator3 = neighborPositions[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+      var neighborVec = _step3.value;
+
+      var free = collidesWith(_extends({}, entity, { position: add(entity.position, neighborVec) }), entities);
+      if (free.length === 0) {
+        emptyPositions.push(add(entity.position, neighborVec));
+      }
+    }
+  } catch (err) {
+    _didIteratorError3 = true;
+    _iteratorError3 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion3 && _iterator3.return) {
+        _iterator3.return();
+      }
+    } finally {
+      if (_didIteratorError3) {
+        throw _iteratorError3;
       }
     }
   }
@@ -1335,13 +1352,13 @@ var getSelectedAntIDs = function getSelectedAntIDs(game) {
 
 var getEntitiesByType = function getEntitiesByType(game, entityTypes) {
   var entities = [];
-  var _iteratorNormalCompletion3 = true;
-  var _didIteratorError3 = false;
-  var _iteratorError3 = undefined;
+  var _iteratorNormalCompletion4 = true;
+  var _didIteratorError4 = false;
+  var _iteratorError4 = undefined;
 
   try {
-    for (var _iterator3 = entityTypes[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-      var entityType = _step3.value;
+    for (var _iterator4 = entityTypes[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+      var entityType = _step4.value;
 
       switch (entityType) {
         case 'ANT':
@@ -1387,16 +1404,16 @@ var getEntitiesByType = function getEntitiesByType(game, entityTypes) {
       }
     }
   } catch (err) {
-    _didIteratorError3 = true;
-    _iteratorError3 = err;
+    _didIteratorError4 = true;
+    _iteratorError4 = err;
   } finally {
     try {
-      if (!_iteratorNormalCompletion3 && _iterator3.return) {
-        _iterator3.return();
+      if (!_iteratorNormalCompletion4 && _iterator4.return) {
+        _iterator4.return();
       }
     } finally {
-      if (_didIteratorError3) {
-        throw _iteratorError3;
+      if (_didIteratorError4) {
+        throw _iteratorError4;
       }
     }
   }
@@ -1408,7 +1425,6 @@ var selectors = {
   collides: collides,
   collidesWith: collidesWith,
   getSelectedAntIDs: getSelectedAntIDs,
-  getNeighborhoodLocation: getNeighborhoodLocation,
   getNeighborhoodEntities: getNeighborhoodEntities,
   getEmptyNeighborPositions: getEmptyNeighborPositions,
   getEntitiesByType: getEntitiesByType,
@@ -1540,11 +1556,16 @@ module.exports = { initState: initState };
 // general
 ///////////////////////////////////////////////////////////////
 
+/**
+ * Go towards the location until you're a neighbor, then try to advance
+ * to the location separately. This way you get out of the while loop
+ * even if the location is occupied
+ */
 var createGoToLocationTask = function createGoToLocationTask(location) {
   return {
     name: 'Go To Location',
     repeating: false,
-    behaviorQueue: [createGoToLocationBehavior(location)]
+    behaviorQueue: [createGoToLocationNeighborBehavior(location), createDoAction('MOVE', location)]
   };
 };
 // Helpers for creating tasks/locations via the console
@@ -1610,6 +1631,21 @@ var createGoToLocationBehavior = function createGoToLocationBehavior(location) {
     type: 'WHILE',
     condition: {
       type: 'LOCATION',
+      not: true,
+      comparator: 'EQUALS',
+      payload: {
+        object: location
+      }
+    },
+    behavior: createMoveBehavior(location)
+  };
+};
+
+var createGoToLocationNeighborBehavior = function createGoToLocationNeighborBehavior(location) {
+  return {
+    type: 'WHILE',
+    condition: {
+      type: 'NEIGHBORING',
       not: true,
       comparator: 'EQUALS',
       payload: {
@@ -2014,7 +2050,8 @@ var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
     var dims = subtract(mouse.curPos, mouse.downPos);
     var x = dims.x > 0 ? mouse.downPos.x : mouse.curPos.x;
     var y = dims.y > 0 ? mouse.downPos.y : mouse.curPos.y;
-    var clickedAnts = collidesWith({ position: { x: x, y: y }, width: Math.abs(dims.x) + 1, height: Math.abs(dims.y) + 1 }, getEntitiesByType(state.game, ['ANT']));
+    var marqueeLocation = { position: { x: x, y: y }, width: Math.abs(dims.x) + 1, height: Math.abs(dims.y) + 1 };
+    var clickedAnts = collidesWith(marqueeLocation, getEntitiesByType(state.game, ['ANT']));
     if (clickedAnts.length > 0) {
       dispatch({
         type: 'SET_SELECTED_ENTITIES',
@@ -2028,6 +2065,13 @@ var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
         entityIDs: []
       });
     }
+  } else if (state.game.userMode === 'MARK') {
+    var clickedEntity = collidesWith({ position: gridPos, width: 1, height: 1 }, getEntitiesByType(state.game, ['DIRT']))[0];
+    dispatch({
+      type: 'MARK_ENTITY',
+      entityID: clickedEntity.id,
+      quantity: 1
+    });
   }
 };
 
@@ -2038,13 +2082,8 @@ var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
   // TODO add config for which entities block the ant
   var blocked = clickedEntity != null || clickedFood != null;
 
-  var clickedLocation = {
-    id: -1,
-    name: 'Clicked Position',
-    position: blocked ? add(gridPos, { x: -1, y: -1 }) : gridPos,
-    width: blocked ? 3 : 1,
-    height: blocked ? 3 : 1
-  };
+  var clickedLocation = _extends({}, makeLocation('Clicked Position', 1, 1, gridPos), { id: -1 });
+  dispatch({ type: 'CREATE_ENTITY', entity: clickedLocation });
   if (selectedAntIDs.length > 0) {
     var task = createGoToLocationTask(clickedLocation);
     task.name = 'Go To Clicked Location';
@@ -2074,6 +2113,8 @@ var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
       ants: selectedAntIDs,
       task: task
     });
+    // make this task always refer to most recently clicked location
+    dispatch({ type: 'UPDATE_TASK', task: task });
   }
 };
 
@@ -2152,7 +2193,8 @@ var render = function render(state, ctx) {
       var _id = _step.value;
 
       var _entity = game.entities[_id];
-      if (_entity.position == null) {
+      if (_entity.position == null || _entity.id === -1) {
+        // don't render clicked location
         continue;
       }
       renderEntity(state, ctx, _entity);
@@ -2436,9 +2478,12 @@ function BehaviorCard(props) {
       options: ['DO_ACTION', 'IF', 'WHILE', 'SWITCH_TASK'],
       selected: behavior.type,
       onChange: function onChange(newType) {
-        var newBehavior = {
-          type: newType
-        };
+        var newBehavior = behavior;
+        delete newBehavior.action;
+        delete newBehavior.condition;
+        delete newBehavior.task;
+        delete newBehavior.elseBehavior;
+        newBehavior.type = newType;
         if (newType === 'DO_ACTION') {
           newBehavior.action = {
             type: 'IDLE',
@@ -2563,6 +2608,9 @@ function Conditional(props) {
 
   var typeName = condition.type;
   var conditionObject = condition.payload.object;
+  if (conditionObject != null && conditionObject.name != null) {
+    conditionObject = conditionObject.name;
+  }
   var comparator = condition.comparator;
   var comparatorOptions = ['EQUALS', 'LESS_THAN', 'GREATER_THAN'];
   if (typeName == 'LOCATION' || typeName === 'HOLDING' || typeName === 'NEIGHBORING' || typeName === 'BLOCKED') {
@@ -2583,7 +2631,7 @@ function Conditional(props) {
       options: getEntitiesByType(state.game, ['LOCATION']).map(function (l) {
         return l.name;
       }),
-      selected: conditionObject.name,
+      selected: conditionObject,
       onChange: function onChange(locName) {
         var loc = getEntitiesByType(state.game, ['LOCATION']).filter(function (l) {
           return l.name === locName;
@@ -2605,7 +2653,9 @@ function Conditional(props) {
   }
   if (typeName === 'NEIGHBORING') {
     objectField = React.createElement(Dropdown, {
-      options: ['MARKED', 'DIRT', 'FOOD'],
+      options: ['MARKED', 'DIRT', 'FOOD', 'ANYTHING', 'NOTHING'].concat(getEntitiesByType(state.game, ['LOCATION']).map(function (l) {
+        return l.name;
+      })),
       selected: conditionObject,
       onChange: function onChange(obj) {
         behavior.condition.payload.object = obj;
@@ -2647,7 +2697,7 @@ function DoActionCard(props) {
       }));
       break;
     case 'PICKUP':
-      actionOptions = ['DIRT', 'MARKED', 'FOOD', 'EGG', 'LARVA', 'PUPA'];
+      actionOptions = ['DIRT', 'MARKED', 'BLOCKER', 'FOOD', 'EGG', 'LARVA', 'PUPA'];
       break;
     case 'PUTDOWN':
       break;
@@ -3046,7 +3096,7 @@ function TaskCard(props) {
     return React.createElement(
       'div',
       { key: 'behavior_' + i },
-      React.createElement(BehaviorCard, { state: state, dispatch: dispatch, behavior: b })
+      React.createElement(BehaviorCard, { state: state, behavior: b })
     );
   });
   return React.createElement(
@@ -3105,6 +3155,12 @@ function TaskCard(props) {
         } else {
           dispatch({ type: 'UPDATE_TASK', task: editedTask });
         }
+      }
+    }),
+    React.createElement(Button, {
+      label: 'Export Task as JSON',
+      onClick: function onClick() {
+        return console.log(JSON.stringify({ name: taskName, repeating: repeating, behaviorQueue: behaviorQueue }));
       }
     })
   );
@@ -3410,6 +3466,7 @@ var normalIn = function normalIn(min, max) {
 };
 
 var oneOf = function oneOf(options) {
+  if (options.length === 0) return null;
   return options[floor(rand() * options.length)];
 };
 

@@ -124,8 +124,10 @@ const handleLeftClick = (
     const dims = subtract(mouse.curPos, mouse.downPos);
     const x = dims.x > 0 ? mouse.downPos.x : mouse.curPos.x;
     const y = dims.y > 0 ? mouse.downPos.y : mouse.curPos.y;
+    const marqueeLocation =
+      {position: {x, y}, width: Math.abs(dims.x) + 1, height: Math.abs(dims.y) + 1};
     const clickedAnts = collidesWith(
-      {position: {x, y}, width: Math.abs(dims.x) + 1, height: Math.abs(dims.y) + 1},
+      marqueeLocation,
       getEntitiesByType(state.game, ['ANT']),
     );
     if (clickedAnts.length > 0) {
@@ -139,6 +141,16 @@ const handleLeftClick = (
         entityIDs: [],
       });
     }
+  } else if (state.game.userMode === 'MARK') {
+    const clickedEntity = collidesWith(
+      {position: gridPos, width: 1, height: 1},
+      getEntitiesByType(state.game, ['DIRT']),
+    )[0];
+    dispatch({
+      type: 'MARK_ENTITY',
+      entityID: clickedEntity.id,
+      quantity: 1,
+    });
   }
 };
 
@@ -155,13 +167,8 @@ const handleRightClick = (state: State, dispatch: Dispatch, gridPos: Vector): vo
   // TODO add config for which entities block the ant
   const blocked = clickedEntity != null || clickedFood != null;
 
-  const clickedLocation = {
-    id: -1,
-    name: 'Clicked Position',
-    position: blocked ? add(gridPos, {x: -1, y: -1}) : gridPos,
-    width: blocked ? 3 : 1,
-    height: blocked ? 3 : 1,
-  };
+  const clickedLocation = {...makeLocation('Clicked Position', 1, 1, gridPos), id: -1};
+  dispatch({type: 'CREATE_ENTITY', entity: clickedLocation});
   if (selectedAntIDs.length > 0) {
     const task = createGoToLocationTask(clickedLocation);
     task.name = 'Go To Clicked Location';
@@ -191,6 +198,8 @@ const handleRightClick = (state: State, dispatch: Dispatch, gridPos: Vector): vo
       ants: selectedAntIDs,
       task,
     });
+    // make this task always refer to most recently clicked location
+    dispatch({type: 'UPDATE_TASK', task});
   }
 };
 

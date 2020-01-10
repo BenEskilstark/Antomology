@@ -7,12 +7,18 @@ import type {Task, Location, Behavior, GameState} from '../types';
 // general
 ///////////////////////////////////////////////////////////////
 
+/**
+ * Go towards the location until you're a neighbor, then try to advance
+ * to the location separately. This way you get out of the while loop
+ * even if the location is occupied
+ */
 const createGoToLocationTask = (location: Location): Task => {
   return {
     name: 'Go To Location',
     repeating: false,
     behaviorQueue: [
-      createGoToLocationBehavior(location),
+      createGoToLocationNeighborBehavior(location),
+      createDoAction('MOVE', location),
     ],
   };
 };
@@ -84,6 +90,21 @@ const createGoToLocationBehavior = (location: Location): Behavior => {
     type: 'WHILE',
     condition: {
       type: 'LOCATION',
+      not: true,
+      comparator: 'EQUALS',
+      payload: {
+        object: location,
+      },
+    },
+    behavior: createMoveBehavior(location),
+  };
+}
+
+const createGoToLocationNeighborBehavior = (location: Loaction): Behavior => {
+  return {
+    type: 'WHILE',
+    condition: {
+      type: 'NEIGHBORING',
       not: true,
       comparator: 'EQUALS',
       payload: {

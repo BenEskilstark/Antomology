@@ -52,7 +52,7 @@ function TaskCard(props) {
     return React.createElement(
       'div',
       { key: 'behavior_' + i },
-      React.createElement(BehaviorCard, { state: state, dispatch: dispatch, behavior: b })
+      React.createElement(BehaviorCard, { state: state, behavior: b })
     );
   });
   return React.createElement(
@@ -111,6 +111,12 @@ function TaskCard(props) {
         } else {
           dispatch({ type: 'UPDATE_TASK', task: editedTask });
         }
+      }
+    }),
+    React.createElement(Button, {
+      label: 'Export Task as JSON',
+      onClick: function onClick() {
+        return console.log(JSON.stringify({ name: taskName, repeating: repeating, behaviorQueue: behaviorQueue }));
       }
     })
   );

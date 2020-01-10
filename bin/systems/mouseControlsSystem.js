@@ -149,7 +149,8 @@ var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
     var dims = subtract(mouse.curPos, mouse.downPos);
     var x = dims.x > 0 ? mouse.downPos.x : mouse.curPos.x;
     var y = dims.y > 0 ? mouse.downPos.y : mouse.curPos.y;
-    var clickedAnts = collidesWith({ position: { x: x, y: y }, width: Math.abs(dims.x) + 1, height: Math.abs(dims.y) + 1 }, getEntitiesByType(state.game, ['ANT']));
+    var marqueeLocation = { position: { x: x, y: y }, width: Math.abs(dims.x) + 1, height: Math.abs(dims.y) + 1 };
+    var clickedAnts = collidesWith(marqueeLocation, getEntitiesByType(state.game, ['ANT']));
     if (clickedAnts.length > 0) {
       dispatch({
         type: 'SET_SELECTED_ENTITIES',
@@ -163,6 +164,13 @@ var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
         entityIDs: []
       });
     }
+  } else if (state.game.userMode === 'MARK') {
+    var clickedEntity = collidesWith({ position: gridPos, width: 1, height: 1 }, getEntitiesByType(state.game, ['DIRT']))[0];
+    dispatch({
+      type: 'MARK_ENTITY',
+      entityID: clickedEntity.id,
+      quantity: 1
+    });
   }
 };
 
@@ -173,13 +181,8 @@ var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
   // TODO add config for which entities block the ant
   var blocked = clickedEntity != null || clickedFood != null;
 
-  var clickedLocation = {
-    id: -1,
-    name: 'Clicked Position',
-    position: blocked ? add(gridPos, { x: -1, y: -1 }) : gridPos,
-    width: blocked ? 3 : 1,
-    height: blocked ? 3 : 1
-  };
+  var clickedLocation = _extends({}, makeLocation('Clicked Position', 1, 1, gridPos), { id: -1 });
+  dispatch({ type: 'CREATE_ENTITY', entity: clickedLocation });
   if (selectedAntIDs.length > 0) {
     var task = createGoToLocationTask(clickedLocation);
     task.name = 'Go To Clicked Location';
@@ -209,6 +212,8 @@ var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
       ants: selectedAntIDs,
       task: task
     });
+    // make this task always refer to most recently clicked location
+    dispatch({ type: 'UPDATE_TASK', task: task });
   }
 };
 

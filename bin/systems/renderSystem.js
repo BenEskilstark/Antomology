@@ -71,7 +71,8 @@ var render = function render(state, ctx) {
       var _id = _step.value;
 
       var _entity = game.entities[_id];
-      if (_entity.position == null) {
+      if (_entity.position == null || _entity.id === -1) {
+        // don't render clicked location
         continue;
       }
       renderEntity(state, ctx, _entity);

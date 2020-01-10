@@ -24,6 +24,7 @@ var normalIn = function normalIn(min, max) {
 };
 
 var oneOf = function oneOf(options) {
+  if (options.length === 0) return null;
   return options[floor(rand() * options.length)];
 };
 

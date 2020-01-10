@@ -39,15 +39,15 @@ const collides = (entityA: Entity, entityB: Entity): boolean => {
     yOverlap = true;
   } else if (dist.y < 0) {
     if (
-      entityB.position.y + entityB.width > entityA.position.y &&
-      entityB.position.y + entityB.width <= entityA.position.y + entityA.width
+      entityB.position.y + entityB.height > entityA.position.y &&
+      entityB.position.y + entityB.height <= entityA.position.y + entityA.height
     ) {
       yOverlap = true;
     }
   } else {
     if (
-      entityA.position.y + entityA.width > entityB.position.y &&
-      entityA.position.y + entityA.width <= entityB.position.y + entityB.width
+      entityA.position.y + entityA.height > entityB.position.y &&
+      entityA.position.y + entityA.height <= entityB.position.y + entityB.height
     ) {
       yOverlap = true;
     }
@@ -90,25 +90,21 @@ const collidesWith = (
 // Neighbors
 /////////////////////////////////////////////////////////////////
 
-const getNeighborhoodLocation = (
-  entity: Entity,
-  radius: ?number,
-): {position: Vector, width: number, height: number} => {
-  const rad = radius != null ? radius : 1;
-  return {
-    position: add(entity.position, {x: -rad, y: -rad}),
-    width: rad * 2 + 1, // +1 to include inner space itself
-    height: rad * 2 + 1,
-  };
-};
-
 // get all entities in the radius of the given entity excluding itself
+// TODO only supports entities of size = 1
 const getNeighborhoodEntities = (
   entity: Entity, entities: Array<Entity>, radius: ?number,
 ): Array<Entity> => {
-  const rad = radius != null ? radius : 1;
-  const neighborhoodLocation = getNeighborhoodLocation(entity, rad);
-  return collidesWith(neighborhoodLocation, entities).filter(e => e.id != entity.id);
+  const neighborEntities = [];
+  const neighborPositions =
+    [{x: 0, y: 1}, {x: -1, y: 0}, {x: 1, y: 0}, {x: 0, y: -1}];
+  for (const neighborVec of neighborPositions) {
+    neighborEntities.push(...collidesWith(
+      {...entity, position: add(entity.position, neighborVec)},
+      entities,
+    ));
+  }
+  return neighborEntities;
 }
 
 const getEmptyNeighborPositions = (
@@ -181,7 +177,6 @@ const selectors = {
   collides,
   collidesWith,
   getSelectedAntIDs,
-  getNeighborhoodLocation,
   getNeighborhoodEntities,
   getEmptyNeighborPositions,
   getEntitiesByType,

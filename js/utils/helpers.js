@@ -13,7 +13,10 @@ const normalIn = (min, max) => {
   return floor(min + gaussian * (max - min + 1));
 };
 
-const oneOf = (options) => options[floor(rand() * options.length)];
+const oneOf = (options) => {
+  if (options.length === 0) return null;
+  return options[floor(rand() * options.length)];
+};
 
 // delete an item from the given array using filter. Optionally provide a comparison
 // function, or else do a shallow comparison

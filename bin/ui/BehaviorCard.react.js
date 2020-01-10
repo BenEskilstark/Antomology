@@ -59,9 +59,12 @@ function BehaviorCard(props) {
       options: ['DO_ACTION', 'IF', 'WHILE', 'SWITCH_TASK'],
       selected: behavior.type,
       onChange: function onChange(newType) {
-        var newBehavior = {
-          type: newType
-        };
+        var newBehavior = behavior;
+        delete newBehavior.action;
+        delete newBehavior.condition;
+        delete newBehavior.task;
+        delete newBehavior.elseBehavior;
+        newBehavior.type = newType;
         if (newType === 'DO_ACTION') {
           newBehavior.action = {
             type: 'IDLE',
@@ -186,6 +189,9 @@ function Conditional(props) {
 
   var typeName = condition.type;
   var conditionObject = condition.payload.object;
+  if (conditionObject != null && conditionObject.name != null) {
+    conditionObject = conditionObject.name;
+  }
   var comparator = condition.comparator;
   var comparatorOptions = ['EQUALS', 'LESS_THAN', 'GREATER_THAN'];
   if (typeName == 'LOCATION' || typeName === 'HOLDING' || typeName === 'NEIGHBORING' || typeName === 'BLOCKED') {
@@ -206,7 +212,7 @@ function Conditional(props) {
       options: getEntitiesByType(state.game, ['LOCATION']).map(function (l) {
         return l.name;
       }),
-      selected: conditionObject.name,
+      selected: conditionObject,
       onChange: function onChange(locName) {
         var loc = getEntitiesByType(state.game, ['LOCATION']).filter(function (l) {
           return l.name === locName;
@@ -228,7 +234,9 @@ function Conditional(props) {
   }
   if (typeName === 'NEIGHBORING') {
     objectField = React.createElement(Dropdown, {
-      options: ['MARKED', 'DIRT', 'FOOD'],
+      options: ['MARKED', 'DIRT', 'FOOD', 'ANYTHING', 'NOTHING'].concat(getEntitiesByType(state.game, ['LOCATION']).map(function (l) {
+        return l.name;
+      })),
       selected: conditionObject,
       onChange: function onChange(obj) {
         behavior.condition.payload.object = obj;
@@ -270,7 +278,7 @@ function DoActionCard(props) {
       }));
       break;
     case 'PICKUP':
-      actionOptions = ['DIRT', 'MARKED', 'FOOD', 'EGG', 'LARVA', 'PUPA'];
+      actionOptions = ['DIRT', 'MARKED', 'BLOCKER', 'FOOD', 'EGG', 'LARVA', 'PUPA'];
       break;
     case 'PUTDOWN':
       break;

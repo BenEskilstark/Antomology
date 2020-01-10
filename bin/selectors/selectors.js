@@ -2,6 +2,8 @@
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 var _require = require('../utils/errors'),
     invariant = _require.invariant;
 
@@ -39,11 +41,11 @@ var collides = function collides(entityA, entityB) {
   if (dist.y === 0) {
     yOverlap = true;
   } else if (dist.y < 0) {
-    if (entityB.position.y + entityB.width > entityA.position.y && entityB.position.y + entityB.width <= entityA.position.y + entityA.width) {
+    if (entityB.position.y + entityB.height > entityA.position.y && entityB.position.y + entityB.height <= entityA.position.y + entityA.height) {
       yOverlap = true;
     }
   } else {
-    if (entityA.position.y + entityA.width > entityB.position.y && entityA.position.y + entityA.width <= entityB.position.y + entityB.width) {
+    if (entityA.position.y + entityA.height > entityB.position.y && entityA.position.y + entityA.height <= entityB.position.y + entityB.height) {
       yOverlap = true;
     }
   }
@@ -105,26 +107,10 @@ var collidesWith = function collidesWith(entityA, entities) {
 // Neighbors
 /////////////////////////////////////////////////////////////////
 
-var getNeighborhoodLocation = function getNeighborhoodLocation(entity, radius) {
-  var rad = radius != null ? radius : 1;
-  return {
-    position: add(entity.position, { x: -rad, y: -rad }),
-    width: rad * 2 + 1, // +1 to include inner space itself
-    height: rad * 2 + 1
-  };
-};
-
 // get all entities in the radius of the given entity excluding itself
+// TODO only supports entities of size = 1
 var getNeighborhoodEntities = function getNeighborhoodEntities(entity, entities, radius) {
-  var rad = radius != null ? radius : 1;
-  var neighborhoodLocation = getNeighborhoodLocation(entity, rad);
-  return collidesWith(neighborhoodLocation, entities).filter(function (e) {
-    return e.id != entity.id;
-  });
-};
-
-var getEmptyNeighborPositions = function getEmptyNeighborPositions(entity, entities) {
-  var emptyPositions = [];
+  var neighborEntities = [];
   var neighborPositions = [{ x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: -1 }];
   var _iteratorNormalCompletion2 = true;
   var _didIteratorError2 = false;
@@ -134,10 +120,7 @@ var getEmptyNeighborPositions = function getEmptyNeighborPositions(entity, entit
     for (var _iterator2 = neighborPositions[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
       var neighborVec = _step2.value;
 
-      var free = collidesWith(_extends({}, entity, { position: add(entity.position, neighborVec) }), entities);
-      if (free.length === 0) {
-        emptyPositions.push(add(entity.position, neighborVec));
-      }
+      neighborEntities.push.apply(neighborEntities, _toConsumableArray(collidesWith(_extends({}, entity, { position: add(entity.position, neighborVec) }), entities)));
     }
   } catch (err) {
     _didIteratorError2 = true;
@@ -150,6 +133,40 @@ var getEmptyNeighborPositions = function getEmptyNeighborPositions(entity, entit
     } finally {
       if (_didIteratorError2) {
         throw _iteratorError2;
+      }
+    }
+  }
+
+  return neighborEntities;
+};
+
+var getEmptyNeighborPositions = function getEmptyNeighborPositions(entity, entities) {
+  var emptyPositions = [];
+  var neighborPositions = [{ x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: -1 }];
+  var _iteratorNormalCompletion3 = true;
+  var _didIteratorError3 = false;
+  var _iteratorError3 = undefined;
+
+  try {
+    for (var _iterator3 = neighborPositions[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+      var neighborVec = _step3.value;
+
+      var free = collidesWith(_extends({}, entity, { position: add(entity.position, neighborVec) }), entities);
+      if (free.length === 0) {
+        emptyPositions.push(add(entity.position, neighborVec));
+      }
+    }
+  } catch (err) {
+    _didIteratorError3 = true;
+    _iteratorError3 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion3 && _iterator3.return) {
+        _iterator3.return();
+      }
+    } finally {
+      if (_didIteratorError3) {
+        throw _iteratorError3;
       }
     }
   }
@@ -173,13 +190,13 @@ var getSelectedAntIDs = function getSelectedAntIDs(game) {
 
 var getEntitiesByType = function getEntitiesByType(game, entityTypes) {
   var entities = [];
-  var _iteratorNormalCompletion3 = true;
-  var _didIteratorError3 = false;
-  var _iteratorError3 = undefined;
+  var _iteratorNormalCompletion4 = true;
+  var _didIteratorError4 = false;
+  var _iteratorError4 = undefined;
 
   try {
-    for (var _iterator3 = entityTypes[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-      var entityType = _step3.value;
+    for (var _iterator4 = entityTypes[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+      var entityType = _step4.value;
 
       switch (entityType) {
         case 'ANT':
@@ -225,16 +242,16 @@ var getEntitiesByType = function getEntitiesByType(game, entityTypes) {
       }
     }
   } catch (err) {
-    _didIteratorError3 = true;
-    _iteratorError3 = err;
+    _didIteratorError4 = true;
+    _iteratorError4 = err;
   } finally {
     try {
-      if (!_iteratorNormalCompletion3 && _iterator3.return) {
-        _iterator3.return();
+      if (!_iteratorNormalCompletion4 && _iterator4.return) {
+        _iterator4.return();
       }
     } finally {
-      if (_didIteratorError3) {
-        throw _iteratorError3;
+      if (_didIteratorError4) {
+        throw _iteratorError4;
       }
     }
   }
@@ -246,7 +263,6 @@ var selectors = {
   collides: collides,
   collidesWith: collidesWith,
   getSelectedAntIDs: getSelectedAntIDs,
-  getNeighborhoodLocation: getNeighborhoodLocation,
   getNeighborhoodEntities: getNeighborhoodEntities,
   getEmptyNeighborPositions: getEmptyNeighborPositions,
   getEntitiesByType: getEntitiesByType,

@@ -15,7 +15,6 @@ const {
 const {
   collides,
   collidesWith,
-  getNeighborhoodLocation,
   getNeighborhoodEntities,
   getEmptyNeighborPositions,
   getEntitiesByType,
@@ -226,6 +225,8 @@ const evaluateCondition = (
         isTrue = neighbors.length === 0;
       } else if (object === 'MARKED') {
         isTrue = neighbors.filter(n => n.marked > 0).length > 0;
+      } else if (object != null && object.id !== null) {
+        isTrue = neighbors.filter(n => n.id === object.id).length > 0;
       }
       break;
     }
@@ -376,26 +377,30 @@ const performAction = (
       let entityToPickup = object;
       if (entityToPickup === 'BLOCKER') {
         entityToPickup = ant.blockedBy;
-        ant.blocked = false;
-        ant.blockedBy = null;
       } else if (entityToPickup === 'MARKED') {
-        const markedNeighbors = getNeighborhoodEntities(
-          ant, game.entities, 1 /* radius */
-        ).filter(e => e.marked > 0);
-        if (markedNeighbors.length > 0) {
-          entityToPickup = oneOf(markedNeighbors);
-          ant.blocked = false;
-          ant.blockedBy = null;
-        } else {
-          entityToPickup = null;
-        }
+        entityToPickup = oneOf(getNeighborhoodEntities(
+          ant, game.entities,
+        ).filter(e => e.marked > 0));
+      } else if (
+        entityToPickup === 'DIRT' || entityToPickup === 'FOOD' ||
+        entityToPickup === 'EGG' || entityToPickup === 'LARVA' ||
+        entityToPickup === 'PUPA' || entityToPickup === 'DEAD_ANT'
+      ) {
+        entityToPickup = oneOf(getNeighborhoodEntities(
+          ant, getEntitiesByType(game, [entityToPickup])
+        ));
+      } else if (entityToPickup != null && entityToPickup.position != null ) {
+        entityToPickup = getNeighborhoodEntities(
+          ant, getEntitiesByType(game, config.antPickupEntities)
+        ).filter(e => e.id === entityToPickup.id)[0];
       }
-      if (entityToPickup == null) {
+      if (entityToPickup == null || entityToPickup.position == null) {
         break;
       }
-      const neighborhood = getNeighborhoodLocation(entityToPickup);
-      if (collides(ant, neighborhood) && ant.holding == null) {
+      if (ant.holding == null) {
         ant.holding = entityToPickup;
+        ant.blocked = false;
+        ant.blockedBy = null;
         entityToPickup.position = null;
         // reduce mark quantity
         entityToPickup.marked = Math.max(0, entityToPickup.marked - 1);
@@ -407,12 +412,11 @@ const performAction = (
       if (locationToPutdown == null) {
         locationToPutdown = {position: ant.position};
       }
-      const neighborhood = getNeighborhoodLocation(locationToPutdown);
-      const putDown = collidesWith(
+      const putDownFree = collidesWith(
         locationToPutdown,
         getEntitiesByType(game, config.antBlockingEntities),
-      );
-      if (collides(ant, neighborhood) && ant.holding != null && putDown.length == 0) {
+      ).length === 0;
+      if (collides(ant, locationToPutdown) && ant.holding != null && putDownFree) {
         ant.holding.position = locationToPutdown.position;
         ant.holding = null;
         // move the ant out of the way
@@ -426,37 +430,39 @@ const performAction = (
       break;
     }
     case 'EAT': {
-      // TODO: very similar to PICKUP
       let entityToEat = object;
+      const neighborFood = getNeighborhoodEntities(
+        ant, getEntitiesByType(game, ['FOOD'])
+      );
       if (entityToEat == null) {
-        break;
+        entityToEat = oneOf(neighborFood);
+      } else if (entityToEat.id != null) {
+        entityToEat = neighborFood.filter(f => f.id == entityToEat.id)[0];
       }
-      const neighborhood = getNeighborhoodLocation(entityToEat);
-      if (collides(ant, neighborhood)) {
-        const caloriesEaten = Math.max(config.antCaloriesPerEat, entityToEat.calories);
-        ant.calories += caloriesEaten;
-        entityToEat.calories -= caloriesEaten;
-        // remove the food item if it has no more calories
-        if (entityToEat.calories <= 0) {
-          delete game.entities[entityToEat.id];
-          game.food = deleteFromArray(game.food, entityToEat.id);
-        }
+      if (entityToEat == null) break;
+
+      const caloriesEaten = Math.min(config.antCaloriesPerEat, entityToEat.calories);
+      ant.calories += caloriesEaten;
+      entityToEat.calories -= caloriesEaten;
+      // remove the food item if it has no more calories
+      if (entityToEat.calories <= 0) {
+        delete game.entities[entityToEat.id];
+        game.food = deleteFromArray(game.food, entityToEat.id);
       }
       break;
     }
     case 'FEED': {
-      // TODO: very similar to PUTDOWN
-      const neighborhood = getNeighborhoodLocation(ant);
-      const feedableEntities = collidesWith(
-        neighborhood,
-        getEntitiesByType(game, ['ANT', 'LARVA']),
-      ).filter(e => e.id != ant.id);
+      const feedableEntities = getNeighborhoodEntities(
+        ant, getEntitiesByType(game, ['ANT', 'LARVA']),
+      );
       if (
         ant.holding != null && ant.holding.type === 'FOOD' &&
         feedableEntities.length > 0
       ) {
         const fedEntity = oneOf(feedableEntities);
         fedEntity.calories += ant.holding.calories;
+        delete game.entities[ant.holding.id];
+        game.food = deleteFromArray(game.food, ant.holding.id);
         ant.holding = null;
       }
       break;

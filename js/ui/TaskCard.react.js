@@ -37,7 +37,7 @@ function TaskCard(props: Props): React.Node {
   const behaviors = behaviorQueue.map((b, i) => {
     return (
       <div key={'behavior_' + i}>
-        <BehaviorCard state={state} dispatch={dispatch} behavior={b} />
+        <BehaviorCard state={state} behavior={b} />
       </div>
     );
   });
@@ -89,6 +89,12 @@ function TaskCard(props: Props): React.Node {
             dispatch({type: 'UPDATE_TASK', task: editedTask});
           }
         }}
+      />
+      <Button
+        label="Export Task as JSON"
+        onClick={
+          () => console.log(JSON.stringify({name: taskName, repeating, behaviorQueue}))
+        }
       />
     </div>
   );

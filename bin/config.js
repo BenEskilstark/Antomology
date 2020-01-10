@@ -20,7 +20,7 @@ var config = {
   foodSpawnCalories: 1000,
 
   // ant-specific values
-  maxSelectableAnts: 4,
+  maxSelectableAnts: 3,
   antPickupEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'DEAD_ANT'],
   antBlockingEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA'],
   antEatEntities: ['FOOD', 'DEAD_ANT'],

@@ -56,3 +56,7 @@ Date  Time Started  Time Spent  Work Completed
                                 Making another location with same name replaces it
                                 (14hr 10min --> 27hr 50min)
 
+1/10     9:30am     2hr 10min   Fixed numerous bugs
+                                Implement PICKUP for every type
+                                Button for exporting a task to JSON
+

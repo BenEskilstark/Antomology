@@ -1,12 +1,11 @@
 
  - - - - - - TODO - - - - - -
- - make pickup/feed/eat more intuitive
- - On create task, switch dropdown to editing that one
- - button for exporting tasks as json
- - button for importing task jsons
  - Make larva, eggs, pupa, selectable
  - egg,larva, pupa UI cards
  - prioritize feeding larva
+ - make pickup/feed/eat more intuitive
+ - On create task, switch dropdown to editing that one
+ - button for importing task jsons
 
  - - - - - - NEXT - - - - - -
  - switch dead ants/larva to their own entity type
@@ -33,9 +32,6 @@
  - get flow working
  - as long as we're treating locations/tasks uniquely by name, store only those names
  - cached entityID arrays in state should be the same as the entityType
- - better init for systems
- - split gameReducer into entityReducer, antReducer, gameReducer, and mouseReducer
- - state --> game where applicable
  - using collides selector for everything makes optimization harder...
     - in tickReducer/performAction for moves being possible
     - in tickReducer/evaluateCondition for if ant is at a location
@@ -45,20 +41,10 @@
     - in selectors/getFreeNeighborPositions
     - in foodSpawnSystem
  - get optional chaining working
- - after fixing Go To Clicked Location bug, can store locations as strings on behaviors
 
 
  - - - - - - BUGS - - - - - -
- - ants can detect and pickup marked dirt diagonally away from them
- - ants won't move to a square one off from them and always pick up diagonally
- - blueprint doesn't allow simple click, only drag
- - ants consume entire food on click and not just their configured amount
- - update Go To Clicked Location to always point at last location instead of first
- - two ants can eat the same food at the same time
- - selection marquee doesn't work 100% from every angle
- - getNeighborhoodLocation fails every once in a while
- - updateTask doesn't always work...
-
+ - number input (in e.g. RANDOM condition) doesn't like being cleared out temporarily
 
  - - - - - - DONE - - - - - -
  - clicking to select ants
@@ -132,3 +118,19 @@
  - only lay eggs on top of dirt
  - UI for naming locations, name of location floating in space
  - making another location with same name replaces it
+ - better init for systems
+
+ - button for exporting tasks as json
+ - fixed bugs
+   - two ants can eat the same food at the same time
+   - ants consume entire food on click and not just their configured amount
+   - blueprint doesn't allow simple click, only drag
+   - multiple ants can pick up the same entity
+   - ants can detect and pickup marked dirt diagonally away from them
+   - getNeighborhoodLocation fails every once in a while (I believe on PICKUP)
+   - update Go To Clicked Location to always point at last location instead of first
+   - selection marquee doesn't work 100% from every angle
+   - ants won't move to a square one off from them and always pick up diagonally
+   - updateTask doesn't always actually update
+ - implement PICKUP for FOOD, DIRT, EGG, etc.
+ - implement EAT for behavior checking neighbor

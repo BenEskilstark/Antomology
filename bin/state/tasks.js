@@ -4,11 +4,16 @@
 // general
 ///////////////////////////////////////////////////////////////
 
+/**
+ * Go towards the location until you're a neighbor, then try to advance
+ * to the location separately. This way you get out of the while loop
+ * even if the location is occupied
+ */
 var createGoToLocationTask = function createGoToLocationTask(location) {
   return {
     name: 'Go To Location',
     repeating: false,
-    behaviorQueue: [createGoToLocationBehavior(location)]
+    behaviorQueue: [createGoToLocationNeighborBehavior(location), createDoAction('MOVE', location)]
   };
 };
 // Helpers for creating tasks/locations via the console
@@ -74,6 +79,21 @@ var createGoToLocationBehavior = function createGoToLocationBehavior(location) {
     type: 'WHILE',
     condition: {
       type: 'LOCATION',
+      not: true,
+      comparator: 'EQUALS',
+      payload: {
+        object: location
+      }
+    },
+    behavior: createMoveBehavior(location)
+  };
+};
+
+var createGoToLocationNeighborBehavior = function createGoToLocationNeighborBehavior(location) {
+  return {
+    type: 'WHILE',
+    condition: {
+      type: 'NEIGHBORING',
       not: true,
       comparator: 'EQUALS',
       payload: {

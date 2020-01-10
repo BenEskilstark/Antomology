@@ -47,9 +47,12 @@ function BehaviorCard(props: Props): React.Node {
         options={['DO_ACTION', 'IF', 'WHILE', 'SWITCH_TASK']}
         selected={behavior.type}
         onChange={(newType) => {
-          const newBehavior = {
-            type: newType,
-          };
+          const newBehavior = behavior;
+          delete newBehavior.action;
+          delete newBehavior.condition;
+          delete newBehavior.task;
+          delete newBehavior.elseBehavior;
+          newBehavior.type = newType;
           if (newType === 'DO_ACTION') {
             newBehavior.action = {
               type: 'IDLE',
@@ -169,7 +172,10 @@ function Conditional(
 ): React.Node {
   const {condition, state, behavior, setBehavior} = props;
   const typeName = condition.type;
-  const conditionObject = condition.payload.object;
+  let conditionObject = condition.payload.object;
+  if (conditionObject != null && conditionObject.name != null) {
+    conditionObject = conditionObject.name;
+  }
   const comparator = condition.comparator;
   let comparatorOptions = ['EQUALS', 'LESS_THAN', 'GREATER_THAN'];
   if (
@@ -191,7 +197,7 @@ function Conditional(
   if (typeName === 'LOCATION') {
     objectField = <Dropdown
       options={getEntitiesByType(state.game, ['LOCATION']).map(l => l.name)}
-      selected={conditionObject.name}
+      selected={conditionObject}
       onChange={(locName) => {
         const loc = getEntitiesByType(state.game, ['LOCATION'])
           .filter(l => l.name === locName)[0];
@@ -212,7 +218,10 @@ function Conditional(
   }
   if (typeName === 'NEIGHBORING') {
     objectField = <Dropdown
-      options={['MARKED', 'DIRT', 'FOOD']}
+      options={
+        ['MARKED', 'DIRT', 'FOOD', 'ANYTHING', 'NOTHING']
+        .concat(getEntitiesByType(state.game, ['LOCATION']).map(l => l.name))
+      }
       selected={conditionObject}
       onChange={(obj) => {
         behavior.condition.payload.object = obj;
@@ -249,7 +258,7 @@ function DoActionCard(props: mixed): React.Node {
         .concat(getEntitiesByType(state.game, ['LOCATION']).map(l => l.name));
       break;
     case 'PICKUP':
-      actionOptions = ['DIRT', 'MARKED', 'FOOD', 'EGG', 'LARVA', 'PUPA'];
+      actionOptions = ['DIRT', 'MARKED', 'BLOCKER', 'FOOD', 'EGG', 'LARVA', 'PUPA'];
       break
     case 'PUTDOWN':
       break;
