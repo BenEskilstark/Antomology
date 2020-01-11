@@ -30,13 +30,14 @@ var config = {
   antEatEntities: ['FOOD', 'DEAD_ANT'],
   antStartingCalories: 4000,
   antCaloriesPerEat: 1000,
+  antMaxCalories: 6000,
   antStarvationWarningThreshold: 0.3,
 
   // life-cycle related
   antMaxAge: 10000,
   eggHatchAge: 300,
-  larvaStartingCalories: 2000,
-  larvaEndCalories: 3000,
+  larvaStartingCalories: 3000,
+  larvaEndCalories: 4000,
   pupaHatchAge: 200
 };
 

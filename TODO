@@ -1,7 +1,6 @@
 
  - - - - - - TODO - - - - - -
  - On create task, switch dropdown to editing that one
- - button for importing task jsons
  - switch dead ants/larva to their own entity type
 
  - - - - - - NEXT - - - - - -
@@ -9,6 +8,7 @@
  - compute old-age death for ants
  - Call out ants near death of old age
  - ant calories should only go down when they do something?
+ - option for deleting behaviors in Task Editor
 
  - - - - -  LATER - - - - - -
  - A*-like for ants moving towards location?
@@ -19,6 +19,7 @@
  - implement the rest of the actions
  - conditionals with OR/AND
  - mark should be its own entity instead of applying just to dirt
+ - make UI elements screen-size responsive
 
  - - - - - REFACTOR - - - - -
  - essentially need a "stack" for nested behavior execution or else e.g. a
@@ -137,3 +138,6 @@
  - make pickup/feed/eat more intuitive
    - PUTDOWN on ant/larva feeds
    - FEED on food picks it up
+
+ - button for importing task jsons
+ - implement maxAntCalories

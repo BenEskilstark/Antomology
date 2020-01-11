@@ -25,6 +25,7 @@ function TaskCard(props: Props): React.Node {
   const [behaviorQueue, setBehaviorQueue] = useState(
     task.behaviorQueue.map(b => JSON.parse(JSON.stringify(b))),
   );
+  const [importedTask, setImportedTask] = useState('');
 
   useEffect(() => {
     setRepeating(task.repeating);
@@ -95,6 +96,21 @@ function TaskCard(props: Props): React.Node {
         onClick={
           () => console.log(JSON.stringify({name: taskName, repeating, behaviorQueue}))
         }
+      />
+      <Button
+        label="Import Pasted Task from JSON"
+        onClick={() => {
+          if (importedTask != '') {
+            setTaskName(importedTask.name);
+            setRepeating(importedTask.repeating);
+            setBehaviorQueue(importedTask.behaviorQueue);
+          }
+        }}
+      />
+      <input type="text" style={{width: '25px'}}
+        value={JSON.stringify(importedTask)} onChange={(ev) => {
+          setImportedTask(JSON.parse(ev.target.value));
+        }}
       />
     </div>
   );

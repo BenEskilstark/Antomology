@@ -573,7 +573,7 @@ var performAction = function performAction(game, ant, action) {
         }
         if (entityToEat == null) break;
 
-        var caloriesEaten = Math.min(config.antCaloriesPerEat, entityToEat.calories);
+        var caloriesEaten = Math.min(config.antCaloriesPerEat, entityToEat.calories, config.antMaxCalories - ant.calories);
         ant.calories += caloriesEaten;
         entityToEat.calories -= caloriesEaten;
         // remove the food item if it has no more calories

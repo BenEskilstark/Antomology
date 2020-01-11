@@ -40,6 +40,11 @@ function TaskCard(props) {
       behaviorQueue = _useState6[0],
       setBehaviorQueue = _useState6[1];
 
+  var _useState7 = useState(''),
+      _useState8 = _slicedToArray(_useState7, 2),
+      importedTask = _useState8[0],
+      setImportedTask = _useState8[1];
+
   useEffect(function () {
     setRepeating(task.repeating);
     setTaskName(task.name);
@@ -117,6 +122,21 @@ function TaskCard(props) {
       label: 'Export Task as JSON',
       onClick: function onClick() {
         return console.log(JSON.stringify({ name: taskName, repeating: repeating, behaviorQueue: behaviorQueue }));
+      }
+    }),
+    React.createElement(Button, {
+      label: 'Import Pasted Task from JSON',
+      onClick: function onClick() {
+        if (importedTask != '') {
+          setTaskName(importedTask.name);
+          setRepeating(importedTask.repeating);
+          setBehaviorQueue(importedTask.behaviorQueue);
+        }
+      }
+    }),
+    React.createElement('input', { type: 'text', style: { width: '25px' },
+      value: JSON.stringify(importedTask), onChange: function onChange(ev) {
+        setImportedTask(JSON.parse(ev.target.value));
       }
     })
   );
