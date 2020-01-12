@@ -1,6 +1,5 @@
 
  - - - - - - TODO - - - - - -
- - On create task, switch dropdown to editing that one
  - switch dead ants/larva to their own entity type
 
  - - - - - - NEXT - - - - - -
@@ -141,3 +140,4 @@
 
  - button for importing task jsons
  - implement maxAntCalories
+ - On create task, switch dropdown to editing that one

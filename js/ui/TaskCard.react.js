@@ -14,6 +14,7 @@ type Props = {
   state: State,
   dispatch: (Action) => Action,
   task: Task,
+  setTaskName: (string) => void, // so the parent knows which task is being edited
   newTask: boolean,
 };
 
@@ -86,6 +87,7 @@ function TaskCard(props: Props): React.Node {
           const editedTask = {name: taskName, repeating, behaviorQueue};
           if (newTask || taskName != task.name) {
             dispatch({type: 'CREATE_TASK', task: editedTask});
+            props.setTaskName(taskName);
           } else {
             dispatch({type: 'UPDATE_TASK', task: editedTask});
           }

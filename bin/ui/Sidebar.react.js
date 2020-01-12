@@ -161,6 +161,7 @@ function TaskEditor(props) {
     React.createElement(TaskCard, {
       state: state,
       dispatch: dispatch,
+      setTaskName: setTaskName,
       newTask: taskName === 'New Task',
       task: editingTask
     })

@@ -3023,6 +3023,7 @@ function TaskEditor(props) {
     React.createElement(TaskCard, {
       state: state,
       dispatch: dispatch,
+      setTaskName: setTaskName,
       newTask: taskName === 'New Task',
       task: editingTask
     })
@@ -3408,6 +3409,7 @@ function TaskCard(props) {
         var editedTask = { name: taskName, repeating: repeating, behaviorQueue: behaviorQueue };
         if (newTask || taskName != task.name) {
           dispatch({ type: 'CREATE_TASK', task: editedTask });
+          props.setTaskName(taskName);
         } else {
           dispatch({ type: 'UPDATE_TASK', task: editedTask });
         }

@@ -112,6 +112,7 @@ function TaskEditor(props: Props): React.Node {
       <TaskCard
         state={state}
         dispatch={dispatch}
+        setTaskName={setTaskName}
         newTask={taskName === 'New Task'}
         task={editingTask}
       />
