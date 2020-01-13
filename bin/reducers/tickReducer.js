@@ -29,11 +29,15 @@ var _require6 = require('../utils/helpers'),
     randomIn = _require6.randomIn,
     normalIn = _require6.normalIn,
     oneOf = _require6.oneOf,
-    deleteFromArray = _require6.deleteFromArray;
+    deleteFromArray = _require6.deleteFromArray,
+    insertInGrid = _require6.insertInGrid,
+    deleteFromGrid = _require6.deleteFromGrid;
 
 var _require7 = require('../selectors/selectors'),
     collides = _require7.collides,
     collidesWith = _require7.collidesWith,
+    fastCollidesWith = _require7.fastCollidesWith,
+    fastGetEmptyNeighborPositions = _require7.fastGetEmptyNeighborPositions,
     getNeighborhoodEntities = _require7.getNeighborhoodEntities,
     getEmptyNeighborPositions = _require7.getEmptyNeighborPositions,
     getEntitiesByType = _require7.getEntitiesByType,
@@ -74,7 +78,10 @@ var tickReducer = function tickReducer(game, action) {
   return game;
 };
 
+var totalTime = 0;
+
 var handleTick = function handleTick(game) {
+  var startTime = performance.now();
   // update ants
   var _iteratorNormalCompletion = true;
   var _didIteratorError = false;
@@ -243,6 +250,13 @@ var handleTick = function handleTick(game) {
   }
 
   game.time += 1;
+
+  var time = performance.now() - startTime;
+  totalTime += time;
+  if (game.time % 10 === 0) {
+    console.log(time.toFixed(3), 'avg', (totalTime / game.time).toFixed(3));
+  }
+
   return game;
 };
 
@@ -456,7 +470,10 @@ var performAction = function performAction(game, ant, action) {
         var loc = object;
         if (object === 'RANDOM') {
           // randomly select loc based on free neighbors
-          var _freePositions = getEmptyNeighborPositions(ant, getEntitiesByType(game, config.antBlockingEntities)).filter(insideWorld);
+          // let freePositions = getEmptyNeighborPositions(
+          //   ant, getEntitiesByType(game, config.antBlockingEntities),
+          // ).filter(insideWorld);
+          var _freePositions = fastGetEmptyNeighborPositions(game, ant).filter(insideWorld);
           if (_freePositions.length == 0) {
             break; // can't move
           }
@@ -490,7 +507,11 @@ var performAction = function performAction(game, ant, action) {
         }
         moveVec[moveAxis] += distVec[moveAxis] > 0 ? 1 : -1;
         var nextPos = add(moveVec, ant.position);
-        var occupied = collidesWith({ position: nextPos, width: 1, height: 1 }, getEntitiesByType(game, config.antBlockingEntities));
+        // let occupied = collidesWith(
+        //   {position: nextPos, width: 1, height: 1},
+        //     getEntitiesByType(game, config.antBlockingEntities),
+        // );
+        var occupied = fastCollidesWith(game, { position: nextPos });
         if (occupied.length == 0 && insideWorld(nextPos)) {
           ant.prevPosition = ant.position;
           ant.position = nextPos;
@@ -509,8 +530,14 @@ var performAction = function performAction(game, ant, action) {
             break;
           }
           nextPos = add(moveVec, ant.position);
-          occupied = collidesWith({ position: nextPos, width: 1, height: 1 }, getEntitiesByType(game, config.antBlockingEntities));
+          // occupied = collidesWith(
+          //   {position: nextPos, width: 1, height: 1},
+          //   getEntitiesByType(game, config.antBlockingEntities),
+          // );
+          occupied = fastCollidesWith(game, { position: nextPos });
           if (occupied.length == 0 && insideWorld(nextPos)) {
+            deleteFromGrid(game.grid, ant.position, ant.id);
+            insertInGrid(game.grid, nextPos, ant.id);
             ant.position = nextPos;
             ant.blocked = false;
             ant.blockedBy = null;

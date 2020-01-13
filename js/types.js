@@ -68,6 +68,9 @@ export type GameState = {
   pupa: Array<EntityID>,
   deadAnts: Array<EntityID>,
 
+  // for faster collision detection
+  grid: Array<Array<Array<EntityID>>>,
+
   tasks: Array<Task>, // tasks that can be assigned to ants
 };
 

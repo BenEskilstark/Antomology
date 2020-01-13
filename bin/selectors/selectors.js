@@ -15,6 +15,9 @@ var _require2 = require('../utils/vectors'),
 var _require3 = require('../config'),
     config = _require3.config;
 
+var _require4 = require('../utils/helpers'),
+    lookupInGrid = _require4.lookupInGrid;
+
 /////////////////////////////////////////////////////////////////
 // Collisions
 /////////////////////////////////////////////////////////////////
@@ -104,13 +107,23 @@ var collidesWith = function collidesWith(entityA, entities) {
 };
 
 /////////////////////////////////////////////////////////////////
-// Neighbors
+// Fast functions
 /////////////////////////////////////////////////////////////////
 
-// get all entities in the radius of the given entity excluding itself
-// TODO only supports entities of size = 1
-var getNeighborhoodEntities = function getNeighborhoodEntities(entity, entities, radius) {
-  var neighborEntities = [];
+var fastCollidesWith = function fastCollidesWith(game, entity) {
+  if (entity.position == null) return [];
+  var _entity$position = entity.position,
+      x = _entity$position.x,
+      y = _entity$position.y;
+
+  return lookupInGrid(game.grid, entity.position).filter(function (id) {
+    return id != entity.id;
+  });
+};
+
+var fastGetEmptyNeighborPositions = function fastGetEmptyNeighborPositions(game, entity) {
+  if (entity.position == null) return [];
+  var emptyPositions = [];
   var neighborPositions = [{ x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: -1 }];
   var _iteratorNormalCompletion2 = true;
   var _didIteratorError2 = false;
@@ -120,7 +133,9 @@ var getNeighborhoodEntities = function getNeighborhoodEntities(entity, entities,
     for (var _iterator2 = neighborPositions[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
       var neighborVec = _step2.value;
 
-      neighborEntities.push.apply(neighborEntities, _toConsumableArray(collidesWith(_extends({}, entity, { position: add(entity.position, neighborVec) }), entities)));
+      if (lookupInGrid(game.grid, add(entity.position, neighborVec)).length === 0) {
+        emptyPositions.push(add(entity.position, neighborVec));
+      }
     }
   } catch (err) {
     _didIteratorError2 = true;
@@ -137,11 +152,17 @@ var getNeighborhoodEntities = function getNeighborhoodEntities(entity, entities,
     }
   }
 
-  return neighborEntities;
+  return emptyPositions;
 };
 
-var getEmptyNeighborPositions = function getEmptyNeighborPositions(entity, entities) {
-  var emptyPositions = [];
+/////////////////////////////////////////////////////////////////
+// Neighbors
+/////////////////////////////////////////////////////////////////
+
+// get all entities in the radius of the given entity excluding itself
+// TODO only supports entities of size = 1
+var getNeighborhoodEntities = function getNeighborhoodEntities(entity, entities, radius) {
+  var neighborEntities = [];
   var neighborPositions = [{ x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: -1 }];
   var _iteratorNormalCompletion3 = true;
   var _didIteratorError3 = false;
@@ -151,10 +172,7 @@ var getEmptyNeighborPositions = function getEmptyNeighborPositions(entity, entit
     for (var _iterator3 = neighborPositions[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
       var neighborVec = _step3.value;
 
-      var free = collidesWith(_extends({}, entity, { position: add(entity.position, neighborVec) }), entities);
-      if (free.length === 0) {
-        emptyPositions.push(add(entity.position, neighborVec));
-      }
+      neighborEntities.push.apply(neighborEntities, _toConsumableArray(collidesWith(_extends({}, entity, { position: add(entity.position, neighborVec) }), entities)));
     }
   } catch (err) {
     _didIteratorError3 = true;
@@ -171,11 +189,45 @@ var getEmptyNeighborPositions = function getEmptyNeighborPositions(entity, entit
     }
   }
 
+  return neighborEntities;
+};
+
+var getEmptyNeighborPositions = function getEmptyNeighborPositions(entity, entities) {
+  var emptyPositions = [];
+  var neighborPositions = [{ x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: -1 }];
+  var _iteratorNormalCompletion4 = true;
+  var _didIteratorError4 = false;
+  var _iteratorError4 = undefined;
+
+  try {
+    for (var _iterator4 = neighborPositions[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+      var neighborVec = _step4.value;
+
+      var free = collidesWith(_extends({}, entity, { position: add(entity.position, neighborVec) }), entities);
+      if (free.length === 0) {
+        emptyPositions.push(add(entity.position, neighborVec));
+      }
+    }
+  } catch (err) {
+    _didIteratorError4 = true;
+    _iteratorError4 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion4 && _iterator4.return) {
+        _iterator4.return();
+      }
+    } finally {
+      if (_didIteratorError4) {
+        throw _iteratorError4;
+      }
+    }
+  }
+
   return emptyPositions;
 };
 
 var insideWorld = function insideWorld(pos) {
-  return pos.x > 0 && pos.x < config.width && pos.y > 0 && pos.y < config.height;
+  return pos.x >= 0 && pos.x < config.width && pos.y >= 0 && pos.y < config.height;
 };
 
 /////////////////////////////////////////////////////////////////
@@ -190,13 +242,13 @@ var getSelectedAntIDs = function getSelectedAntIDs(game) {
 
 var getEntitiesByType = function getEntitiesByType(game, entityTypes) {
   var entities = [];
-  var _iteratorNormalCompletion4 = true;
-  var _didIteratorError4 = false;
-  var _iteratorError4 = undefined;
+  var _iteratorNormalCompletion5 = true;
+  var _didIteratorError5 = false;
+  var _iteratorError5 = undefined;
 
   try {
-    for (var _iterator4 = entityTypes[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-      var entityType = _step4.value;
+    for (var _iterator5 = entityTypes[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+      var entityType = _step5.value;
 
       switch (entityType) {
         case 'ANT':
@@ -242,16 +294,16 @@ var getEntitiesByType = function getEntitiesByType(game, entityTypes) {
       }
     }
   } catch (err) {
-    _didIteratorError4 = true;
-    _iteratorError4 = err;
+    _didIteratorError5 = true;
+    _iteratorError5 = err;
   } finally {
     try {
-      if (!_iteratorNormalCompletion4 && _iterator4.return) {
-        _iterator4.return();
+      if (!_iteratorNormalCompletion5 && _iterator5.return) {
+        _iterator5.return();
       }
     } finally {
-      if (_didIteratorError4) {
-        throw _iteratorError4;
+      if (_didIteratorError5) {
+        throw _iteratorError5;
       }
     }
   }
@@ -262,6 +314,8 @@ var getEntitiesByType = function getEntitiesByType(game, entityTypes) {
 var selectors = {
   collides: collides,
   collidesWith: collidesWith,
+  fastCollidesWith: fastCollidesWith,
+  fastGetEmptyNeighborPositions: fastGetEmptyNeighborPositions,
   getSelectedAntIDs: getSelectedAntIDs,
   getNeighborhoodEntities: getNeighborhoodEntities,
   getEmptyNeighborPositions: getEmptyNeighborPositions,

@@ -1,5 +1,13 @@
 
  - - - - - - TODO - - - - - -
+ - cached entityID arrays in state should be the same as the entityType
+ - remove SWITCHES over entityTypes
+ - helper for adding entities to keep them working across type/grid caches
+ - helper for moving entities to a new position
+ - switch to fast collisions everywhere
+ - put initGameState back together, make ants idle on creation
+
+ - - - - - - NEXT - - - - - -
  - switch dead ants/larva to their own entity type
  - implement holding for each type
  - implement neighboring for each type
@@ -7,8 +15,6 @@
  - allow nested behaviors to themselves have a queue
  - make location position in center instead of top left
  - make food amount scale by calorie amount
-
- - - - - - - NEXT - - - - - -
  - RANDOM move behavior for staying inside a location
  - compute old-age death for ants
  - Call out ants near death of old age
@@ -33,7 +39,6 @@
  - tasks need a "parent" task or else switching tasks within a repeating task won't repeat
  - get flow working
  - as long as we're treating locations/tasks uniquely by name, store only those names
- - cached entityID arrays in state should be the same as the entityType
  - using collides selector for everything makes optimization harder...
     - in tickReducer/performAction for moves being possible
     - in tickReducer/evaluateCondition for if ant is at a location
@@ -48,6 +53,7 @@
  - - - - - - BUGS - - - - - -
  - number input (in e.g. RANDOM condition) doesn't like being cleared out temporarily
  - picked-up larva never hatch and then die on putdown. Should probably just wait to hatch
+
 
  - - - - - - DONE - - - - - -
  - clicking to select ants

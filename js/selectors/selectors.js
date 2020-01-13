@@ -3,6 +3,7 @@
 const {invariant} = require('../utils/errors');
 const {subtract, distance, add} = require('../utils/vectors');
 const {config} = require('../config');
+const {lookupInGrid} = require('../utils/helpers');
 
 import type {GameID, State, Game, Entity} from '../types';
 
@@ -87,6 +88,29 @@ const collidesWith = (
 };
 
 /////////////////////////////////////////////////////////////////
+// Fast functions
+/////////////////////////////////////////////////////////////////
+
+const fastCollidesWith = (game: GameState, entity: Entity): Array<Entity> => {
+  if (entity.position == null) return [];
+  const {x, y} = entity.position;
+  return lookupInGrid(game.grid, entity.position).filter(id => id != entity.id);
+};
+
+const fastGetEmptyNeighborPositions = (game: GameState, entity: Entity): Array<Vector> => {
+  if (entity.position == null) return [];
+  const emptyPositions = [];
+  const neighborPositions =
+    [{x: 0, y: 1}, {x: -1, y: 0}, {x: 1, y: 0}, {x: 0, y: -1}];
+  for (const neighborVec of neighborPositions) {
+    if (lookupInGrid(game.grid, add(entity.position, neighborVec)).length === 0) {
+      emptyPositions.push(add(entity.position, neighborVec));
+    }
+  }
+  return emptyPositions;
+}
+
+/////////////////////////////////////////////////////////////////
 // Neighbors
 /////////////////////////////////////////////////////////////////
 
@@ -126,7 +150,7 @@ const getEmptyNeighborPositions = (
 };
 
 const insideWorld = (pos: Vector): boolean => {
-  return pos.x > 0 && pos.x < config.width && pos.y > 0 && pos.y < config.height;
+  return pos.x >= 0 && pos.x < config.width && pos.y >= 0 && pos.y < config.height;
 };
 
 /////////////////////////////////////////////////////////////////
@@ -176,6 +200,8 @@ const getEntitiesByType = (
 const selectors = {
   collides,
   collidesWith,
+  fastCollidesWith,
+  fastGetEmptyNeighborPositions,
   getSelectedAntIDs,
   getNeighborhoodEntities,
   getEmptyNeighborPositions,

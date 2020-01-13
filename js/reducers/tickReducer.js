@@ -11,10 +11,14 @@ const {
   normalIn,
   oneOf,
   deleteFromArray,
+  insertInGrid,
+  deleteFromGrid,
 } = require('../utils/helpers');
 const {
   collides,
   collidesWith,
+  fastCollidesWith,
+  fastGetEmptyNeighborPositions,
   getNeighborhoodEntities,
   getEmptyNeighborPositions,
   getEntitiesByType,
@@ -53,7 +57,10 @@ const tickReducer = (game: GameState, action: Action): GameState => {
   return game;
 };
 
+let totalTime = 0;
+
 const handleTick = (game: GameState): GameState => {
+  const startTime = performance.now();
   // update ants
   for (const id of game.ants) {
     const ant = game.entities[id];
@@ -116,6 +123,13 @@ const handleTick = (game: GameState): GameState => {
   }
 
   game.time += 1;
+
+  const time = performance.now() - startTime;
+  totalTime += time;
+  if (game.time % 10 === 0) {
+    console.log(time.toFixed(3), 'avg', (totalTime / game.time).toFixed(3));
+  }
+
   return game;
 }
 
@@ -307,9 +321,11 @@ const performAction = (
       let loc = object;
       if (object === 'RANDOM') {
         // randomly select loc based on free neighbors
-        let freePositions = getEmptyNeighborPositions(
-          ant, getEntitiesByType(game, config.antBlockingEntities),
-        ).filter(insideWorld);
+        // let freePositions = getEmptyNeighborPositions(
+        //   ant, getEntitiesByType(game, config.antBlockingEntities),
+        // ).filter(insideWorld);
+        let freePositions = fastGetEmptyNeighborPositions(game, ant)
+          .filter(insideWorld);
         if (freePositions.length == 0) {
           break; // can't move
         }
@@ -341,10 +357,11 @@ const performAction = (
       }
       moveVec[moveAxis] += distVec[moveAxis] > 0 ? 1 : -1;
       let nextPos = add(moveVec, ant.position);
-      let occupied = collidesWith(
-        {position: nextPos, width: 1, height: 1},
-          getEntitiesByType(game, config.antBlockingEntities),
-      );
+      // let occupied = collidesWith(
+      //   {position: nextPos, width: 1, height: 1},
+      //     getEntitiesByType(game, config.antBlockingEntities),
+      // );
+      let occupied = fastCollidesWith(game, {position: nextPos});
       if (occupied.length == 0 && insideWorld(nextPos)) {
         ant.prevPosition = ant.position;
         ant.position = nextPos;
@@ -362,11 +379,14 @@ const performAction = (
           break;
         }
         nextPos = add(moveVec, ant.position);
-        occupied = collidesWith(
-          {position: nextPos, width: 1, height: 1},
-          getEntitiesByType(game, config.antBlockingEntities),
-        );
+        // occupied = collidesWith(
+        //   {position: nextPos, width: 1, height: 1},
+        //   getEntitiesByType(game, config.antBlockingEntities),
+        // );
+        occupied = fastCollidesWith(game, {position: nextPos});
         if (occupied.length == 0 && insideWorld(nextPos)) {
+          deleteFromGrid(game.grid, ant.position, ant.id);
+          insertInGrid(game.grid, nextPos, ant.id);
           ant.position = nextPos;
           ant.blocked = false;
           ant.blockedBy = null;

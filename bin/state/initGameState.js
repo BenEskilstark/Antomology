@@ -21,7 +21,8 @@ var _require6 = require('../config'),
     config = _require6.config;
 
 var _require7 = require('../utils/helpers'),
-    randomIn = _require7.randomIn;
+    randomIn = _require7.randomIn,
+    insertInGrid = _require7.insertInGrid;
 
 var tasks = require('../state/tasks');
 
@@ -48,7 +49,8 @@ var initGameState = function initGameState() {
     pupa: [],
     deadAnts: [],
     locations: [],
-    tasks: []
+    tasks: [],
+    grid: []
   };
 
   // seed start location
@@ -89,40 +91,53 @@ var initGameState = function initGameState() {
   // seed bottom 3/4's with dirt
   for (var x = 0; x < config.width; x++) {
     for (var y = 0; y < config.height; y++) {
-      if (y < config.height * 0.6 && Math.random() < 0.99) {
-        if (x == colonyEntrance.position.x && y == colonyEntrance.position.y) {
-          continue;
-        }
-        if (x == colonyEntrance.position.x && y == colonyEntrance.position.y - 1) {
-          continue;
-        }
+      if (y < config.height * 0.6) {
+        // if (x == colonyEntrance.position.x && y == colonyEntrance.position.y) {
+        //   continue;
+        // }
+        // if (x == colonyEntrance.position.x && y == colonyEntrance.position.y - 1) {
+        //   continue;
+        // }
         var dirt = makeDirt({ x: x, y: y });
         gameState.entities[dirt.id] = dirt;
         gameState.dirt.push(dirt.id);
+        insertInGrid(gameState.grid, { x: x, y: y }, dirt.id);
       }
     }
   }
+  console.log('dirt amount: ', gameState.dirt.length);
 
   // seed ants
-  var ant = makeAnt({ x: 25, y: 30 }, 'QUEEN');
-  gameState.entities[ant.id] = ant;
-  gameState.ants.push(ant.id);
-  var ant1 = makeAnt({ x: 20, y: 30 }, 'WORKER');
-  gameState.entities[ant1.id] = ant1;
-  gameState.ants.push(ant1.id);
-  var ant2 = makeAnt({ x: 30, y: 30 }, 'WORKER');
-  gameState.entities[ant2.id] = ant2;
-  gameState.ants.push(ant2.id);
+  for (var i = 0; i < 10; i++) {
+    var position = {
+      x: randomIn(0, config.width - 1),
+      y: randomIn(Math.ceil(config.height * 0.6), config.height - 1)
+    };
+    var ant = makeAnt(position, 'WORKER');
+    gameState.entities[ant.id] = ant;
+    gameState.ants.push(ant.id);
+    insertInGrid(gameState.grid, position, ant.id);
+  }
+  // const ant = makeAnt({x: 25, y: 30}, 'QUEEN');
+  // gameState.entities[ant.id] = ant;
+  // gameState.ants.push(ant.id);
+  // const ant1 = makeAnt({x: 20, y: 30}, 'WORKER');
+  // gameState.entities[ant1.id] = ant1;
+  // gameState.ants.push(ant1.id);
+  // const ant2 = makeAnt({x: 30, y: 30}, 'WORKER');
+  // gameState.entities[ant2.id] = ant2;
+  // gameState.ants.push(ant2.id);
 
   // seed food
-  for (var i = 0; i < 15; i++) {
-    var position = {
-      x: randomIn(0, config.width),
-      y: randomIn(Math.ceil(config.height * 0.6) + 1, config.height)
+  for (var _i = 0; _i < 15; _i++) {
+    var _position = {
+      x: randomIn(0, config.width - 1),
+      y: randomIn(Math.ceil(config.height * 0.6) + 1, config.height - 1)
     };
-    var food = makeFood(position, 1000, 'Crumb');
+    var food = makeFood(_position, 1000, 'Crumb');
     gameState.entities[food.id] = food;
     gameState.food.push(food.id);
+    insertInGrid(gameState.grid, _position, food.id);
   }
 
   return gameState;

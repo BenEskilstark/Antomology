@@ -25,9 +25,39 @@ const deleteFromArray = (arr, item, compareFn) => {
   return arr.filter(i => i !== item);
 }
 
+function insertInGrid(grid, position, item) {
+  const {x, y} = position;
+  if (grid[x] == null) {
+    grid[x] = [];
+  }
+  if (grid[x][y] == null) {
+    grid[x][y] = [];
+  }
+  grid[x][y].push(item);
+}
+
+function lookupInGrid(grid, position) {
+  const {x, y} = position;
+  if (grid[x] == null) {
+    grid[x] = [];
+  }
+  if (grid[x][y] == null) {
+    grid[x][y] = [];
+  }
+  return grid[x][y];
+}
+
+function deleteFromGrid(grid, position, item) {
+  const {x, y} = position;
+  grid[x][y] = grid[x][y].filter(i => i != item);
+}
+
 module.exports = {
   randomIn,
   normalIn,
   oneOf,
   deleteFromArray,
+  insertInGrid,
+  lookupInGrid,
+  deleteFromGrid,
 };

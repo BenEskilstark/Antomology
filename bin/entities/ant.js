@@ -9,7 +9,8 @@ var _require2 = require('../config'),
     config = _require2.config;
 
 var _require3 = require('../state/tasks'),
-    createIdleTask = _require3.createIdleTask;
+    createIdleTask = _require3.createIdleTask,
+    createRandomMoveTask = _require3.createRandomMoveTask;
 
 var makeAnt = function makeAnt(position, subType) {
   return _extends({}, makeEntity('ANT', 1, 1, position), {
@@ -17,7 +18,8 @@ var makeAnt = function makeAnt(position, subType) {
     holding: null,
     calories: config.antStartingCalories,
     caste: null,
-    task: createIdleTask(),
+    task: createRandomMoveTask(),
+    // task: createIdleTask(),
     taskIndex: 0,
     blocked: false,
     blockedBy: null,

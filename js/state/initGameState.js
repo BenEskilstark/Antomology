@@ -6,7 +6,10 @@ const {makeDirt} = require('../entities/dirt');
 const {makeFood} = require('../entities/food');
 const {makeLocation} = require('../entities/location');
 const {config} = require('../config');
-const {randomIn} = require('../utils/helpers');
+const {
+  randomIn,
+  insertInGrid,
+} = require('../utils/helpers');
 const tasks = require('../state/tasks');
 
 import type {GameState} from '../types';
@@ -35,6 +38,7 @@ const initGameState = (): GameState => {
     deadAnts: [],
     locations: [],
     tasks: [],
+    grid: [],
   };
 
   // seed start location
@@ -90,40 +94,53 @@ const initGameState = (): GameState => {
   // seed bottom 3/4's with dirt
   for (let x = 0; x < config.width; x++) {
     for (let y = 0; y < config.height; y++) {
-      if (y < config.height * 0.6 && Math.random() < 0.99) {
-        if (x == colonyEntrance.position.x && y == colonyEntrance.position.y) {
-          continue;
-        }
-        if (x == colonyEntrance.position.x && y == colonyEntrance.position.y - 1) {
-          continue;
-        }
+      if (y < config.height * 0.6) {
+        // if (x == colonyEntrance.position.x && y == colonyEntrance.position.y) {
+        //   continue;
+        // }
+        // if (x == colonyEntrance.position.x && y == colonyEntrance.position.y - 1) {
+        //   continue;
+        // }
         const dirt = makeDirt({x, y});
         gameState.entities[dirt.id] = dirt;
         gameState.dirt.push(dirt.id);
+        insertInGrid(gameState.grid, {x, y}, dirt.id);
       }
     }
   }
+  console.log('dirt amount: ', gameState.dirt.length);
 
   // seed ants
-  const ant = makeAnt({x: 25, y: 30}, 'QUEEN');
-  gameState.entities[ant.id] = ant;
-  gameState.ants.push(ant.id);
-  const ant1 = makeAnt({x: 20, y: 30}, 'WORKER');
-  gameState.entities[ant1.id] = ant1;
-  gameState.ants.push(ant1.id);
-  const ant2 = makeAnt({x: 30, y: 30}, 'WORKER');
-  gameState.entities[ant2.id] = ant2;
-  gameState.ants.push(ant2.id);
+  for (let i = 0; i < 10; i++) {
+    const position = {
+      x: randomIn(0, config.width - 1),
+      y: randomIn(Math.ceil(config.height * 0.6), config.height - 1),
+    };
+    const ant = makeAnt(position, 'WORKER');
+    gameState.entities[ant.id] = ant;
+    gameState.ants.push(ant.id);
+    insertInGrid(gameState.grid, position, ant.id);
+  }
+  // const ant = makeAnt({x: 25, y: 30}, 'QUEEN');
+  // gameState.entities[ant.id] = ant;
+  // gameState.ants.push(ant.id);
+  // const ant1 = makeAnt({x: 20, y: 30}, 'WORKER');
+  // gameState.entities[ant1.id] = ant1;
+  // gameState.ants.push(ant1.id);
+  // const ant2 = makeAnt({x: 30, y: 30}, 'WORKER');
+  // gameState.entities[ant2.id] = ant2;
+  // gameState.ants.push(ant2.id);
 
   // seed food
   for (let i = 0; i < 15; i++) {
     const position = {
-      x: randomIn(0, config.width),
-      y: randomIn(Math.ceil(config.height * 0.6) + 1, config.height),
+      x: randomIn(0, config.width - 1),
+      y: randomIn(Math.ceil(config.height * 0.6) + 1, config.height - 1),
     };
     const food = makeFood(position, 1000, 'Crumb');
     gameState.entities[food.id] = food;
     gameState.food.push(food.id);
+    insertInGrid(gameState.grid, position, food.id);
   }
 
   return gameState;

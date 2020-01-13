@@ -39,9 +39,47 @@ var deleteFromArray = function deleteFromArray(arr, item, compareFn) {
   });
 };
 
+function insertInGrid(grid, position, item) {
+  var x = position.x,
+      y = position.y;
+
+  if (grid[x] == null) {
+    grid[x] = [];
+  }
+  if (grid[x][y] == null) {
+    grid[x][y] = [];
+  }
+  grid[x][y].push(item);
+}
+
+function lookupInGrid(grid, position) {
+  var x = position.x,
+      y = position.y;
+
+  if (grid[x] == null) {
+    grid[x] = [];
+  }
+  if (grid[x][y] == null) {
+    grid[x][y] = [];
+  }
+  return grid[x][y];
+}
+
+function deleteFromGrid(grid, position, item) {
+  var x = position.x,
+      y = position.y;
+
+  grid[x][y] = grid[x][y].filter(function (i) {
+    return i != item;
+  });
+}
+
 module.exports = {
   randomIn: randomIn,
   normalIn: normalIn,
   oneOf: oneOf,
-  deleteFromArray: deleteFromArray
+  deleteFromArray: deleteFromArray,
+  insertInGrid: insertInGrid,
+  lookupInGrid: lookupInGrid,
+  deleteFromGrid: deleteFromGrid
 };

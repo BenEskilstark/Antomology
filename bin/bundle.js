@@ -55,7 +55,8 @@ var _require2 = require('../config'),
     config = _require2.config;
 
 var _require3 = require('../state/tasks'),
-    createIdleTask = _require3.createIdleTask;
+    createIdleTask = _require3.createIdleTask,
+    createRandomMoveTask = _require3.createRandomMoveTask;
 
 var makeAnt = function makeAnt(position, subType) {
   return _extends({}, makeEntity('ANT', 1, 1, position), {
@@ -63,7 +64,8 @@ var makeAnt = function makeAnt(position, subType) {
     holding: null,
     calories: config.antStartingCalories,
     caste: null,
-    task: createIdleTask(),
+    task: createRandomMoveTask(),
+    // task: createIdleTask(),
     taskIndex: 0,
     blocked: false,
     blockedBy: null,
@@ -565,11 +567,15 @@ var _require6 = require('../utils/helpers'),
     randomIn = _require6.randomIn,
     normalIn = _require6.normalIn,
     oneOf = _require6.oneOf,
-    deleteFromArray = _require6.deleteFromArray;
+    deleteFromArray = _require6.deleteFromArray,
+    insertInGrid = _require6.insertInGrid,
+    deleteFromGrid = _require6.deleteFromGrid;
 
 var _require7 = require('../selectors/selectors'),
     collides = _require7.collides,
     collidesWith = _require7.collidesWith,
+    fastCollidesWith = _require7.fastCollidesWith,
+    fastGetEmptyNeighborPositions = _require7.fastGetEmptyNeighborPositions,
     getNeighborhoodEntities = _require7.getNeighborhoodEntities,
     getEmptyNeighborPositions = _require7.getEmptyNeighborPositions,
     getEntitiesByType = _require7.getEntitiesByType,
@@ -610,7 +616,10 @@ var tickReducer = function tickReducer(game, action) {
   return game;
 };
 
+var totalTime = 0;
+
 var handleTick = function handleTick(game) {
+  var startTime = performance.now();
   // update ants
   var _iteratorNormalCompletion = true;
   var _didIteratorError = false;
@@ -779,6 +788,13 @@ var handleTick = function handleTick(game) {
   }
 
   game.time += 1;
+
+  var time = performance.now() - startTime;
+  totalTime += time;
+  if (game.time % 10 === 0) {
+    console.log(time.toFixed(3), 'avg', (totalTime / game.time).toFixed(3));
+  }
+
   return game;
 };
 
@@ -992,7 +1008,10 @@ var performAction = function performAction(game, ant, action) {
         var loc = object;
         if (object === 'RANDOM') {
           // randomly select loc based on free neighbors
-          var _freePositions = getEmptyNeighborPositions(ant, getEntitiesByType(game, config.antBlockingEntities)).filter(insideWorld);
+          // let freePositions = getEmptyNeighborPositions(
+          //   ant, getEntitiesByType(game, config.antBlockingEntities),
+          // ).filter(insideWorld);
+          var _freePositions = fastGetEmptyNeighborPositions(game, ant).filter(insideWorld);
           if (_freePositions.length == 0) {
             break; // can't move
           }
@@ -1026,7 +1045,11 @@ var performAction = function performAction(game, ant, action) {
         }
         moveVec[moveAxis] += distVec[moveAxis] > 0 ? 1 : -1;
         var nextPos = add(moveVec, ant.position);
-        var occupied = collidesWith({ position: nextPos, width: 1, height: 1 }, getEntitiesByType(game, config.antBlockingEntities));
+        // let occupied = collidesWith(
+        //   {position: nextPos, width: 1, height: 1},
+        //     getEntitiesByType(game, config.antBlockingEntities),
+        // );
+        var occupied = fastCollidesWith(game, { position: nextPos });
         if (occupied.length == 0 && insideWorld(nextPos)) {
           ant.prevPosition = ant.position;
           ant.position = nextPos;
@@ -1045,8 +1068,14 @@ var performAction = function performAction(game, ant, action) {
             break;
           }
           nextPos = add(moveVec, ant.position);
-          occupied = collidesWith({ position: nextPos, width: 1, height: 1 }, getEntitiesByType(game, config.antBlockingEntities));
+          // occupied = collidesWith(
+          //   {position: nextPos, width: 1, height: 1},
+          //   getEntitiesByType(game, config.antBlockingEntities),
+          // );
+          occupied = fastCollidesWith(game, { position: nextPos });
           if (occupied.length == 0 && insideWorld(nextPos)) {
+            deleteFromGrid(game.grid, ant.position, ant.id);
+            insertInGrid(game.grid, nextPos, ant.id);
             ant.position = nextPos;
             ant.blocked = false;
             ant.blockedBy = null;
@@ -1221,6 +1250,9 @@ var _require2 = require('../utils/vectors'),
 var _require3 = require('../config'),
     config = _require3.config;
 
+var _require4 = require('../utils/helpers'),
+    lookupInGrid = _require4.lookupInGrid;
+
 /////////////////////////////////////////////////////////////////
 // Collisions
 /////////////////////////////////////////////////////////////////
@@ -1310,13 +1342,23 @@ var collidesWith = function collidesWith(entityA, entities) {
 };
 
 /////////////////////////////////////////////////////////////////
-// Neighbors
+// Fast functions
 /////////////////////////////////////////////////////////////////
 
-// get all entities in the radius of the given entity excluding itself
-// TODO only supports entities of size = 1
-var getNeighborhoodEntities = function getNeighborhoodEntities(entity, entities, radius) {
-  var neighborEntities = [];
+var fastCollidesWith = function fastCollidesWith(game, entity) {
+  if (entity.position == null) return [];
+  var _entity$position = entity.position,
+      x = _entity$position.x,
+      y = _entity$position.y;
+
+  return lookupInGrid(game.grid, entity.position).filter(function (id) {
+    return id != entity.id;
+  });
+};
+
+var fastGetEmptyNeighborPositions = function fastGetEmptyNeighborPositions(game, entity) {
+  if (entity.position == null) return [];
+  var emptyPositions = [];
   var neighborPositions = [{ x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: -1 }];
   var _iteratorNormalCompletion2 = true;
   var _didIteratorError2 = false;
@@ -1326,7 +1368,9 @@ var getNeighborhoodEntities = function getNeighborhoodEntities(entity, entities,
     for (var _iterator2 = neighborPositions[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
       var neighborVec = _step2.value;
 
-      neighborEntities.push.apply(neighborEntities, _toConsumableArray(collidesWith(_extends({}, entity, { position: add(entity.position, neighborVec) }), entities)));
+      if (lookupInGrid(game.grid, add(entity.position, neighborVec)).length === 0) {
+        emptyPositions.push(add(entity.position, neighborVec));
+      }
     }
   } catch (err) {
     _didIteratorError2 = true;
@@ -1343,11 +1387,17 @@ var getNeighborhoodEntities = function getNeighborhoodEntities(entity, entities,
     }
   }
 
-  return neighborEntities;
+  return emptyPositions;
 };
 
-var getEmptyNeighborPositions = function getEmptyNeighborPositions(entity, entities) {
-  var emptyPositions = [];
+/////////////////////////////////////////////////////////////////
+// Neighbors
+/////////////////////////////////////////////////////////////////
+
+// get all entities in the radius of the given entity excluding itself
+// TODO only supports entities of size = 1
+var getNeighborhoodEntities = function getNeighborhoodEntities(entity, entities, radius) {
+  var neighborEntities = [];
   var neighborPositions = [{ x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: -1 }];
   var _iteratorNormalCompletion3 = true;
   var _didIteratorError3 = false;
@@ -1357,10 +1407,7 @@ var getEmptyNeighborPositions = function getEmptyNeighborPositions(entity, entit
     for (var _iterator3 = neighborPositions[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
       var neighborVec = _step3.value;
 
-      var free = collidesWith(_extends({}, entity, { position: add(entity.position, neighborVec) }), entities);
-      if (free.length === 0) {
-        emptyPositions.push(add(entity.position, neighborVec));
-      }
+      neighborEntities.push.apply(neighborEntities, _toConsumableArray(collidesWith(_extends({}, entity, { position: add(entity.position, neighborVec) }), entities)));
     }
   } catch (err) {
     _didIteratorError3 = true;
@@ -1377,11 +1424,45 @@ var getEmptyNeighborPositions = function getEmptyNeighborPositions(entity, entit
     }
   }
 
+  return neighborEntities;
+};
+
+var getEmptyNeighborPositions = function getEmptyNeighborPositions(entity, entities) {
+  var emptyPositions = [];
+  var neighborPositions = [{ x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: -1 }];
+  var _iteratorNormalCompletion4 = true;
+  var _didIteratorError4 = false;
+  var _iteratorError4 = undefined;
+
+  try {
+    for (var _iterator4 = neighborPositions[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+      var neighborVec = _step4.value;
+
+      var free = collidesWith(_extends({}, entity, { position: add(entity.position, neighborVec) }), entities);
+      if (free.length === 0) {
+        emptyPositions.push(add(entity.position, neighborVec));
+      }
+    }
+  } catch (err) {
+    _didIteratorError4 = true;
+    _iteratorError4 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion4 && _iterator4.return) {
+        _iterator4.return();
+      }
+    } finally {
+      if (_didIteratorError4) {
+        throw _iteratorError4;
+      }
+    }
+  }
+
   return emptyPositions;
 };
 
 var insideWorld = function insideWorld(pos) {
-  return pos.x > 0 && pos.x < config.width && pos.y > 0 && pos.y < config.height;
+  return pos.x >= 0 && pos.x < config.width && pos.y >= 0 && pos.y < config.height;
 };
 
 /////////////////////////////////////////////////////////////////
@@ -1396,13 +1477,13 @@ var getSelectedAntIDs = function getSelectedAntIDs(game) {
 
 var getEntitiesByType = function getEntitiesByType(game, entityTypes) {
   var entities = [];
-  var _iteratorNormalCompletion4 = true;
-  var _didIteratorError4 = false;
-  var _iteratorError4 = undefined;
+  var _iteratorNormalCompletion5 = true;
+  var _didIteratorError5 = false;
+  var _iteratorError5 = undefined;
 
   try {
-    for (var _iterator4 = entityTypes[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-      var entityType = _step4.value;
+    for (var _iterator5 = entityTypes[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+      var entityType = _step5.value;
 
       switch (entityType) {
         case 'ANT':
@@ -1448,16 +1529,16 @@ var getEntitiesByType = function getEntitiesByType(game, entityTypes) {
       }
     }
   } catch (err) {
-    _didIteratorError4 = true;
-    _iteratorError4 = err;
+    _didIteratorError5 = true;
+    _iteratorError5 = err;
   } finally {
     try {
-      if (!_iteratorNormalCompletion4 && _iterator4.return) {
-        _iterator4.return();
+      if (!_iteratorNormalCompletion5 && _iterator5.return) {
+        _iterator5.return();
       }
     } finally {
-      if (_didIteratorError4) {
-        throw _iteratorError4;
+      if (_didIteratorError5) {
+        throw _iteratorError5;
       }
     }
   }
@@ -1468,6 +1549,8 @@ var getEntitiesByType = function getEntitiesByType(game, entityTypes) {
 var selectors = {
   collides: collides,
   collidesWith: collidesWith,
+  fastCollidesWith: fastCollidesWith,
+  fastGetEmptyNeighborPositions: fastGetEmptyNeighborPositions,
   getSelectedAntIDs: getSelectedAntIDs,
   getNeighborhoodEntities: getNeighborhoodEntities,
   getEmptyNeighborPositions: getEmptyNeighborPositions,
@@ -1477,7 +1560,7 @@ var selectors = {
 window.selectors = selectors; // for testing
 
 module.exports = selectors;
-},{"../config":1,"../utils/errors":36,"../utils/vectors":38}],16:[function(require,module,exports){
+},{"../config":1,"../utils/errors":36,"../utils/helpers":37,"../utils/vectors":38}],16:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -1501,7 +1584,8 @@ var _require6 = require('../config'),
     config = _require6.config;
 
 var _require7 = require('../utils/helpers'),
-    randomIn = _require7.randomIn;
+    randomIn = _require7.randomIn,
+    insertInGrid = _require7.insertInGrid;
 
 var tasks = require('../state/tasks');
 
@@ -1528,7 +1612,8 @@ var initGameState = function initGameState() {
     pupa: [],
     deadAnts: [],
     locations: [],
-    tasks: []
+    tasks: [],
+    grid: []
   };
 
   // seed start location
@@ -1569,40 +1654,53 @@ var initGameState = function initGameState() {
   // seed bottom 3/4's with dirt
   for (var x = 0; x < config.width; x++) {
     for (var y = 0; y < config.height; y++) {
-      if (y < config.height * 0.6 && Math.random() < 0.99) {
-        if (x == colonyEntrance.position.x && y == colonyEntrance.position.y) {
-          continue;
-        }
-        if (x == colonyEntrance.position.x && y == colonyEntrance.position.y - 1) {
-          continue;
-        }
+      if (y < config.height * 0.6) {
+        // if (x == colonyEntrance.position.x && y == colonyEntrance.position.y) {
+        //   continue;
+        // }
+        // if (x == colonyEntrance.position.x && y == colonyEntrance.position.y - 1) {
+        //   continue;
+        // }
         var dirt = makeDirt({ x: x, y: y });
         gameState.entities[dirt.id] = dirt;
         gameState.dirt.push(dirt.id);
+        insertInGrid(gameState.grid, { x: x, y: y }, dirt.id);
       }
     }
   }
+  console.log('dirt amount: ', gameState.dirt.length);
 
   // seed ants
-  var ant = makeAnt({ x: 25, y: 30 }, 'QUEEN');
-  gameState.entities[ant.id] = ant;
-  gameState.ants.push(ant.id);
-  var ant1 = makeAnt({ x: 20, y: 30 }, 'WORKER');
-  gameState.entities[ant1.id] = ant1;
-  gameState.ants.push(ant1.id);
-  var ant2 = makeAnt({ x: 30, y: 30 }, 'WORKER');
-  gameState.entities[ant2.id] = ant2;
-  gameState.ants.push(ant2.id);
+  for (var i = 0; i < 10; i++) {
+    var position = {
+      x: randomIn(0, config.width - 1),
+      y: randomIn(Math.ceil(config.height * 0.6), config.height - 1)
+    };
+    var ant = makeAnt(position, 'WORKER');
+    gameState.entities[ant.id] = ant;
+    gameState.ants.push(ant.id);
+    insertInGrid(gameState.grid, position, ant.id);
+  }
+  // const ant = makeAnt({x: 25, y: 30}, 'QUEEN');
+  // gameState.entities[ant.id] = ant;
+  // gameState.ants.push(ant.id);
+  // const ant1 = makeAnt({x: 20, y: 30}, 'WORKER');
+  // gameState.entities[ant1.id] = ant1;
+  // gameState.ants.push(ant1.id);
+  // const ant2 = makeAnt({x: 30, y: 30}, 'WORKER');
+  // gameState.entities[ant2.id] = ant2;
+  // gameState.ants.push(ant2.id);
 
   // seed food
-  for (var i = 0; i < 15; i++) {
-    var position = {
-      x: randomIn(0, config.width),
-      y: randomIn(Math.ceil(config.height * 0.6) + 1, config.height)
+  for (var _i = 0; _i < 15; _i++) {
+    var _position = {
+      x: randomIn(0, config.width - 1),
+      y: randomIn(Math.ceil(config.height * 0.6) + 1, config.height - 1)
     };
-    var food = makeFood(position, 1000, 'Crumb');
+    var food = makeFood(_position, 1000, 'Crumb');
     gameState.entities[food.id] = food;
     gameState.food.push(food.id);
+    insertInGrid(gameState.grid, _position, food.id);
   }
 
   return gameState;
@@ -3814,11 +3912,49 @@ var deleteFromArray = function deleteFromArray(arr, item, compareFn) {
   });
 };
 
+function insertInGrid(grid, position, item) {
+  var x = position.x,
+      y = position.y;
+
+  if (grid[x] == null) {
+    grid[x] = [];
+  }
+  if (grid[x][y] == null) {
+    grid[x][y] = [];
+  }
+  grid[x][y].push(item);
+}
+
+function lookupInGrid(grid, position) {
+  var x = position.x,
+      y = position.y;
+
+  if (grid[x] == null) {
+    grid[x] = [];
+  }
+  if (grid[x][y] == null) {
+    grid[x][y] = [];
+  }
+  return grid[x][y];
+}
+
+function deleteFromGrid(grid, position, item) {
+  var x = position.x,
+      y = position.y;
+
+  grid[x][y] = grid[x][y].filter(function (i) {
+    return i != item;
+  });
+}
+
 module.exports = {
   randomIn: randomIn,
   normalIn: normalIn,
   oneOf: oneOf,
-  deleteFromArray: deleteFromArray
+  deleteFromArray: deleteFromArray,
+  insertInGrid: insertInGrid,
+  lookupInGrid: lookupInGrid,
+  deleteFromGrid: deleteFromGrid
 };
 },{}],38:[function(require,module,exports){
 "use strict";
