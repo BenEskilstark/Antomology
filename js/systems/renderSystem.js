@@ -150,7 +150,8 @@ const renderEntity = (state: State, ctx: any, entity: Entity): void => {
     }
     case 'FOOD': {
       ctx.fillStyle = 'green';
-      ctx.fillRect(0, 0, entity.width, entity.height);
+      const sizeFactor = entity.calories / config.foodSpawnCalories;
+      ctx.fillRect(0, 0, entity.width * sizeFactor, entity.height * sizeFactor);
       break;
     }
     case 'EGG': {

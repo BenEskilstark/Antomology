@@ -75,7 +75,7 @@ function BehaviorCard(props) {
         } else if (newType === 'IF') {
           newBehavior.condition = {
             type: 'RANDOM',
-            comparator: 'LESS_THAN',
+            comparator: 'EQUALS',
             payload: {
               object: 1
             }
@@ -101,7 +101,7 @@ function BehaviorCard(props) {
         } else if (newType === 'WHILE') {
           newBehavior.condition = {
             type: 'RANDOM',
-            comparator: 'LESS_THAN',
+            comparator: 'EQUALS',
             payload: {
               object: 1
             }
@@ -249,7 +249,10 @@ function Conditional(props) {
     'span',
     null,
     'Not: ',
-    React.createElement(Checkbox, { checked: condition.not, onChange: function onChange(check) {} }),
+    React.createElement(Checkbox, { checked: condition.not, onChange: function onChange(check) {
+        behavior.condition.not = check;
+        setBehavior(behavior);
+      } }),
     React.createElement(Dropdown, {
       options: comparatorOptions,
       selected: comparator,

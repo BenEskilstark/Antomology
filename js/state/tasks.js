@@ -270,6 +270,25 @@ const createMoveBlockerTask = (): Task => {
   };
 };
 
+const gatherFoodTask = {"name":"Gather Food","repeating":false,"behaviorQueue":[{"type":"WHILE","condition":{"type":"NEIGHBORING","comparator":"LESS_THAN","payload":{"object":"FOOD"}},"behavior":{"type":"DO_ACTION","action":{"type":"MOVE","payload":{"object":"RANDOM"}}},"not":true},{"type":"DO_ACTION","action":{"type":"PICKUP","payload":{"object":"FOOD"}}},{"type":"WHILE","condition":{"type":"LOCATION","comparator":"LESS_THAN","payload":{"object":{"id":1521,"type":"LOCATION","width":5,"height":3,"age":0,"position":{"x":36,"y":34},"prevPosition":{"x":0,"y":0},"velocity":{"x":0,"y":0},"accel":{"x":0,"y":0},"theta":0,"thetaSpeed":0,"marked":0,"frameIndex":0,"maxFrames":1,"name":"Food Store"}}},"behavior":{"type":"DO_ACTION","action":{"type":"MOVE","payload":{"object":{"id":1521,"type":"LOCATION","width":5,"height":3,"age":0,"position":{"x":36,"y":34},"prevPosition":{"x":0,"y":0},"velocity":{"x":0,"y":0},"accel":{"x":0,"y":0},"theta":0,"thetaSpeed":0,"marked":0,"frameIndex":0,"maxFrames":1,"name":"Food Store"}}}},"not":true},{"type":"WHILE","condition":{"type":"RANDOM","comparator":"LESS_THAN","payload":{"object":0.7}},"behavior":{"type":"DO_ACTION","action":{"type":"MOVE","payload":{"object":"RANDOM"}}}},{"type":"DO_ACTION","action":{"type":"PUTDOWN","payload":{"object":null}}}]};
+
+const findFoodTask = {
+  "name":"Find Food",
+  "repeating":false,
+  "behaviorQueue":[
+    {
+      "type":"WHILE",
+      "condition":{
+        "type":"NEIGHBORING",
+        "comparator":"EQUALS",
+        "payload":{"object":"FOOD"},
+        "not":true,
+      },
+      "behavior":{
+        "type":"DO_ACTION",
+        "action":{"type":"MOVE","payload":{"object":"RANDOM"}}}},
+    {"type":"DO_ACTION","action":{"type":"PICKUP","payload":{"object":"FOOD"}}}]
+};
 
 ///////////////////////////////////////////////////////////////
 // with dispatch
@@ -307,6 +326,7 @@ const tasks = {
   createDoAction,
   createIdleTask,
   createLayEggTask,
+  gatherFoodTask,
 };
 window.tasks = tasks;
 

@@ -1,6 +1,12 @@
 
  - - - - - - TODO - - - - - -
  - switch dead ants/larva to their own entity type
+ - implement holding for each type
+ - implement neighboring for each type
+ - implement BLOCKED in condition UI
+ - allow nested behaviors to themselves have a queue
+ - make location position in center instead of top left
+ - make food amount scale by calorie amount
 
  - - - - - - NEXT - - - - - -
  - RANDOM move behavior for staying inside a location
@@ -141,3 +147,5 @@
  - button for importing task jsons
  - implement maxAntCalories
  - On create task, switch dropdown to editing that one
+ - importing tasks with NOT in the while
+ - conditions UI makes them LESS_THAN always

@@ -337,7 +337,13 @@ var evaluateCondition = function evaluateCondition(game, ant, condition) {
       {
         // comparator must be EQUALS
         // ant is considered to be at a location if it is within its boundingRect
-        isTrue = collides(ant, object);
+        var loc = object;
+        if (typeof loc === 'string') {
+          loc = getEntitiesByType(game, ['LOCATION']).filter(function (l) {
+            return l.name === loc;
+          })[0];
+        }
+        isTrue = collides(ant, loc);
         break;
       }
     case 'HOLDING':
@@ -363,6 +369,10 @@ var evaluateCondition = function evaluateCondition(game, ant, condition) {
         } else if (object === 'MARKED') {
           isTrue = neighbors.filter(function (n) {
             return n.marked > 0;
+          }).length > 0;
+        } else if (object === 'FOOD') {
+          isTrue = neighbors.filter(function (n) {
+            return n.type === 'FOOD';
           }).length > 0;
         } else if (object != null && object.id !== null) {
           isTrue = neighbors.filter(function (n) {

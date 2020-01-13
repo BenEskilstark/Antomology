@@ -63,7 +63,7 @@ function BehaviorCard(props: Props): React.Node {
           } else if (newType === 'IF') {
             newBehavior.condition = {
               type: 'RANDOM',
-              comparator: 'LESS_THAN',
+              comparator: 'EQUALS',
               payload: {
                 object: 1,
               },
@@ -89,7 +89,7 @@ function BehaviorCard(props: Props): React.Node {
           } else if (newType === 'WHILE') {
             newBehavior.condition = {
               type: 'RANDOM',
-              comparator: 'LESS_THAN',
+              comparator: 'EQUALS',
               payload: {
                 object: 1,
               },
@@ -232,7 +232,10 @@ function Conditional(
 
   return (
     <span>
-      Not: <Checkbox checked={condition.not} onChange={(check) => {}} />
+      Not: <Checkbox checked={condition.not} onChange={(check) => {
+        behavior.condition.not = check;
+        setBehavior(behavior);
+      }} />
       <Dropdown
         options={comparatorOptions}
         selected={comparator}

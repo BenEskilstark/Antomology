@@ -174,7 +174,8 @@ var renderEntity = function renderEntity(state, ctx, entity) {
     case 'FOOD':
       {
         ctx.fillStyle = 'green';
-        ctx.fillRect(0, 0, entity.width, entity.height);
+        var sizeFactor = entity.calories / config.foodSpawnCalories;
+        ctx.fillRect(0, 0, entity.width * sizeFactor, entity.height * sizeFactor);
         break;
       }
     case 'EGG':

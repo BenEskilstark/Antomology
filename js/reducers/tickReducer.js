@@ -200,7 +200,11 @@ const evaluateCondition = (
     case 'LOCATION': {
       // comparator must be EQUALS
       // ant is considered to be at a location if it is within its boundingRect
-      isTrue = collides(ant, object);
+      let loc = object;
+      if (typeof loc === 'string') {
+        loc = getEntitiesByType(game, ['LOCATION']).filter(l => l.name === loc)[0];
+      }
+      isTrue = collides(ant, loc);
       break;
     }
     case 'HOLDING': {
@@ -225,6 +229,8 @@ const evaluateCondition = (
         isTrue = neighbors.length === 0;
       } else if (object === 'MARKED') {
         isTrue = neighbors.filter(n => n.marked > 0).length > 0;
+      } else if (object === 'FOOD') {
+        isTrue = neighbors.filter(n => n.type === 'FOOD').length > 0;
       } else if (object != null && object.id !== null) {
         isTrue = neighbors.filter(n => n.id === object.id).length > 0;
       }

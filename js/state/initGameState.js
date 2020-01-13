@@ -54,6 +54,37 @@ const initGameState = (): GameState => {
     tasks.createMoveBlockerTask(),
     tasks.createGoToColonyEntranceWithBlockerTask(gameState),
     tasks.createLayEggTask(),
+    {
+      name: 'Find Food',
+      repeating: false,
+      behaviorQueue: [
+        {
+          type: 'WHILE',
+          condition: {
+            type: 'NEIGHBORING',
+            comparator: 'EQUALS',
+            payload: {
+              object: 'FOOD',
+            },
+            not: true,
+          },
+          behavior: {
+            type: 'DO_ACTION',
+            action: {
+              type: 'MOVE',
+              payload: {object: 'RANDOM'},
+            },
+          },
+        },
+        {
+          type: 'DO_ACTION',
+          action: {
+            type: 'PICKUP',
+            payload: {object: 'FOOD'},
+          },
+        },
+      ],
+    },
   ];
 
   // seed bottom 3/4's with dirt

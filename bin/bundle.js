@@ -873,7 +873,13 @@ var evaluateCondition = function evaluateCondition(game, ant, condition) {
       {
         // comparator must be EQUALS
         // ant is considered to be at a location if it is within its boundingRect
-        isTrue = collides(ant, object);
+        var loc = object;
+        if (typeof loc === 'string') {
+          loc = getEntitiesByType(game, ['LOCATION']).filter(function (l) {
+            return l.name === loc;
+          })[0];
+        }
+        isTrue = collides(ant, loc);
         break;
       }
     case 'HOLDING':
@@ -899,6 +905,10 @@ var evaluateCondition = function evaluateCondition(game, ant, condition) {
         } else if (object === 'MARKED') {
           isTrue = neighbors.filter(function (n) {
             return n.marked > 0;
+          }).length > 0;
+        } else if (object === 'FOOD') {
+          isTrue = neighbors.filter(function (n) {
+            return n.type === 'FOOD';
           }).length > 0;
         } else if (object != null && object.id !== null) {
           isTrue = neighbors.filter(function (n) {
@@ -1527,7 +1537,34 @@ var initGameState = function initGameState() {
   gameState.locations.push(colonyEntrance.id);
 
   // initial tasks
-  gameState.tasks = [tasks.createIdleTask(), _extends({}, tasks.createGoToLocationTask(colonyEntrance), { name: 'Go To Colony Entrance' }), tasks.createRandomMoveTask(), tasks.createDigBlueprintTask(gameState), tasks.createMoveBlockerTask(), tasks.createGoToColonyEntranceWithBlockerTask(gameState), tasks.createLayEggTask()];
+  gameState.tasks = [tasks.createIdleTask(), _extends({}, tasks.createGoToLocationTask(colonyEntrance), { name: 'Go To Colony Entrance' }), tasks.createRandomMoveTask(), tasks.createDigBlueprintTask(gameState), tasks.createMoveBlockerTask(), tasks.createGoToColonyEntranceWithBlockerTask(gameState), tasks.createLayEggTask(), {
+    name: 'Find Food',
+    repeating: false,
+    behaviorQueue: [{
+      type: 'WHILE',
+      condition: {
+        type: 'NEIGHBORING',
+        comparator: 'EQUALS',
+        payload: {
+          object: 'FOOD'
+        },
+        not: true
+      },
+      behavior: {
+        type: 'DO_ACTION',
+        action: {
+          type: 'MOVE',
+          payload: { object: 'RANDOM' }
+        }
+      }
+    }, {
+      type: 'DO_ACTION',
+      action: {
+        type: 'PICKUP',
+        payload: { object: 'FOOD' }
+      }
+    }]
+  }];
 
   // seed bottom 3/4's with dirt
   for (var x = 0; x < config.width; x++) {
@@ -1829,6 +1866,24 @@ var createMoveBlockerTask = function createMoveBlockerTask() {
   };
 };
 
+var gatherFoodTask = { "name": "Gather Food", "repeating": false, "behaviorQueue": [{ "type": "WHILE", "condition": { "type": "NEIGHBORING", "comparator": "LESS_THAN", "payload": { "object": "FOOD" } }, "behavior": { "type": "DO_ACTION", "action": { "type": "MOVE", "payload": { "object": "RANDOM" } } }, "not": true }, { "type": "DO_ACTION", "action": { "type": "PICKUP", "payload": { "object": "FOOD" } } }, { "type": "WHILE", "condition": { "type": "LOCATION", "comparator": "LESS_THAN", "payload": { "object": { "id": 1521, "type": "LOCATION", "width": 5, "height": 3, "age": 0, "position": { "x": 36, "y": 34 }, "prevPosition": { "x": 0, "y": 0 }, "velocity": { "x": 0, "y": 0 }, "accel": { "x": 0, "y": 0 }, "theta": 0, "thetaSpeed": 0, "marked": 0, "frameIndex": 0, "maxFrames": 1, "name": "Food Store" } } }, "behavior": { "type": "DO_ACTION", "action": { "type": "MOVE", "payload": { "object": { "id": 1521, "type": "LOCATION", "width": 5, "height": 3, "age": 0, "position": { "x": 36, "y": 34 }, "prevPosition": { "x": 0, "y": 0 }, "velocity": { "x": 0, "y": 0 }, "accel": { "x": 0, "y": 0 }, "theta": 0, "thetaSpeed": 0, "marked": 0, "frameIndex": 0, "maxFrames": 1, "name": "Food Store" } } } }, "not": true }, { "type": "WHILE", "condition": { "type": "RANDOM", "comparator": "LESS_THAN", "payload": { "object": 0.7 } }, "behavior": { "type": "DO_ACTION", "action": { "type": "MOVE", "payload": { "object": "RANDOM" } } } }, { "type": "DO_ACTION", "action": { "type": "PUTDOWN", "payload": { "object": null } } }] };
+
+var findFoodTask = {
+  "name": "Find Food",
+  "repeating": false,
+  "behaviorQueue": [{
+    "type": "WHILE",
+    "condition": {
+      "type": "NEIGHBORING",
+      "comparator": "EQUALS",
+      "payload": { "object": "FOOD" },
+      "not": true
+    },
+    "behavior": {
+      "type": "DO_ACTION",
+      "action": { "type": "MOVE", "payload": { "object": "RANDOM" } } } }, { "type": "DO_ACTION", "action": { "type": "PICKUP", "payload": { "object": "FOOD" } } }]
+};
+
 ///////////////////////////////////////////////////////////////
 // with dispatch
 ///////////////////////////////////////////////////////////////
@@ -1864,7 +1919,8 @@ var tasks = {
   sendAllAntsToBlueprint: sendAllAntsToBlueprint,
   createDoAction: createDoAction,
   createIdleTask: createIdleTask,
-  createLayEggTask: createLayEggTask
+  createLayEggTask: createLayEggTask,
+  gatherFoodTask: gatherFoodTask
 };
 window.tasks = tasks;
 
@@ -2349,7 +2405,8 @@ var renderEntity = function renderEntity(state, ctx, entity) {
     case 'FOOD':
       {
         ctx.fillStyle = 'green';
-        ctx.fillRect(0, 0, entity.width, entity.height);
+        var sizeFactor = entity.calories / config.foodSpawnCalories;
+        ctx.fillRect(0, 0, entity.width * sizeFactor, entity.height * sizeFactor);
         break;
       }
     case 'EGG':
@@ -2482,7 +2539,7 @@ function BehaviorCard(props) {
         } else if (newType === 'IF') {
           newBehavior.condition = {
             type: 'RANDOM',
-            comparator: 'LESS_THAN',
+            comparator: 'EQUALS',
             payload: {
               object: 1
             }
@@ -2508,7 +2565,7 @@ function BehaviorCard(props) {
         } else if (newType === 'WHILE') {
           newBehavior.condition = {
             type: 'RANDOM',
-            comparator: 'LESS_THAN',
+            comparator: 'EQUALS',
             payload: {
               object: 1
             }
@@ -2656,7 +2713,10 @@ function Conditional(props) {
     'span',
     null,
     'Not: ',
-    React.createElement(Checkbox, { checked: condition.not, onChange: function onChange(check) {} }),
+    React.createElement(Checkbox, { checked: condition.not, onChange: function onChange(check) {
+        behavior.condition.not = check;
+        setBehavior(behavior);
+      } }),
     React.createElement(Dropdown, {
       options: comparatorOptions,
       selected: comparator,

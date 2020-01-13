@@ -57,7 +57,34 @@ var initGameState = function initGameState() {
   gameState.locations.push(colonyEntrance.id);
 
   // initial tasks
-  gameState.tasks = [tasks.createIdleTask(), _extends({}, tasks.createGoToLocationTask(colonyEntrance), { name: 'Go To Colony Entrance' }), tasks.createRandomMoveTask(), tasks.createDigBlueprintTask(gameState), tasks.createMoveBlockerTask(), tasks.createGoToColonyEntranceWithBlockerTask(gameState), tasks.createLayEggTask()];
+  gameState.tasks = [tasks.createIdleTask(), _extends({}, tasks.createGoToLocationTask(colonyEntrance), { name: 'Go To Colony Entrance' }), tasks.createRandomMoveTask(), tasks.createDigBlueprintTask(gameState), tasks.createMoveBlockerTask(), tasks.createGoToColonyEntranceWithBlockerTask(gameState), tasks.createLayEggTask(), {
+    name: 'Find Food',
+    repeating: false,
+    behaviorQueue: [{
+      type: 'WHILE',
+      condition: {
+        type: 'NEIGHBORING',
+        comparator: 'EQUALS',
+        payload: {
+          object: 'FOOD'
+        },
+        not: true
+      },
+      behavior: {
+        type: 'DO_ACTION',
+        action: {
+          type: 'MOVE',
+          payload: { object: 'RANDOM' }
+        }
+      }
+    }, {
+      type: 'DO_ACTION',
+      action: {
+        type: 'PICKUP',
+        payload: { object: 'FOOD' }
+      }
+    }]
+  }];
 
   // seed bottom 3/4's with dirt
   for (var x = 0; x < config.width; x++) {
