@@ -3,7 +3,7 @@
 const {invariant} = require('../utils/errors');
 const {subtract, distance, add} = require('../utils/vectors');
 const {config} = require('../config');
-const {lookupInGrid} = require('../utils/helpers');
+const {lookupInGrid} = require('../utils/stateHelpers');
 
 import type {GameID, State, Game, Entity} from '../types';
 
@@ -11,6 +11,7 @@ import type {GameID, State, Game, Entity} from '../types';
 // Collisions
 /////////////////////////////////////////////////////////////////
 
+// TODO may not need all the size stuff if we just use the grid
 const collides = (entityA: Entity, entityB: Entity): boolean => {
   if (entityA.position == null || entityB.position == null) {
     return false;
@@ -57,35 +58,24 @@ const collides = (entityA: Entity, entityB: Entity): boolean => {
   return xOverlap && yOverlap;
 };
 
-const collidesWith = (
-  entityA: Entity,
-  entities: Array<Entity> | {[EntityID]: Entity},
+/**
+ * marquee position should be bottom left corner
+ * exclusive of final width and height
+ */
+const entitiesInMarquee = (
+  game: GameState,
+  marquee: {position: {x: number, y: number}, width: number, height: number},
 ): Array<Entity> => {
-  const collisions = [];
-  if (Array.isArray(entities)) {
-    for (const entityB of entities) {
-      if (entityA.id === entityB.id) {
-        continue;
-      }
-      if (collides(entityA, entityB)) {
-        collisions.push(entityB);
-      }
-    }
-  } else {
-    for (const entityID in entities) {
-      const entityB = entities[entityID];
-      if (entityA.id === entityB.id) {
-        continue;
-      }
-      if (collides(entityA, entityB)) {
-        collisions.push(entityB);
-      }
+  const {position, width, height} = marquee;
+  const entities = [];
+  for (let x = position.x; x < position.x + width; x++) {
+    for (let y = position.y; y < position.y + height; y++) {
+      entities.push(...lookupInGrid(game.grid, {x, y}).map(id => game.entities[id]));
     }
   }
 
-  // don't collide with yourself ever
-  return collisions.filter(e => e.id != entityA.id);
-};
+  return entities;
+}
 
 /////////////////////////////////////////////////////////////////
 // Fast functions
@@ -94,60 +84,44 @@ const collidesWith = (
 const fastCollidesWith = (game: GameState, entity: Entity): Array<Entity> => {
   if (entity.position == null) return [];
   const {x, y} = entity.position;
-  return lookupInGrid(game.grid, entity.position).filter(id => id != entity.id);
+  return lookupInGrid(game.grid, entity.position)
+    .filter(id => id != entity.id)
+    .map(id => game.entities[id]);
 };
-
-const fastGetEmptyNeighborPositions = (game: GameState, entity: Entity): Array<Vector> => {
-  if (entity.position == null) return [];
-  const emptyPositions = [];
-  const neighborPositions =
-    [{x: 0, y: 1}, {x: -1, y: 0}, {x: 1, y: 0}, {x: 0, y: -1}];
-  for (const neighborVec of neighborPositions) {
-    if (lookupInGrid(game.grid, add(entity.position, neighborVec)).length === 0) {
-      emptyPositions.push(add(entity.position, neighborVec));
-    }
-  }
-  return emptyPositions;
-}
 
 /////////////////////////////////////////////////////////////////
 // Neighbors
 /////////////////////////////////////////////////////////////////
 
-// get all entities in the radius of the given entity excluding itself
-// TODO only supports entities of size = 1
-const getNeighborhoodEntities = (
-  entity: Entity, entities: Array<Entity>, radius: ?number,
-): Array<Entity> => {
-  const neighborEntities = [];
-  const neighborPositions =
-    [{x: 0, y: 1}, {x: -1, y: 0}, {x: 1, y: 0}, {x: 0, y: -1}];
-  for (const neighborVec of neighborPositions) {
-    neighborEntities.push(...collidesWith(
-      {...entity, position: add(entity.position, neighborVec)},
-      entities,
-    ));
-  }
-  return neighborEntities;
-}
-
-const getEmptyNeighborPositions = (
-  entity: Entity, entities: Array<Entity>,
+const fastGetEmptyNeighborPositions = (
+  game: GameState, entity: Entity, blockingEntityTypes: Array<EntityType>,
 ): Array<Vector> => {
+  if (entity.position == null) return [];
   const emptyPositions = [];
   const neighborPositions =
     [{x: 0, y: 1}, {x: -1, y: 0}, {x: 1, y: 0}, {x: 0, y: -1}];
   for (const neighborVec of neighborPositions) {
-    const free = collidesWith(
-      {...entity, position: add(entity.position, neighborVec)},
-      entities,
-    );
-    if (free.length === 0) {
+    const neighbors = lookupInGrid(game.grid, add(entity.position, neighborVec))
+      .filter(id => blockingEntityTypes.includes(game.entities[id].type));
+    if (neighbors.length == 0) {
       emptyPositions.push(add(entity.position, neighborVec));
     }
   }
   return emptyPositions;
-};
+}
+
+const fastGetNeighbors = (game: GameState, entity: Entity): Array<Entity> => {
+  if (entity.position == null) return [];
+  const neighborEntities = [];
+  const neighborPositions =
+    [{x: 0, y: 1}, {x: -1, y: 0}, {x: 1, y: 0}, {x: 0, y: -1}];
+  for (const neighborVec of neighborPositions) {
+    neighborEntities.push(
+      ...lookupInGrid(game.grid, add(entity.position, neighborVec))
+    );
+  }
+  return neighborEntities.map(id => game.entities[id]);
+}
 
 const insideWorld = (pos: Vector): boolean => {
   return pos.x >= 0 && pos.x < config.width && pos.y >= 0 && pos.y < config.height;
@@ -158,7 +132,7 @@ const insideWorld = (pos: Vector): boolean => {
 /////////////////////////////////////////////////////////////////
 
 const getSelectedAntIDs = (game: GameState): Array<EntityID> => {
-  return game.selectedEntities.filter(id => game.ants.includes(id));
+  return game.selectedEntities.filter(id => game.ANT.includes(id));
 };
 
 const getEntitiesByType = (
@@ -167,46 +141,28 @@ const getEntitiesByType = (
 ): Array<Entity> => {
   let entities = [];
   for (const entityType of entityTypes) {
-    switch (entityType) {
-      case 'ANT':
-        entities = entities.concat(game.ants.map(id => game.entities[id]));
-        break;
-      case 'DIRT':
-        entities = entities.concat(game.dirt.map(id => game.entities[id]));
-        break;
-      case 'LOCATION':
-        entities = entities.concat(game.locations.map(id => game.entities[id]));
-        break;
-      case 'FOOD':
-        entities = entities.concat(game.food.map(id => game.entities[id]));
-        break;
-      case 'EGG':
-        entities = entities.concat(game.eggs.map(id => game.entities[id]));
-        break;
-      case 'LARVA':
-        entities = entities.concat(game.larva.map(id => game.entities[id]));
-        break;
-      case 'PUPA':
-        entities = entities.concat(game.pupa.map(id => game.entities[id]));
-        break;
-      case 'DEAD_ANT':
-        entities = entities.concat(game.deadAnts.map(id => game.entities[id]));
-        break;
-    }
+    entities = entities.concat(game[entityType].map(id => game.entities[id]));
   }
   return entities;
 }
 
+const filterEntitiesByType = (
+  entities: Array<Entity>,
+  entityTypes: Array<string>,
+): Array<Entity> => {
+  return entities.filter(e => entityTypes.includes(e.type));
+}
+
 const selectors = {
-  collides,
-  collidesWith,
+  getEntitiesByType,
+  filterEntitiesByType,
   fastCollidesWith,
   fastGetEmptyNeighborPositions,
-  getSelectedAntIDs,
-  getNeighborhoodEntities,
-  getEmptyNeighborPositions,
-  getEntitiesByType,
+  fastGetNeighbors,
   insideWorld,
+  collides,
+  getSelectedAntIDs,
+  entitiesInMarquee,
 };
 window.selectors = selectors; // for testing
 

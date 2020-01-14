@@ -11,17 +11,23 @@ const {
   normalIn,
   oneOf,
   deleteFromArray,
-  insertInGrid,
-  deleteFromGrid,
 } = require('../utils/helpers');
 const {
-  collides,
-  collidesWith,
+  insertInGrid,
+  deleteFromGrid,
+  lookupInGrid,
+  addEntity,
+  removeEntity,
+  moveEntity,
+  changeEntityType,
+} = require('../utils/stateHelpers');
+const {
   fastCollidesWith,
   fastGetEmptyNeighborPositions,
-  getNeighborhoodEntities,
-  getEmptyNeighborPositions,
+  fastGetNeighbors,
+  collides,
   getEntitiesByType,
+  filterEntitiesByType,
   insideWorld,
 } = require('../selectors/selectors');
 const {makeEgg} = require('../entities/egg');
@@ -36,7 +42,7 @@ import type {
 const tickReducer = (game: GameState, action: Action): GameState => {
   switch (action.type) {
     case 'START_TICK':
-      if (game.game != null && game.game.tickInterval != null) {
+      if (game != null && game.tickInterval != null) {
         return game;
       }
       return {
@@ -60,9 +66,9 @@ const tickReducer = (game: GameState, action: Action): GameState => {
 let totalTime = 0;
 
 const handleTick = (game: GameState): GameState => {
-  const startTime = performance.now();
+  // const startTime = performance.now();
   // update ants
-  for (const id of game.ants) {
+  for (const id of game.ANT) {
     const ant = game.entities[id];
     if (!ant.alive) {
       continue;
@@ -78,18 +84,17 @@ const handleTick = (game: GameState): GameState => {
   }
 
   // update eggs
-  for (const id of game.eggs) {
+  for (const id of game.EGG) {
     const egg = game.entities[id];
     egg.age += 1;
     if (egg.age > config.eggHatchAge) {
       game.entities[id] = {...makeLarva(egg.position, egg.subType), id};
-      game.larva.push(id);
-      game.eggs = game.eggs.filter(e => e != id);
+      changeEntityType(game, game.entities[id], 'EGG', 'LARVA');
     }
   }
 
   // update larva
-  for (const id of game.larva) {
+  for (const id of game.LARVA) {
     const larva = game.entities[id];
     larva.age += 1;
     if (!larva.alive) {
@@ -105,30 +110,28 @@ const handleTick = (game: GameState): GameState => {
 
     if (larva.calories >= config.larvaEndCalories) {
       game.entities[id] = {...makePupa(larva.position, larva.subType), id};
-      game.pupa.push(id);
-      game.larva = game.larva.filter(e => e != id);
+      changeEntityType(game, game.entities[id], 'LARVA', 'PUPA');
     }
 
   }
 
   // update pupa
-  for (const id of game.pupa) {
+  for (const id of game.PUPA) {
     const pupa = game.entities[id];
     pupa.age += 1;
     if (pupa.age > config.pupaHatchAge) {
       game.entities[id] = {...makeAnt(pupa.position, pupa.subType), id};
-      game.ants.push(id);
-      game.pupa = game.pupa.filter(e => e != id);
+      changeEntityType(game, game.entities[id], 'PUPA', 'ANT');
     }
   }
 
   game.time += 1;
 
-  const time = performance.now() - startTime;
-  totalTime += time;
-  if (game.time % 10 === 0) {
-    console.log(time.toFixed(3), 'avg', (totalTime / game.time).toFixed(3));
-  }
+  // const time = performance.now() - startTime;
+  // totalTime += time;
+  // if (game.time % 10 === 0) {
+  //   console.log(time.toFixed(3), 'avg', (totalTime / game.time).toFixed(3));
+  // }
 
   return game;
 }
@@ -234,9 +237,7 @@ const evaluateCondition = (
     }
     case 'NEIGHBORING': {
       // comparator must be EQUALS
-      const neighbors = getNeighborhoodEntities(
-        ant, game.entities, 1 /* radius */
-      );
+      const neighbors = fastGetNeighbors(game, ant);
       if (object === 'ANYTHING') {
         isTrue = neighbors.length > 0;
       } else if (object === 'NOTHING') {
@@ -305,14 +306,14 @@ const performAction = (
   switch (action.type) {
     case 'IDLE': {
       // unstack, similar to moving out of the way of placed dirt
-      const stackedAnts = collidesWith(ant, getEntitiesByType(game, ['ANT']))
-        .filter(a => a.id != ant.id);
+      const stackedAnts = fastCollidesWith(game, ant)
+        .filter(e => config.antBlockingEntities.includes(e.type) || e.type == 'ANT');
       if (stackedAnts.length > 0) {
-        const freePositions = getEmptyNeighborPositions(
-          ant, getEntitiesByType(game, config.antBlockingEntities),
+        const freePositions = fastGetEmptyNeighborPositions(
+          game, ant, config.antBlockingEntities,
         );
         if (freePositions.length > 0) {
-          ant.position = oneOf(freePositions);
+          moveEntity(game, ant, oneOf(freePositions));
         }
       }
       break;
@@ -321,11 +322,9 @@ const performAction = (
       let loc = object;
       if (object === 'RANDOM') {
         // randomly select loc based on free neighbors
-        // let freePositions = getEmptyNeighborPositions(
-        //   ant, getEntitiesByType(game, config.antBlockingEntities),
-        // ).filter(insideWorld);
-        let freePositions = fastGetEmptyNeighborPositions(game, ant)
-          .filter(insideWorld);
+        let freePositions = fastGetEmptyNeighborPositions(
+          game, ant, config.antBlockingEntities
+        ).filter(insideWorld);
         if (freePositions.length == 0) {
           break; // can't move
         }
@@ -348,6 +347,9 @@ const performAction = (
         }
       }
       const distVec = subtract(loc.position, ant.position);
+      if (distVec.x == 0 && distVec.y == 0) {
+        break; // you're there
+      }
       let moveVec = {x: 0, y: 0};
       let moveAxis = 'y';
       // different policies for choosing move direction
@@ -357,14 +359,12 @@ const performAction = (
       }
       moveVec[moveAxis] += distVec[moveAxis] > 0 ? 1 : -1;
       let nextPos = add(moveVec, ant.position);
-      // let occupied = collidesWith(
-      //   {position: nextPos, width: 1, height: 1},
-      //     getEntitiesByType(game, config.antBlockingEntities),
-      // );
-      let occupied = fastCollidesWith(game, {position: nextPos});
+      let occupied = fastCollidesWith(game, {position: nextPos})
+        .filter(e => config.antBlockingEntities.includes(e.type));
       if (occupied.length == 0 && insideWorld(nextPos)) {
-        ant.prevPosition = ant.position;
-        ant.position = nextPos;
+        moveEntity(game, ant, nextPos);
+        ant.blocked = false;
+        ant.blockedBy = null;
       } else { // else try moving along the other axis
         moveVec[moveAxis] = 0;
         moveAxis = moveAxis === 'y' ? 'x' : 'y';
@@ -379,15 +379,10 @@ const performAction = (
           break;
         }
         nextPos = add(moveVec, ant.position);
-        // occupied = collidesWith(
-        //   {position: nextPos, width: 1, height: 1},
-        //   getEntitiesByType(game, config.antBlockingEntities),
-        // );
-        occupied = fastCollidesWith(game, {position: nextPos});
+        occupied = fastCollidesWith(game, {position: nextPos})
+          .filter(e => config.antBlockingEntities.includes(e.type));
         if (occupied.length == 0 && insideWorld(nextPos)) {
-          deleteFromGrid(game.grid, ant.position, ant.id);
-          insertInGrid(game.grid, nextPos, ant.id);
-          ant.position = nextPos;
+          moveEntity(game, ant, nextPos);
           ant.blocked = false;
           ant.blockedBy = null;
         } else {
@@ -404,21 +399,20 @@ const performAction = (
       if (entityToPickup === 'BLOCKER') {
         entityToPickup = ant.blockedBy;
       } else if (entityToPickup === 'MARKED') {
-        entityToPickup = oneOf(getNeighborhoodEntities(
-          ant, game.entities,
-        ).filter(e => e.marked > 0));
+        entityToPickup = oneOf(
+          fastGetNeighbors(game, ant).filter(e => e.marked > 0)
+        );
       } else if (
         entityToPickup === 'DIRT' || entityToPickup === 'FOOD' ||
         entityToPickup === 'EGG' || entityToPickup === 'LARVA' ||
         entityToPickup === 'PUPA' || entityToPickup === 'DEAD_ANT'
       ) {
-        entityToPickup = oneOf(getNeighborhoodEntities(
-          ant, getEntitiesByType(game, [entityToPickup])
-        ));
+        entityToPickup = oneOf(
+          fastGetNeighbors(game, ant).filter(e => e.type == entityToPickup)
+        );
       } else if (entityToPickup != null && entityToPickup.position != null ) {
-        entityToPickup = getNeighborhoodEntities(
-          ant, getEntitiesByType(game, config.antPickupEntities)
-        ).filter(e => e.id === entityToPickup.id)[0];
+        entityToPickup = fastGetNeighbors(game, ant)
+          .filter(e => e.id === entityToPickup.id)[0];
       }
       if (entityToPickup == null || entityToPickup.position == null) {
         break;
@@ -427,6 +421,7 @@ const performAction = (
         ant.holding = entityToPickup;
         ant.blocked = false;
         ant.blockedBy = null;
+        deleteFromGrid(game.grid, entityToPickup.position, entityToPickup.id);
         entityToPickup.position = null;
         // reduce mark quantity
         entityToPickup.marked = Math.max(0, entityToPickup.marked - 1);
@@ -438,28 +433,27 @@ const performAction = (
       if (locationToPutdown == null) {
         locationToPutdown = {position: ant.position};
       }
-      const putDownFree = collidesWith(
-        locationToPutdown,
-        getEntitiesByType(game, config.antBlockingEntities),
-      ).length === 0;
+      const putDownFree = fastCollidesWith(game, locationToPutdown)
+        .filter(e => config.antBlockingEntities.includes(e.type))
+        .length === 0;
       if (collides(ant, locationToPutdown) && ant.holding != null && putDownFree) {
         ant.holding.position = locationToPutdown.position;
+        insertInGrid(game.grid, ant.holding.position, ant.holding.id);
         ant.holding = null;
         // move the ant out of the way
-        const freePositions = getEmptyNeighborPositions(
-          ant, getEntitiesByType(game, config.antBlockingEntities),
+        const freePositions = fastGetEmptyNeighborPositions(
+          game, ant, config.antBlockingEntities,
         );
         if (freePositions.length > 0) {
-          ant.position = freePositions[0];
+          moveEntity(game, ant, freePositions[0]);
         }
       }
       break;
     }
     case 'EAT': {
       let entityToEat = object;
-      const neighborFood = getNeighborhoodEntities(
-        ant, getEntitiesByType(game, ['FOOD'])
-      );
+      const neighborFood = fastGetNeighbors(game, ant)
+        .filter(e => e.type === 'FOOD');
       if (entityToEat == null) {
         entityToEat = oneOf(neighborFood);
       } else if (entityToEat.id != null) {
@@ -482,9 +476,8 @@ const performAction = (
       break;
     }
     case 'FEED': {
-      const feedableEntities = getNeighborhoodEntities(
-        ant, getEntitiesByType(game, ['ANT', 'LARVA']),
-      );
+      const feedableEntities = fastGetNeighbors(game, ant)
+        .filter(e => ['ANT', 'LARVA'].includes(e.type));
       if (
         ant.holding != null && ant.holding.type === 'FOOD' &&
         feedableEntities.length > 0
@@ -498,8 +491,7 @@ const performAction = (
           }
         }
         fedEntity.calories += ant.holding.calories;
-        delete game.entities[ant.holding.id];
-        game.food = deleteFromArray(game.food, ant.holding.id);
+        removeEntity(game, ant.holding);
         ant.holding = null;
       }
       break;
@@ -512,24 +504,21 @@ const performAction = (
       if (ant.subType != 'QUEEN') {
         break; // only queen lays eggs
       }
-      const nothingInTheWay = collidesWith(
-        ant,
-        getEntitiesByType(game, config.antBlockingEntities),
-      ).length === 0;
-      const dirtBelow = collidesWith(
-        {position: {x: ant.position.x, y: ant.position.y - 1}},
-        getEntitiesByType(game, ['DIRT']),
-      ).length > 0;
+      const nothingInTheWay = fastCollidesWith(game, ant)
+        .filter(e => config.antBlockingEntities.includes(e.type))
+        .length === 0;
+      const dirtBelow = lookupInGrid(game.grid, add(ant.position, {x: 0, y: -1}))
+        .filter(id => game.entities[id].type === 'DIRT')
+        .length > 0;
       if (nothingInTheWay && dirtBelow) {
         const egg = makeEgg(ant.position, 'WORKER'); // TODO
-        game.entities[egg.id] = egg;
-        game.eggs.push(egg.id);
+        addEntity(game, egg);
         // move the ant out of the way
-        const freePositions = getEmptyNeighborPositions(
-          ant, getEntitiesByType(game, config.antBlockingEntities),
+        const freePositions = fastGetEmptyNeighborPositions(
+          game, ant, config.antBlockingEntities,
         );
         if (freePositions.length > 0) {
-          ant.position = freePositions[0];
+          moveEntity(game, ant, freePositions[0]);
         }
       }
       break;

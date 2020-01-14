@@ -6,9 +6,10 @@ var _require = require('../config'),
     config = _require.config;
 
 var _require2 = require('../selectors/selectors'),
-    collidesWith = _require2.collidesWith,
     getSelectedAntIDs = _require2.getSelectedAntIDs,
-    getEntitiesByType = _require2.getEntitiesByType;
+    fastCollidesWith = _require2.fastCollidesWith,
+    getEntitiesByType = _require2.getEntitiesByType,
+    entitiesInMarquee = _require2.entitiesInMarquee;
 
 var _require3 = require('../utils/canvasHelpers'),
     canvasToGrid = _require3.canvasToGrid,
@@ -69,7 +70,9 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
     if (gridPos == null) return;
     dispatch({ type: 'SET_MOUSE_POS', curPos: gridPos });
     if (state.game.mouse.isLeftDown && state.game.userMode === 'MARK') {
-      var clickedEntities = collidesWith({ position: gridPos, width: 1, height: 1 }, getEntitiesByType(state.game, ['DIRT']));
+      var clickedEntities = fastCollidesWith(state.game, { position: gridPos, width: 1, height: 1 }).filter(function (e) {
+        return e.type === 'DIRT';
+      });
       var _iteratorNormalCompletion = true;
       var _didIteratorError = false;
       var _iteratorError = undefined;
@@ -150,7 +153,9 @@ var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
     var x = dims.x > 0 ? mouse.downPos.x : mouse.curPos.x;
     var y = dims.y > 0 ? mouse.downPos.y : mouse.curPos.y;
     var marqueeLocation = { position: { x: x, y: y }, width: Math.abs(dims.x) + 1, height: Math.abs(dims.y) + 1 };
-    var clickedAnts = collidesWith(marqueeLocation, getEntitiesByType(state.game, config.selectableEntities));
+    var clickedAnts = entitiesInMarquee(state.game, marqueeLocation).filter(function (e) {
+      return config.selectableEntities.includes(e.type);
+    });
     if (clickedAnts.length > 0) {
       dispatch({
         type: 'SET_SELECTED_ENTITIES',
@@ -165,19 +170,27 @@ var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
       });
     }
   } else if (state.game.userMode === 'MARK') {
-    var clickedEntity = collidesWith({ position: gridPos, width: 1, height: 1 }, getEntitiesByType(state.game, ['DIRT']))[0];
-    dispatch({
-      type: 'MARK_ENTITY',
-      entityID: clickedEntity.id,
-      quantity: 1
-    });
+    var clickedEntity = entitiesInMarquee(state.game, { position: gridPos, width: 1, height: 1 }).filter(function (e) {
+      return e.type == 'DIRT';
+    })[0];
+    if (clickedEntity != null) {
+      dispatch({
+        type: 'MARK_ENTITY',
+        entityID: clickedEntity.id,
+        quantity: 1
+      });
+    }
   }
 };
 
 var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
   var selectedAntIDs = getSelectedAntIDs(state.game);
-  var clickedEntity = collidesWith({ position: gridPos, width: 1, height: 1 }, getEntitiesByType(state.game, config.antPickupEntities))[0];
-  var clickedFood = collidesWith({ position: gridPos, width: 1, height: 1 }, getEntitiesByType(state.game, config.antEatEntities))[0];
+  var clickedEntity = entitiesInMarquee(state.game, { position: gridPos, width: 1, height: 1 }).filter(function (e) {
+    return config.antPickupEntities.includes(e.type);
+  })[0];
+  var clickedFood = entitiesInMarquee(state.game, { position: gridPos, width: 1, height: 1 }).filter(function (e) {
+    return config.antEatEntities.includes(e.type);
+  })[0];
   // TODO add config for which entities block the ant
   var blocked = clickedEntity != null || clickedFood != null;
 

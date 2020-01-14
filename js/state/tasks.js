@@ -116,7 +116,7 @@ const createGoToLocationNeighborBehavior = (location: Loaction): Behavior => {
 }
 
 const getIthLocation = (game: GameState, i: number): Location => {
-  const locationID = game.locations[i];
+  const locationID = game.LOCATION[i];
   return game.entities[locationID];
 }
 

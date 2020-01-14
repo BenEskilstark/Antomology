@@ -4,7 +4,7 @@ const {config} = require('../config');
 const {makeFood} = require('../entities/food');
 const {randomIn} = require('../utils/helpers');
 const {
-  collidesWith,
+  fastCollidesWith,
   getEntitiesByType,
 } = require('../selectors/selectors');
 
@@ -26,10 +26,9 @@ const initFoodSpawnSystem = (store: Store): void => {
       let x = randomIn(0, config.width - 1);
       let y = randomIn(0, config.height - 1);
       if (
-        collidesWith(
-          {position: {x, y}},
-          getEntitiesByType(state.game, config.antBlockingEntities),
-        ).length == 0
+        fastCollidesWith(state.game, {position: {x, y}})
+          .filter(e => config.antBlockingEntities.includes(e.type))
+          .length == 0
       ) {
         const food = makeFood({x, y}, config.foodSpawnCalories, 'Crumb');
         store.dispatch({type: 'CREATE_ENTITY', entity: food});

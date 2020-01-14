@@ -105,7 +105,7 @@ var createGoToLocationNeighborBehavior = function createGoToLocationNeighborBeha
 };
 
 var getIthLocation = function getIthLocation(game, i) {
-  var locationID = game.locations[i];
+  var locationID = game.LOCATION[i];
   return game.entities[locationID];
 };
 

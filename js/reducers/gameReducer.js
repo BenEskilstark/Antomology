@@ -1,6 +1,10 @@
 // @flow
 
 const {config} = require('../config');
+const {
+  addEntity,
+  removeEntity,
+} = require('../utils/stateHelpers');
 
 import type {State, GameState, Action} from '../types';
 
@@ -8,63 +12,36 @@ const gameReducer = (game: GameState, action: Action): GameState => {
   switch (action.type) {
     case 'CREATE_ENTITY': {
       const {entity} = action;
-      let nextID = entity.id;
-      // if trying to make a location with the same name as one that already exists,
-      // just update the position of the currently-existing entity for that location
-      let sameLocationName = false;
       if (entity.type == 'LOCATION') {
-        const locationIDWithName = game.locations.filter(l => {
+        // if trying to make a location with the same name as one that already exists,
+        // just update the position of the currently-existing entity for that location
+        const locationIDWithName = game.LOCATION.filter(l => {
           return game.entities[l].name === entity.name;
         })[0];
         if (locationIDWithName != null) {
-          sameLocationName = true;
-          nextID = locationIDWithName
+          removeEntity(game, game.entities[locationIDWithName]);
+          addEntity(game, {...entity, id: locationIDWithName});
+        } else {
+          addEntity(game, entity);
         }
-      }
-      game.entities[nextID] = entity;
-      switch (entity.type) {
-        case 'LOCATION':
-          if (!sameLocationName) {
-            game.locations.push(nextID);
-          } // else it's already there
-          break;
-        case 'ANT':
-          game.ants.push(nextID);
-          break;
-        case 'DIRT':
-          game.dirt.push(nextID);
-          break;
-        case 'FOOD':
-          game.food.push(nextID);
-          break;
-        case 'EGG':
-          game.eggs.push(nextID);
-          break;
-        case 'LARVA':
-          game.larva.push(nextID);
-          break;
-        case 'PUPA':
-          game.pupa.push(nextID);
-          break;
+      } else {
+        addEntity(game, entity);
       }
       return game;
     }
     case 'DESTROY_ENTITY': {
       const {id} = action;
-      delete game.entities[id];
-      // TODO handle clearing out the arrays
+      removeEntity(game, game.entities[id]);
       return game;
     }
     case 'CREATE_ANT': {
       const {ant} = action;
-      game.ants.push(ant.id);
-      game.entities[ant.id] = ant;
+      addEntity(game, ant);
       return game;
     }
     case 'DESTROY_ANT': {
       const {id} = action;
-      game.ants = game.ants.filter(antID => antID != id);
-      delete game.entities[id];
+      removeEntity(game, game.entities[id]);
       return game;
     }
     case 'SET_SELECTED_ENTITIES': {

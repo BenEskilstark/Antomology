@@ -59,7 +59,7 @@ const render = (state: State, ctx: any): void => {
     renderEntity(state, ctx, entity);
   }
   // render locations last so they go on top
-  for (const id of game.locations) {
+  for (const id of game.LOCATION) {
     const entity = game.entities[id];
     if (entity.position == null || entity.id === -1) {
       // don't render clicked location

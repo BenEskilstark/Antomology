@@ -12,7 +12,7 @@ var _require3 = require('../utils/helpers'),
     randomIn = _require3.randomIn;
 
 var _require4 = require('../selectors/selectors'),
-    collidesWith = _require4.collidesWith,
+    fastCollidesWith = _require4.fastCollidesWith,
     getEntitiesByType = _require4.getEntitiesByType;
 
 var initFoodSpawnSystem = function initFoodSpawnSystem(store) {
@@ -30,7 +30,9 @@ var initFoodSpawnSystem = function initFoodSpawnSystem(store) {
     if (Math.random() < config.foodSpawnRate) {
       var x = randomIn(0, config.width - 1);
       var y = randomIn(0, config.height - 1);
-      if (collidesWith({ position: { x: x, y: y } }, getEntitiesByType(state.game, config.antBlockingEntities)).length == 0) {
+      if (fastCollidesWith(state.game, { position: { x: x, y: y } }).filter(function (e) {
+        return config.antBlockingEntities.includes(e.type);
+      }).length == 0) {
         var food = makeFood({ x: x, y: y }, config.foodSpawnCalories, 'Crumb');
         store.dispatch({ type: 'CREATE_ENTITY', entity: food });
       }

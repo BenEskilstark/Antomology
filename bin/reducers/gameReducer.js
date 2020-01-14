@@ -7,50 +7,30 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 var _require = require('../config'),
     config = _require.config;
 
+var _require2 = require('../utils/stateHelpers'),
+    addEntity = _require2.addEntity,
+    removeEntity = _require2.removeEntity;
+
 var gameReducer = function gameReducer(game, action) {
   switch (action.type) {
     case 'CREATE_ENTITY':
       {
         var entity = action.entity;
 
-        var nextID = entity.id;
-        // if trying to make a location with the same name as one that already exists,
-        // just update the position of the currently-existing entity for that location
-        var sameLocationName = false;
         if (entity.type == 'LOCATION') {
-          var locationIDWithName = game.locations.filter(function (l) {
+          // if trying to make a location with the same name as one that already exists,
+          // just update the position of the currently-existing entity for that location
+          var locationIDWithName = game.LOCATION.filter(function (l) {
             return game.entities[l].name === entity.name;
           })[0];
           if (locationIDWithName != null) {
-            sameLocationName = true;
-            nextID = locationIDWithName;
+            removeEntity(game, game.entities[locationIDWithName]);
+            addEntity(game, _extends({}, entity, { id: locationIDWithName }));
+          } else {
+            addEntity(game, entity);
           }
-        }
-        game.entities[nextID] = entity;
-        switch (entity.type) {
-          case 'LOCATION':
-            if (!sameLocationName) {
-              game.locations.push(nextID);
-            } // else it's already there
-            break;
-          case 'ANT':
-            game.ants.push(nextID);
-            break;
-          case 'DIRT':
-            game.dirt.push(nextID);
-            break;
-          case 'FOOD':
-            game.food.push(nextID);
-            break;
-          case 'EGG':
-            game.eggs.push(nextID);
-            break;
-          case 'LARVA':
-            game.larva.push(nextID);
-            break;
-          case 'PUPA':
-            game.pupa.push(nextID);
-            break;
+        } else {
+          addEntity(game, entity);
         }
         return game;
       }
@@ -58,26 +38,21 @@ var gameReducer = function gameReducer(game, action) {
       {
         var id = action.id;
 
-        delete game.entities[id];
-        // TODO handle clearing out the arrays
+        removeEntity(game, game.entities[id]);
         return game;
       }
     case 'CREATE_ANT':
       {
         var ant = action.ant;
 
-        game.ants.push(ant.id);
-        game.entities[ant.id] = ant;
+        addEntity(game, ant);
         return game;
       }
     case 'DESTROY_ANT':
       {
         var _id = action.id;
 
-        game.ants = game.ants.filter(function (antID) {
-          return antID != _id;
-        });
-        delete game.entities[_id];
+        removeEntity(game, game.entities[_id]);
         return game;
       }
     case 'SET_SELECTED_ENTITIES':

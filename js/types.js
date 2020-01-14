@@ -59,14 +59,14 @@ export type GameState = {
   // ALL entities (including ants) here:
   entities: {[EntityID]: Entity},
   // basically a cache of entityType-specific entityIDs:
-  dirt: Array<EntityID>,
-  ants: Array<EntityID>,
-  locations: Array<EntityID>,
-  food: Array<EntityID>,
-  eggs: Array<EntityID>,
-  larva: Array<EntityID>,
-  pupa: Array<EntityID>,
-  deadAnts: Array<EntityID>,
+  DIRT: Array<EntityID>,
+  ANT: Array<EntityID>,
+  LOCATION: Array<EntityID>,
+  FOOD: Array<EntityID>,
+  EGG: Array<EntityID>,
+  LARVA: Array<EntityID>,
+  PUPA: Array<EntityID>,
+  DEAD_ANT: Array<EntityID>,
 
   // for faster collision detection
   grid: Array<Array<Array<EntityID>>>,

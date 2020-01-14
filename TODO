@@ -1,11 +1,9 @@
 
  - - - - - - TODO - - - - - -
- - cached entityID arrays in state should be the same as the entityType
- - remove SWITCHES over entityTypes
- - helper for adding entities to keep them working across type/grid caches
- - helper for moving entities to a new position
- - switch to fast collisions everywhere
- - put initGameState back together, make ants idle on creation
+ - handle grid stuff with entities with larger size (locations)
+ - tasks need a "parent" task or else switching tasks within a repeating task won't repeat
+ - support canvas resize
+ - make UI elements screen-size responsive
 
  - - - - - - NEXT - - - - - -
  - switch dead ants/larva to their own entity type
@@ -25,33 +23,24 @@
  - A*-like for ants moving towards location?
  - implement pan/zoom with grid-to-canvas size conversion
  - add background layer
- - support canvas resize
  - implement the rest of the conditions
  - implement the rest of the actions
  - conditionals with OR/AND
  - mark should be its own entity instead of applying just to dirt
- - make UI elements screen-size responsive
 
  - - - - - REFACTOR - - - - -
  - essentially need a "stack" for nested behavior execution or else e.g. a
    do-while inside a conditional while also only do the do-while as long as
    the outer condition is true
- - tasks need a "parent" task or else switching tasks within a repeating task won't repeat
  - get flow working
  - as long as we're treating locations/tasks uniquely by name, store only those names
- - using collides selector for everything makes optimization harder...
-    - in tickReducer/performAction for moves being possible
-    - in tickReducer/evaluateCondition for if ant is at a location
-    - in tickReducer/performAction for pickup/putdown being possible
-    - in keyboardControlSystem/onmousedown for what was left clicked on
-    - in keyboardControlSystem/onmousedown for what was right clicked on
-    - in selectors/getFreeNeighborPositions
-    - in foodSpawnSystem
  - get optional chaining working
+ - MOVE action implementation sucks
 
 
  - - - - - - BUGS - - - - - -
  - number input (in e.g. RANDOM condition) doesn't like being cleared out temporarily
+ - checkboxes in task editor complain about control
  - picked-up larva never hatch and then die on putdown. Should probably just wait to hatch
 
 
@@ -155,3 +144,19 @@
  - On create task, switch dropdown to editing that one
  - importing tasks with NOT in the while
  - conditions UI makes them LESS_THAN always
+
+ - cached entityID arrays in state should be the same as the entityType
+ - remove SWITCHES over entityTypes
+ - helper for adding entities to keep them working across type/grid caches
+ - helper for moving entities to a new position
+
+ - update mouseSystem for faster collision detection
+ - switch to fast collisions everywhere
+ - put initGameState back together, make ants idle on creation
+ - fix go to clicked location glitching side-to-side
+ - fix create location for making location with same name
+ - fix right click to pick up
+ - fix neighboring tasks
+ - fix picking up entity that has been put down somewhere else already
+ - fix digging out blueprint always leaving colony
+ - fix ants passing through blocking entities

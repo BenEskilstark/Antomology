@@ -29,36 +29,42 @@ var _require6 = require('../utils/helpers'),
     randomIn = _require6.randomIn,
     normalIn = _require6.normalIn,
     oneOf = _require6.oneOf,
-    deleteFromArray = _require6.deleteFromArray,
-    insertInGrid = _require6.insertInGrid,
-    deleteFromGrid = _require6.deleteFromGrid;
+    deleteFromArray = _require6.deleteFromArray;
 
-var _require7 = require('../selectors/selectors'),
-    collides = _require7.collides,
-    collidesWith = _require7.collidesWith,
-    fastCollidesWith = _require7.fastCollidesWith,
-    fastGetEmptyNeighborPositions = _require7.fastGetEmptyNeighborPositions,
-    getNeighborhoodEntities = _require7.getNeighborhoodEntities,
-    getEmptyNeighborPositions = _require7.getEmptyNeighborPositions,
-    getEntitiesByType = _require7.getEntitiesByType,
-    insideWorld = _require7.insideWorld;
+var _require7 = require('../utils/stateHelpers'),
+    insertInGrid = _require7.insertInGrid,
+    deleteFromGrid = _require7.deleteFromGrid,
+    lookupInGrid = _require7.lookupInGrid,
+    addEntity = _require7.addEntity,
+    removeEntity = _require7.removeEntity,
+    moveEntity = _require7.moveEntity,
+    changeEntityType = _require7.changeEntityType;
 
-var _require8 = require('../entities/egg'),
-    makeEgg = _require8.makeEgg;
+var _require8 = require('../selectors/selectors'),
+    fastCollidesWith = _require8.fastCollidesWith,
+    fastGetEmptyNeighborPositions = _require8.fastGetEmptyNeighborPositions,
+    fastGetNeighbors = _require8.fastGetNeighbors,
+    collides = _require8.collides,
+    getEntitiesByType = _require8.getEntitiesByType,
+    filterEntitiesByType = _require8.filterEntitiesByType,
+    insideWorld = _require8.insideWorld;
 
-var _require9 = require('../entities/larva'),
-    makeLarva = _require9.makeLarva;
+var _require9 = require('../entities/egg'),
+    makeEgg = _require9.makeEgg;
 
-var _require10 = require('../entities/pupa'),
-    makePupa = _require10.makePupa;
+var _require10 = require('../entities/larva'),
+    makeLarva = _require10.makeLarva;
 
-var _require11 = require('../entities/ant'),
-    makeAnt = _require11.makeAnt;
+var _require11 = require('../entities/pupa'),
+    makePupa = _require11.makePupa;
+
+var _require12 = require('../entities/ant'),
+    makeAnt = _require12.makeAnt;
 
 var tickReducer = function tickReducer(game, action) {
   switch (action.type) {
     case 'START_TICK':
-      if (game.game != null && game.game.tickInterval != null) {
+      if (game != null && game.tickInterval != null) {
         return game;
       }
       return _extends({}, game, {
@@ -81,14 +87,14 @@ var tickReducer = function tickReducer(game, action) {
 var totalTime = 0;
 
 var handleTick = function handleTick(game) {
-  var startTime = performance.now();
+  // const startTime = performance.now();
   // update ants
   var _iteratorNormalCompletion = true;
   var _didIteratorError = false;
   var _iteratorError = undefined;
 
   try {
-    for (var _iterator = game.ants[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+    for (var _iterator = game.ANT[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
       var id = _step.value;
 
       var ant = game.entities[id];
@@ -126,22 +132,15 @@ var handleTick = function handleTick(game) {
   var _iteratorError2 = undefined;
 
   try {
-    var _loop = function _loop() {
-      var id = _step2.value;
+    for (var _iterator2 = game.EGG[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+      var _id = _step2.value;
 
-      var egg = game.entities[id];
+      var egg = game.entities[_id];
       egg.age += 1;
       if (egg.age > config.eggHatchAge) {
-        game.entities[id] = _extends({}, makeLarva(egg.position, egg.subType), { id: id });
-        game.larva.push(id);
-        game.eggs = game.eggs.filter(function (e) {
-          return e != id;
-        });
+        game.entities[_id] = _extends({}, makeLarva(egg.position, egg.subType), { id: _id });
+        changeEntityType(game, game.entities[_id], 'EGG', 'LARVA');
       }
-    };
-
-    for (var _iterator2 = game.eggs[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-      _loop();
     }
 
     // update larva
@@ -165,35 +164,26 @@ var handleTick = function handleTick(game) {
   var _iteratorError3 = undefined;
 
   try {
-    var _loop2 = function _loop2() {
-      var id = _step3.value;
+    for (var _iterator3 = game.LARVA[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+      var _id2 = _step3.value;
 
-      var larva = game.entities[id];
+      var larva = game.entities[_id2];
       larva.age += 1;
       if (!larva.alive) {
-        return 'continue';
+        continue;
       }
 
       larva.calories -= 1;
       // larva starvation
       if (larva.calories <= 0) {
         larva.alive = false;
-        return 'continue';
+        continue;
       }
 
       if (larva.calories >= config.larvaEndCalories) {
-        game.entities[id] = _extends({}, makePupa(larva.position, larva.subType), { id: id });
-        game.pupa.push(id);
-        game.larva = game.larva.filter(function (e) {
-          return e != id;
-        });
+        game.entities[_id2] = _extends({}, makePupa(larva.position, larva.subType), { id: _id2 });
+        changeEntityType(game, game.entities[_id2], 'LARVA', 'PUPA');
       }
-    };
-
-    for (var _iterator3 = game.larva[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-      var _ret2 = _loop2();
-
-      if (_ret2 === 'continue') continue;
     }
 
     // update pupa
@@ -217,22 +207,15 @@ var handleTick = function handleTick(game) {
   var _iteratorError4 = undefined;
 
   try {
-    var _loop3 = function _loop3() {
-      var id = _step4.value;
+    for (var _iterator4 = game.PUPA[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+      var _id3 = _step4.value;
 
-      var pupa = game.entities[id];
+      var pupa = game.entities[_id3];
       pupa.age += 1;
       if (pupa.age > config.pupaHatchAge) {
-        game.entities[id] = _extends({}, makeAnt(pupa.position, pupa.subType), { id: id });
-        game.ants.push(id);
-        game.pupa = game.pupa.filter(function (e) {
-          return e != id;
-        });
+        game.entities[_id3] = _extends({}, makeAnt(pupa.position, pupa.subType), { id: _id3 });
+        changeEntityType(game, game.entities[_id3], 'PUPA', 'ANT');
       }
-    };
-
-    for (var _iterator4 = game.pupa[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-      _loop3();
     }
   } catch (err) {
     _didIteratorError4 = true;
@@ -251,11 +234,11 @@ var handleTick = function handleTick(game) {
 
   game.time += 1;
 
-  var time = performance.now() - startTime;
-  totalTime += time;
-  if (game.time % 10 === 0) {
-    console.log(time.toFixed(3), 'avg', (totalTime / game.time).toFixed(3));
-  }
+  // const time = performance.now() - startTime;
+  // totalTime += time;
+  // if (game.time % 10 === 0) {
+  //   console.log(time.toFixed(3), 'avg', (totalTime / game.time).toFixed(3));
+  // }
 
   return game;
 };
@@ -374,8 +357,7 @@ var evaluateCondition = function evaluateCondition(game, ant, condition) {
     case 'NEIGHBORING':
       {
         // comparator must be EQUALS
-        var neighbors = getNeighborhoodEntities(ant, game.entities, 1 /* radius */
-        );
+        var neighbors = fastGetNeighbors(game, ant);
         if (object === 'ANYTHING') {
           isTrue = neighbors.length > 0;
         } else if (object === 'NOTHING') {
@@ -454,13 +436,13 @@ var performAction = function performAction(game, ant, action) {
     case 'IDLE':
       {
         // unstack, similar to moving out of the way of placed dirt
-        var stackedAnts = collidesWith(ant, getEntitiesByType(game, ['ANT'])).filter(function (a) {
-          return a.id != ant.id;
+        var stackedAnts = fastCollidesWith(game, ant).filter(function (e) {
+          return config.antBlockingEntities.includes(e.type) || e.type == 'ANT';
         });
         if (stackedAnts.length > 0) {
-          var freePositions = getEmptyNeighborPositions(ant, getEntitiesByType(game, config.antBlockingEntities));
+          var freePositions = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities);
           if (freePositions.length > 0) {
-            ant.position = oneOf(freePositions);
+            moveEntity(game, ant, oneOf(freePositions));
           }
         }
         break;
@@ -470,10 +452,7 @@ var performAction = function performAction(game, ant, action) {
         var loc = object;
         if (object === 'RANDOM') {
           // randomly select loc based on free neighbors
-          // let freePositions = getEmptyNeighborPositions(
-          //   ant, getEntitiesByType(game, config.antBlockingEntities),
-          // ).filter(insideWorld);
-          var _freePositions = fastGetEmptyNeighborPositions(game, ant).filter(insideWorld);
+          var _freePositions = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities).filter(insideWorld);
           if (_freePositions.length == 0) {
             break; // can't move
           }
@@ -498,6 +477,9 @@ var performAction = function performAction(game, ant, action) {
           }
         }
         var distVec = subtract(loc.position, ant.position);
+        if (distVec.x == 0 && distVec.y == 0) {
+          break; // you're there
+        }
         var moveVec = { x: 0, y: 0 };
         var moveAxis = 'y';
         // different policies for choosing move direction
@@ -507,14 +489,13 @@ var performAction = function performAction(game, ant, action) {
         }
         moveVec[moveAxis] += distVec[moveAxis] > 0 ? 1 : -1;
         var nextPos = add(moveVec, ant.position);
-        // let occupied = collidesWith(
-        //   {position: nextPos, width: 1, height: 1},
-        //     getEntitiesByType(game, config.antBlockingEntities),
-        // );
-        var occupied = fastCollidesWith(game, { position: nextPos });
+        var occupied = fastCollidesWith(game, { position: nextPos }).filter(function (e) {
+          return config.antBlockingEntities.includes(e.type);
+        });
         if (occupied.length == 0 && insideWorld(nextPos)) {
-          ant.prevPosition = ant.position;
-          ant.position = nextPos;
+          moveEntity(game, ant, nextPos);
+          ant.blocked = false;
+          ant.blockedBy = null;
         } else {
           // else try moving along the other axis
           moveVec[moveAxis] = 0;
@@ -530,15 +511,11 @@ var performAction = function performAction(game, ant, action) {
             break;
           }
           nextPos = add(moveVec, ant.position);
-          // occupied = collidesWith(
-          //   {position: nextPos, width: 1, height: 1},
-          //   getEntitiesByType(game, config.antBlockingEntities),
-          // );
-          occupied = fastCollidesWith(game, { position: nextPos });
+          occupied = fastCollidesWith(game, { position: nextPos }).filter(function (e) {
+            return config.antBlockingEntities.includes(e.type);
+          });
           if (occupied.length == 0 && insideWorld(nextPos)) {
-            deleteFromGrid(game.grid, ant.position, ant.id);
-            insertInGrid(game.grid, nextPos, ant.id);
-            ant.position = nextPos;
+            moveEntity(game, ant, nextPos);
             ant.blocked = false;
             ant.blockedBy = null;
           } else {
@@ -556,13 +533,15 @@ var performAction = function performAction(game, ant, action) {
         if (entityToPickup === 'BLOCKER') {
           entityToPickup = ant.blockedBy;
         } else if (entityToPickup === 'MARKED') {
-          entityToPickup = oneOf(getNeighborhoodEntities(ant, game.entities).filter(function (e) {
+          entityToPickup = oneOf(fastGetNeighbors(game, ant).filter(function (e) {
             return e.marked > 0;
           }));
         } else if (entityToPickup === 'DIRT' || entityToPickup === 'FOOD' || entityToPickup === 'EGG' || entityToPickup === 'LARVA' || entityToPickup === 'PUPA' || entityToPickup === 'DEAD_ANT') {
-          entityToPickup = oneOf(getNeighborhoodEntities(ant, getEntitiesByType(game, [entityToPickup])));
+          entityToPickup = oneOf(fastGetNeighbors(game, ant).filter(function (e) {
+            return e.type == entityToPickup;
+          }));
         } else if (entityToPickup != null && entityToPickup.position != null) {
-          entityToPickup = getNeighborhoodEntities(ant, getEntitiesByType(game, config.antPickupEntities)).filter(function (e) {
+          entityToPickup = fastGetNeighbors(game, ant).filter(function (e) {
             return e.id === entityToPickup.id;
           })[0];
         }
@@ -573,6 +552,7 @@ var performAction = function performAction(game, ant, action) {
           ant.holding = entityToPickup;
           ant.blocked = false;
           ant.blockedBy = null;
+          deleteFromGrid(game.grid, entityToPickup.position, entityToPickup.id);
           entityToPickup.position = null;
           // reduce mark quantity
           entityToPickup.marked = Math.max(0, entityToPickup.marked - 1);
@@ -585,14 +565,17 @@ var performAction = function performAction(game, ant, action) {
         if (locationToPutdown == null) {
           locationToPutdown = { position: ant.position };
         }
-        var putDownFree = collidesWith(locationToPutdown, getEntitiesByType(game, config.antBlockingEntities)).length === 0;
+        var putDownFree = fastCollidesWith(game, locationToPutdown).filter(function (e) {
+          return config.antBlockingEntities.includes(e.type);
+        }).length === 0;
         if (collides(ant, locationToPutdown) && ant.holding != null && putDownFree) {
           ant.holding.position = locationToPutdown.position;
+          insertInGrid(game.grid, ant.holding.position, ant.holding.id);
           ant.holding = null;
           // move the ant out of the way
-          var _freePositions2 = getEmptyNeighborPositions(ant, getEntitiesByType(game, config.antBlockingEntities));
+          var _freePositions2 = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities);
           if (_freePositions2.length > 0) {
-            ant.position = _freePositions2[0];
+            moveEntity(game, ant, _freePositions2[0]);
           }
         }
         break;
@@ -600,7 +583,9 @@ var performAction = function performAction(game, ant, action) {
     case 'EAT':
       {
         var entityToEat = object;
-        var neighborFood = getNeighborhoodEntities(ant, getEntitiesByType(game, ['FOOD']));
+        var neighborFood = fastGetNeighbors(game, ant).filter(function (e) {
+          return e.type === 'FOOD';
+        });
         if (entityToEat == null) {
           entityToEat = oneOf(neighborFood);
         } else if (entityToEat.id != null) {
@@ -622,7 +607,9 @@ var performAction = function performAction(game, ant, action) {
       }
     case 'FEED':
       {
-        var feedableEntities = getNeighborhoodEntities(ant, getEntitiesByType(game, ['ANT', 'LARVA']));
+        var feedableEntities = fastGetNeighbors(game, ant).filter(function (e) {
+          return ['ANT', 'LARVA'].includes(e.type);
+        });
         if (ant.holding != null && ant.holding.type === 'FOOD' && feedableEntities.length > 0) {
           // prefer to feed larva if possible
           var fedEntity = oneOf(feedableEntities);
@@ -655,8 +642,7 @@ var performAction = function performAction(game, ant, action) {
           }
 
           fedEntity.calories += ant.holding.calories;
-          delete game.entities[ant.holding.id];
-          game.food = deleteFromArray(game.food, ant.holding.id);
+          removeEntity(game, ant.holding);
           ant.holding = null;
         }
         break;
@@ -671,16 +657,19 @@ var performAction = function performAction(game, ant, action) {
         if (ant.subType != 'QUEEN') {
           break; // only queen lays eggs
         }
-        var nothingInTheWay = collidesWith(ant, getEntitiesByType(game, config.antBlockingEntities)).length === 0;
-        var dirtBelow = collidesWith({ position: { x: ant.position.x, y: ant.position.y - 1 } }, getEntitiesByType(game, ['DIRT'])).length > 0;
+        var nothingInTheWay = fastCollidesWith(game, ant).filter(function (e) {
+          return config.antBlockingEntities.includes(e.type);
+        }).length === 0;
+        var dirtBelow = lookupInGrid(game.grid, add(ant.position, { x: 0, y: -1 })).filter(function (id) {
+          return game.entities[id].type === 'DIRT';
+        }).length > 0;
         if (nothingInTheWay && dirtBelow) {
-          var _egg = makeEgg(ant.position, 'WORKER'); // TODO
-          game.entities[_egg.id] = _egg;
-          game.eggs.push(_egg.id);
+          var egg = makeEgg(ant.position, 'WORKER'); // TODO
+          addEntity(game, egg);
           // move the ant out of the way
-          var _freePositions3 = getEmptyNeighborPositions(ant, getEntitiesByType(game, config.antBlockingEntities));
+          var _freePositions3 = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities);
           if (_freePositions3.length > 0) {
-            ant.position = _freePositions3[0];
+            moveEntity(game, ant, _freePositions3[0]);
           }
         }
         break;

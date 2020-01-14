@@ -1,9 +1,10 @@
 
 const {config} = require('../config');
 const {
-  collidesWith,
   getSelectedAntIDs,
+  fastCollidesWith,
   getEntitiesByType,
+  entitiesInMarquee,
 } = require('../selectors/selectors');
 const {canvasToGrid, gridToCanvas} = require('../utils/canvasHelpers');
 const {add, subtract} = require('../utils/vectors');
@@ -53,10 +54,9 @@ const initMouseControlsSystem = (store) => {
     if (gridPos == null) return;
     dispatch({type: 'SET_MOUSE_POS', curPos: gridPos});
     if (state.game.mouse.isLeftDown && state.game.userMode === 'MARK') {
-      const clickedEntities = collidesWith(
-        {position: gridPos, width: 1, height: 1},
-        getEntitiesByType(state.game, ['DIRT']),
-      );
+      const clickedEntities = fastCollidesWith(
+        state.game, {position: gridPos, width: 1, height: 1},
+      ).filter(e => e.type === 'DIRT');
       for (const clickedEntity of clickedEntities) {
         dispatch({
           type: 'MARK_ENTITY',
@@ -126,10 +126,8 @@ const handleLeftClick = (
     const y = dims.y > 0 ? mouse.downPos.y : mouse.curPos.y;
     const marqueeLocation =
       {position: {x, y}, width: Math.abs(dims.x) + 1, height: Math.abs(dims.y) + 1};
-    const clickedAnts = collidesWith(
-      marqueeLocation,
-      getEntitiesByType(state.game, config.selectableEntities),
-    );
+    const clickedAnts = entitiesInMarquee(state.game, marqueeLocation)
+      .filter(e => config.selectableEntities.includes(e.type));
     if (clickedAnts.length > 0) {
       dispatch({
         type: 'SET_SELECTED_ENTITIES',
@@ -142,28 +140,30 @@ const handleLeftClick = (
       });
     }
   } else if (state.game.userMode === 'MARK') {
-    const clickedEntity = collidesWith(
+    const clickedEntity = entitiesInMarquee(
+      state.game,
       {position: gridPos, width: 1, height: 1},
-      getEntitiesByType(state.game, ['DIRT']),
-    )[0];
-    dispatch({
-      type: 'MARK_ENTITY',
-      entityID: clickedEntity.id,
-      quantity: 1,
-    });
+    ).filter(e => e.type == 'DIRT')[0];
+    if (clickedEntity != null) {
+      dispatch({
+        type: 'MARK_ENTITY',
+        entityID: clickedEntity.id,
+        quantity: 1,
+      });
+    }
   }
 };
 
 const handleRightClick = (state: State, dispatch: Dispatch, gridPos: Vector): void => {
   const selectedAntIDs = getSelectedAntIDs(state.game);
-  const clickedEntity = collidesWith(
+  const clickedEntity = entitiesInMarquee(
+    state.game,
     {position: gridPos, width: 1, height: 1},
-    getEntitiesByType(state.game, config.antPickupEntities),
-  )[0];
-  const clickedFood = collidesWith(
+  ).filter(e => config.antPickupEntities.includes(e.type))[0];
+  const clickedFood = entitiesInMarquee(
+    state.game,
     {position: gridPos, width: 1, height: 1},
-    getEntitiesByType(state.game, config.antEatEntities),
-  )[0];
+  ).filter(e => config.antEatEntities.includes(e.type))[0];
   // TODO add config for which entities block the ant
   const blocked = clickedEntity != null || clickedFood != null;
 

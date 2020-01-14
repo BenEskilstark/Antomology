@@ -70,4 +70,6 @@ Date  Time Started  Time Spent  Work Completed
 1/13     10:10am    2hr 25min   Performance testing.
                                 Added grid to state to track locations of entities
                                 Looks like 3.5-4 order of magnitude collision detection speedup
+          2:20pm    1hr 10min   Refactoring for faster collision detection everywhere
 
+1/14      8:55am    2hr         Got the refactoring done and fixed all* the ensuing bugs
