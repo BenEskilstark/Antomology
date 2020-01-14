@@ -194,7 +194,8 @@ var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
   // TODO add config for which entities block the ant
   var blocked = clickedEntity != null || clickedFood != null;
 
-  var clickedLocation = _extends({}, makeLocation('Clicked Position', 1, 1, gridPos), { id: -1 });
+  var clickedLocation = _extends({}, makeLocation('Clicked Position', 1, 1, gridPos), { id: config.clickedPosition
+  });
   dispatch({ type: 'CREATE_ENTITY', entity: clickedLocation });
   if (selectedAntIDs.length > 0) {
     var task = createGoToLocationTask(clickedLocation);

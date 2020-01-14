@@ -153,9 +153,11 @@ var renderEntity = function renderEntity(state, ctx, entity) {
     case 'DIRT':
       {
         ctx.fillStyle = 'brown';
-        ctx.fillRect(0, 0, entity.width, entity.height);
+        var width = entity.width + 0.04;
+        var height = entity.height + 0.04;
+        ctx.fillRect(0, 0, width, height);
         ctx.fillStyle = 'rgba(0, 0, 200,' + entity.marked * 0.5 + ')';
-        ctx.fillRect(0, 0, entity.width, entity.height);
+        ctx.fillRect(0, 0, width, height);
         break;
       }
     case 'LOCATION':

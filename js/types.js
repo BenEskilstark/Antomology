@@ -138,6 +138,12 @@ export type Ant = Entity & {
   blockedBy: ?entity, // entity that is blocking it
   task: ?Task,
   taskIndex: number,
+  // whenever you switch tasks, push old task as parent onto taskStack
+  // whenever you finish a task, pop of the end to resume
+  taskStack: Array<{
+    name: string,
+    index: number, // your index in the parent task
+  }>,
   alive: boolean,
 };
 

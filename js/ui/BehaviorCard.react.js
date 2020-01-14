@@ -32,7 +32,7 @@ function BehaviorCard(props: Props): React.Node {
     subjects = ['MOVE', 'PICKUP', 'PUTDOWN', 'IDLE', 'EAT', 'FEED', 'LAY'];
     selectedSubject = behavior.action.type;
   } else if (behavior.type == 'IF' || behavior.type == 'WHILE') {
-    subjects = ['LOCATION', 'RANDOM', 'HOLDING', 'NEIGHBORING', 'CALORIES', 'AGE'];
+    subjects = ['LOCATION', 'RANDOM', 'HOLDING', 'NEIGHBORING', 'BLOCKED', 'CALORIES', 'AGE'];
     selectedSubject = behavior.condition.type;
   } else {
     subjects = state.game.tasks.map(t => t.name);
@@ -199,9 +199,7 @@ function Conditional(
       options={getEntitiesByType(state.game, ['LOCATION']).map(l => l.name)}
       selected={conditionObject}
       onChange={(locName) => {
-        const loc = getEntitiesByType(state.game, ['LOCATION'])
-          .filter(l => l.name === locName)[0];
-        behavior.condition.payload.object = loc;
+        behavior.condition.payload.object = locName;
         setBehavior(behavior);
       }}
     />
@@ -219,7 +217,7 @@ function Conditional(
   if (typeName === 'NEIGHBORING') {
     objectField = <Dropdown
       options={
-        ['MARKED', 'DIRT', 'FOOD', 'ANYTHING', 'NOTHING']
+        ['MARKED', 'DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'ANYTHING', 'NOTHING']
         .concat(getEntitiesByType(state.game, ['LOCATION']).map(l => l.name))
       }
       selected={conditionObject}
@@ -285,13 +283,7 @@ function DoActionCard(props: mixed): React.Node {
         options={actionOptions}
         selected={selectedObject}
         onChange={(nextActionOption) => {
-          if (actionType === 'MOVE' && nextActionOption !== 'RANDOM') {
-            const loc = getEntitiesByType(state.game, ['LOCATION'])
-              .filter(l => l.name === nextActionOption)[0];
-            behavior.action.payload.object = loc;
-          } else {
-            behavior.action.payload.object = nextActionOption;
-          }
+          behavior.action.payload.object = nextActionOption;
           setBehavior(behavior);
         }}
       />

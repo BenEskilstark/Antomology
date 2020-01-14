@@ -12,13 +12,13 @@ import type {Task, Location, Behavior, GameState} from '../types';
  * to the location separately. This way you get out of the while loop
  * even if the location is occupied
  */
-const createGoToLocationTask = (location: Location): Task => {
+const createGoToLocationTask = (locName: string): Task => {
   return {
     name: 'Go To Location',
     repeating: false,
     behaviorQueue: [
-      createGoToLocationNeighborBehavior(location),
-      createDoAction('MOVE', location),
+      createGoToLocationNeighborBehavior(locName),
+      createDoAction('MOVE', locName),
     ],
   };
 };
@@ -59,13 +59,13 @@ const createLayEggTask = (): Task => {
 // move
 ///////////////////////////////////////////////////////////////
 
-const createMoveBehavior = (location: ?Location): Behavior => {
+const createMoveBehavior = (locName: ?string): Behavior => {
   return {
     type: 'DO_ACTION',
     action: {
       type: 'MOVE',
       payload: {
-        object: location != null ? location : 'RANDOM',
+        object: locName != null ? locName : 'RANDOM',
       },
     },
   };
@@ -85,7 +85,7 @@ const createRandomMoveTask = (): Task => {
 // go to location
 ///////////////////////////////////////////////////////////////
 
-const createGoToLocationBehavior = (location: Location): Behavior => {
+const createGoToLocationBehavior = (locName: string): Behavior => {
   return {
     type: 'WHILE',
     condition: {
@@ -93,14 +93,14 @@ const createGoToLocationBehavior = (location: Location): Behavior => {
       not: true,
       comparator: 'EQUALS',
       payload: {
-        object: location,
+        object: locName,
       },
     },
-    behavior: createMoveBehavior(location),
+    behavior: createMoveBehavior(locName),
   };
 }
 
-const createGoToLocationNeighborBehavior = (location: Loaction): Behavior => {
+const createGoToLocationNeighborBehavior = (locName: string): Behavior => {
   return {
     type: 'WHILE',
     condition: {
@@ -108,20 +108,20 @@ const createGoToLocationNeighborBehavior = (location: Loaction): Behavior => {
       not: true,
       comparator: 'EQUALS',
       payload: {
-        object: location,
+        object: locName,
       },
     },
-    behavior: createMoveBehavior(location),
+    behavior: createMoveBehavior(locName),
   };
 }
 
-const getIthLocation = (game: GameState, i: number): Location => {
+const getIthLocation = (game: GameState, i: number): string => {
   const locationID = game.LOCATION[i];
-  return game.entities[locationID];
+  return game.entities[locationID].name;
 }
 
-const getLocation = (game: GameState, locationID: number): Location => {
-  return game.entities[locationID];
+const getLocation = (game: GameState, locationID: number): string => {
+  return game.entities[locationID].name;
 }
 
 ///////////////////////////////////////////////////////////////
@@ -199,10 +199,14 @@ const createDigBlueprintTask = (game: GameState): Task => {
     name: 'Dig Out Blueprint',
     repeating: true,
     behaviorQueue: [
-      createGoToLocationBehavior(getIthLocation(game, 0)),
+      // createGoToLocationBehavior('Colony Entrance'),
+      {
+        type: 'SWITCH_TASK',
+        task: 'Move Dirt Out of the Way to the Entrance',
+      },
       createFindBlueprintBehavior(),
       createPickupBlueprintBehavior(),
-      createGoToLocationBehavior(getIthLocation(game, 0)),
+      createGoToLocationBehavior('Colony Entrance'),
       createFindDropOffLocationBehavior(),
       createPutDownBehavior(),
       {
@@ -225,7 +229,7 @@ const createGoToColonyEntranceWithBlockerTask = (game: GameState): Task => {
           not: true,
           comparator: 'EQUALS',
           payload: {
-            object: getIthLocation(game, 0),
+            object: 'Colony Entrance',
           },
         },
         behavior: {
@@ -238,7 +242,7 @@ const createGoToColonyEntranceWithBlockerTask = (game: GameState): Task => {
               object: null,
             },
           },
-          behavior: createMoveBehavior(getIthLocation(game, 0)),
+          behavior: createMoveBehavior('Colony Entrance'),
           elseBehavior: {
             type: 'SWITCH_TASK',
             done: false,
@@ -246,10 +250,10 @@ const createGoToColonyEntranceWithBlockerTask = (game: GameState): Task => {
           },
         },
       },
-      {
-        type: 'SWITCH_TASK',
-        task: 'Dig Out Blueprint',
-      },
+      // {
+      //   type: 'SWITCH_TASK',
+      //   task: 'Dig Out Blueprint',
+      // },
     ],
   };
 }
@@ -268,26 +272,6 @@ const createMoveBlockerTask = (): Task => {
       },
     ],
   };
-};
-
-const gatherFoodTask = {"name":"Gather Food","repeating":false,"behaviorQueue":[{"type":"WHILE","condition":{"type":"NEIGHBORING","comparator":"LESS_THAN","payload":{"object":"FOOD"}},"behavior":{"type":"DO_ACTION","action":{"type":"MOVE","payload":{"object":"RANDOM"}}},"not":true},{"type":"DO_ACTION","action":{"type":"PICKUP","payload":{"object":"FOOD"}}},{"type":"WHILE","condition":{"type":"LOCATION","comparator":"LESS_THAN","payload":{"object":{"id":1521,"type":"LOCATION","width":5,"height":3,"age":0,"position":{"x":36,"y":34},"prevPosition":{"x":0,"y":0},"velocity":{"x":0,"y":0},"accel":{"x":0,"y":0},"theta":0,"thetaSpeed":0,"marked":0,"frameIndex":0,"maxFrames":1,"name":"Food Store"}}},"behavior":{"type":"DO_ACTION","action":{"type":"MOVE","payload":{"object":{"id":1521,"type":"LOCATION","width":5,"height":3,"age":0,"position":{"x":36,"y":34},"prevPosition":{"x":0,"y":0},"velocity":{"x":0,"y":0},"accel":{"x":0,"y":0},"theta":0,"thetaSpeed":0,"marked":0,"frameIndex":0,"maxFrames":1,"name":"Food Store"}}}},"not":true},{"type":"WHILE","condition":{"type":"RANDOM","comparator":"LESS_THAN","payload":{"object":0.7}},"behavior":{"type":"DO_ACTION","action":{"type":"MOVE","payload":{"object":"RANDOM"}}}},{"type":"DO_ACTION","action":{"type":"PUTDOWN","payload":{"object":null}}}]};
-
-const findFoodTask = {
-  "name":"Find Food",
-  "repeating":false,
-  "behaviorQueue":[
-    {
-      "type":"WHILE",
-      "condition":{
-        "type":"NEIGHBORING",
-        "comparator":"EQUALS",
-        "payload":{"object":"FOOD"},
-        "not":true,
-      },
-      "behavior":{
-        "type":"DO_ACTION",
-        "action":{"type":"MOVE","payload":{"object":"RANDOM"}}}},
-    {"type":"DO_ACTION","action":{"type":"PICKUP","payload":{"object":"FOOD"}}}]
 };
 
 ///////////////////////////////////////////////////////////////
@@ -326,7 +310,6 @@ const tasks = {
   createDoAction,
   createIdleTask,
   createLayEggTask,
-  gatherFoodTask,
 };
 window.tasks = tasks;
 

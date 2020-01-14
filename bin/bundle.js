@@ -14,7 +14,8 @@ var config = {
   canvasWidth: 800,
   canvasHeight: 800,
 
-  // colony entrance location id:
+  // hardcoded location ids:
+  clickedPosition: -1,
   colonyEntrance: 0,
 
   // food
@@ -67,6 +68,10 @@ var makeAnt = function makeAnt(position, subType) {
     // task: createRandomMoveTask(),
     task: createIdleTask(),
     taskIndex: 0,
+    taskStack: [{
+      name: 'Idle',
+      index: 0
+    }],
     blocked: false,
     blockedBy: null,
     alive: true
@@ -764,11 +769,23 @@ var performTask = function performTask(game, ant) {
   }
   var task = ant.task,
       taskIndex = ant.taskIndex;
-  // if ran off the end of the behavior queue, switch to idle task
+  // if run off the end of the behavior queue, then repeat or pop back to parent
 
   if (taskIndex >= task.behaviorQueue.length) {
-    ant.taskIndex = 0;
-    ant.task = createIdleTask();
+    if (task.repeating) {
+      ant.taskIndex = 0;
+    } else {
+      var parentTask = ant.taskStack.pop();
+      if (parentTask == null) {
+        ant.taskIndex = 0;
+        ant.task = createIdleTask();
+      } else {
+        ant.taskIndex = parentTask.index + 1;
+        ant.task = game.tasks.filter(function (t) {
+          return t.name === parentTask.name;
+        })[0];
+      }
+    }
     return;
   }
   var behavior = task.behaviorQueue[taskIndex];
@@ -822,9 +839,14 @@ var performBehavior = function performBehavior(game, ant, behavior) {
       }
     case 'SWITCH_TASK':
       {
+        var parentTask = ant.task;
         ant.task = game.tasks.filter(function (t) {
           return t.name === behavior.task;
         })[0];
+        ant.taskStack.push({
+          name: parentTask.name,
+          index: ant.taskIndex
+        });
         // HACK: this sucks. done doesn't always propagate up particularly if
         // you switch tasks from inside a do-while
         ant.taskIndex = -1; // it's about to +1 in performTask
@@ -847,13 +869,13 @@ var evaluateCondition = function evaluateCondition(game, ant, condition) {
       {
         // comparator must be EQUALS
         // ant is considered to be at a location if it is within its boundingRect
-        var loc = object;
-        if (typeof loc === 'string') {
-          loc = getEntitiesByType(game, ['LOCATION']).filter(function (l) {
-            return l.name === loc;
+        var _loc = object;
+        if (typeof _loc === 'string') {
+          _loc = getEntitiesByType(game, ['LOCATION']).filter(function (l) {
+            return l.name === _loc;
           })[0];
         }
-        isTrue = collides(ant, loc);
+        isTrue = collides(ant, _loc);
         break;
       }
     case 'HOLDING':
@@ -862,6 +884,8 @@ var evaluateCondition = function evaluateCondition(game, ant, condition) {
           isTrue = true;
         } else if (object === 'NOTHING' && (ant.holding == null || ant.holding.type == null)) {
           isTrue = true;
+        } else if (object === 'DIRT' || object === 'FOOD' || object === 'EGG' || object === 'LARVA' || object === 'PUPA' || object === 'DEAD_ANT') {
+          isTrue = ant.holding != null && ant.holding.type == object;
         } else {
           isTrue = ant.holding == null && object == null || ant.holding.type == object; // object is the held type
         }
@@ -879,14 +903,18 @@ var evaluateCondition = function evaluateCondition(game, ant, condition) {
           isTrue = neighbors.filter(function (n) {
             return n.marked > 0;
           }).length > 0;
-        } else if (object === 'FOOD') {
+        } else if (object === 'DIRT' || object === 'FOOD' || object === 'EGG' || object === 'LARVA' || object === 'PUPA' || object === 'DEAD_ANT') {
           isTrue = neighbors.filter(function (n) {
-            return n.type === 'FOOD';
+            return n.type === object;
           }).length > 0;
-        } else if (object != null && object.id !== null) {
+        } else if (object != null && object.id != null) {
           isTrue = neighbors.filter(function (n) {
             return n.id === object.id;
           }).length > 0;
+        } else if (typeof object === 'string') {
+          loc = getEntitiesByType(game, ['LOCATION']).filter(function (l) {
+            return l.name === object;
+          })[0];
         }
         break;
       }
@@ -962,7 +990,7 @@ var performAction = function performAction(game, ant, action) {
       }
     case 'MOVE':
       {
-        var loc = object;
+        var _loc2 = object;
         if (object === 'RANDOM') {
           // randomly select loc based on free neighbors
           var _freePositions = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities).filter(insideWorld);
@@ -975,7 +1003,7 @@ var performAction = function performAction(game, ant, action) {
           });
           if (_freePositions.length == 0) {
             // then previous position was removed, so fall back to it
-            loc = { position: ant.prevPosition };
+            _loc2 = { position: ant.prevPosition };
           } else {
             // don't cross colonyEntrance boundary
             var colEnt = game.entities[config.colonyEntrance].position;
@@ -984,12 +1012,16 @@ var performAction = function performAction(game, ant, action) {
             });
             if (_freePositions.length == 0) {
               // fall back to previous position
-              loc = { position: ant.prevPosition };
+              _loc2 = { position: ant.prevPosition };
             }
-            loc = { position: oneOf(_freePositions) };
+            _loc2 = { position: oneOf(_freePositions) };
           }
+        } else if (typeof object === 'string') {
+          _loc2 = getEntitiesByType(game, ['LOCATION']).filter(function (l) {
+            return l.name === object;
+          })[0];
         }
-        var distVec = subtract(loc.position, ant.position);
+        var distVec = subtract(_loc2.position, ant.position);
         if (distVec.x == 0 && distVec.y == 0) {
           break; // you're there
         }
@@ -1495,7 +1527,11 @@ var initGameState = function initGameState() {
   };
 
   // seed start location
-  var colonyEntrance = makeLocation('Colony Entrance', 1, 1, { x: 25, y: 29 });
+  var clickedLocation = _extends({}, makeLocation('Clicked Position', 1, 1, { x: 0, y: 0 }), { id: config.clickedPosition
+  });
+  addEntity(gameState, clickedLocation);
+  var colonyEntrance = _extends({}, makeLocation('Colony Entrance', 1, 1, { x: 25, y: 29 }), { id: config.colonyEntrance
+  });
   addEntity(gameState, colonyEntrance);
 
   // initial tasks
@@ -1593,11 +1629,11 @@ module.exports = { initState: initState };
  * to the location separately. This way you get out of the while loop
  * even if the location is occupied
  */
-var createGoToLocationTask = function createGoToLocationTask(location) {
+var createGoToLocationTask = function createGoToLocationTask(locName) {
   return {
     name: 'Go To Location',
     repeating: false,
-    behaviorQueue: [createGoToLocationNeighborBehavior(location), createDoAction('MOVE', location)]
+    behaviorQueue: [createGoToLocationNeighborBehavior(locName), createDoAction('MOVE', locName)]
   };
 };
 // Helpers for creating tasks/locations via the console
@@ -1634,13 +1670,13 @@ var createLayEggTask = function createLayEggTask() {
 // move
 ///////////////////////////////////////////////////////////////
 
-var createMoveBehavior = function createMoveBehavior(location) {
+var createMoveBehavior = function createMoveBehavior(locName) {
   return {
     type: 'DO_ACTION',
     action: {
       type: 'MOVE',
       payload: {
-        object: location != null ? location : 'RANDOM'
+        object: locName != null ? locName : 'RANDOM'
       }
     }
   };
@@ -1658,7 +1694,7 @@ var createRandomMoveTask = function createRandomMoveTask() {
 // go to location
 ///////////////////////////////////////////////////////////////
 
-var createGoToLocationBehavior = function createGoToLocationBehavior(location) {
+var createGoToLocationBehavior = function createGoToLocationBehavior(locName) {
   return {
     type: 'WHILE',
     condition: {
@@ -1666,14 +1702,14 @@ var createGoToLocationBehavior = function createGoToLocationBehavior(location) {
       not: true,
       comparator: 'EQUALS',
       payload: {
-        object: location
+        object: locName
       }
     },
-    behavior: createMoveBehavior(location)
+    behavior: createMoveBehavior(locName)
   };
 };
 
-var createGoToLocationNeighborBehavior = function createGoToLocationNeighborBehavior(location) {
+var createGoToLocationNeighborBehavior = function createGoToLocationNeighborBehavior(locName) {
   return {
     type: 'WHILE',
     condition: {
@@ -1681,20 +1717,20 @@ var createGoToLocationNeighborBehavior = function createGoToLocationNeighborBeha
       not: true,
       comparator: 'EQUALS',
       payload: {
-        object: location
+        object: locName
       }
     },
-    behavior: createMoveBehavior(location)
+    behavior: createMoveBehavior(locName)
   };
 };
 
 var getIthLocation = function getIthLocation(game, i) {
   var locationID = game.LOCATION[i];
-  return game.entities[locationID];
+  return game.entities[locationID].name;
 };
 
 var getLocation = function getLocation(game, locationID) {
-  return game.entities[locationID];
+  return game.entities[locationID].name;
 };
 
 ///////////////////////////////////////////////////////////////
@@ -1771,7 +1807,12 @@ var createDigBlueprintTask = function createDigBlueprintTask(game) {
   return {
     name: 'Dig Out Blueprint',
     repeating: true,
-    behaviorQueue: [createGoToLocationBehavior(getIthLocation(game, 0)), createFindBlueprintBehavior(), createPickupBlueprintBehavior(), createGoToLocationBehavior(getIthLocation(game, 0)), createFindDropOffLocationBehavior(), createPutDownBehavior(), {
+    behaviorQueue: [
+    // createGoToLocationBehavior('Colony Entrance'),
+    {
+      type: 'SWITCH_TASK',
+      task: 'Move Dirt Out of the Way to the Entrance'
+    }, createFindBlueprintBehavior(), createPickupBlueprintBehavior(), createGoToLocationBehavior('Colony Entrance'), createFindDropOffLocationBehavior(), createPutDownBehavior(), {
       type: 'SWITCH_TASK',
       task: 'Move Dirt Out of the Way to the Entrance'
     }]
@@ -1789,7 +1830,7 @@ var createGoToColonyEntranceWithBlockerTask = function createGoToColonyEntranceW
         not: true,
         comparator: 'EQUALS',
         payload: {
-          object: getIthLocation(game, 0)
+          object: 'Colony Entrance'
         }
       },
       behavior: {
@@ -1802,16 +1843,13 @@ var createGoToColonyEntranceWithBlockerTask = function createGoToColonyEntranceW
             object: null
           }
         },
-        behavior: createMoveBehavior(getIthLocation(game, 0)),
+        behavior: createMoveBehavior('Colony Entrance'),
         elseBehavior: {
           type: 'SWITCH_TASK',
           done: false,
           task: 'Put Down Blocking Dirt'
         }
       }
-    }, {
-      type: 'SWITCH_TASK',
-      task: 'Dig Out Blueprint'
     }]
   };
 };
@@ -1825,24 +1863,6 @@ var createMoveBlockerTask = function createMoveBlockerTask() {
       task: 'Move Dirt Out of the Way to the Entrance'
     }]
   };
-};
-
-var gatherFoodTask = { "name": "Gather Food", "repeating": false, "behaviorQueue": [{ "type": "WHILE", "condition": { "type": "NEIGHBORING", "comparator": "LESS_THAN", "payload": { "object": "FOOD" } }, "behavior": { "type": "DO_ACTION", "action": { "type": "MOVE", "payload": { "object": "RANDOM" } } }, "not": true }, { "type": "DO_ACTION", "action": { "type": "PICKUP", "payload": { "object": "FOOD" } } }, { "type": "WHILE", "condition": { "type": "LOCATION", "comparator": "LESS_THAN", "payload": { "object": { "id": 1521, "type": "LOCATION", "width": 5, "height": 3, "age": 0, "position": { "x": 36, "y": 34 }, "prevPosition": { "x": 0, "y": 0 }, "velocity": { "x": 0, "y": 0 }, "accel": { "x": 0, "y": 0 }, "theta": 0, "thetaSpeed": 0, "marked": 0, "frameIndex": 0, "maxFrames": 1, "name": "Food Store" } } }, "behavior": { "type": "DO_ACTION", "action": { "type": "MOVE", "payload": { "object": { "id": 1521, "type": "LOCATION", "width": 5, "height": 3, "age": 0, "position": { "x": 36, "y": 34 }, "prevPosition": { "x": 0, "y": 0 }, "velocity": { "x": 0, "y": 0 }, "accel": { "x": 0, "y": 0 }, "theta": 0, "thetaSpeed": 0, "marked": 0, "frameIndex": 0, "maxFrames": 1, "name": "Food Store" } } } }, "not": true }, { "type": "WHILE", "condition": { "type": "RANDOM", "comparator": "LESS_THAN", "payload": { "object": 0.7 } }, "behavior": { "type": "DO_ACTION", "action": { "type": "MOVE", "payload": { "object": "RANDOM" } } } }, { "type": "DO_ACTION", "action": { "type": "PUTDOWN", "payload": { "object": null } } }] };
-
-var findFoodTask = {
-  "name": "Find Food",
-  "repeating": false,
-  "behaviorQueue": [{
-    "type": "WHILE",
-    "condition": {
-      "type": "NEIGHBORING",
-      "comparator": "EQUALS",
-      "payload": { "object": "FOOD" },
-      "not": true
-    },
-    "behavior": {
-      "type": "DO_ACTION",
-      "action": { "type": "MOVE", "payload": { "object": "RANDOM" } } } }, { "type": "DO_ACTION", "action": { "type": "PICKUP", "payload": { "object": "FOOD" } } }]
 };
 
 ///////////////////////////////////////////////////////////////
@@ -1880,8 +1900,7 @@ var tasks = {
   sendAllAntsToBlueprint: sendAllAntsToBlueprint,
   createDoAction: createDoAction,
   createIdleTask: createIdleTask,
-  createLayEggTask: createLayEggTask,
-  gatherFoodTask: gatherFoodTask
+  createLayEggTask: createLayEggTask
 };
 window.tasks = tasks;
 
@@ -2148,7 +2167,8 @@ var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
   // TODO add config for which entities block the ant
   var blocked = clickedEntity != null || clickedFood != null;
 
-  var clickedLocation = _extends({}, makeLocation('Clicked Position', 1, 1, gridPos), { id: -1 });
+  var clickedLocation = _extends({}, makeLocation('Clicked Position', 1, 1, gridPos), { id: config.clickedPosition
+  });
   dispatch({ type: 'CREATE_ENTITY', entity: clickedLocation });
   if (selectedAntIDs.length > 0) {
     var task = createGoToLocationTask(clickedLocation);
@@ -2360,9 +2380,11 @@ var renderEntity = function renderEntity(state, ctx, entity) {
     case 'DIRT':
       {
         ctx.fillStyle = 'brown';
-        ctx.fillRect(0, 0, entity.width, entity.height);
+        var width = entity.width + 0.04;
+        var height = entity.height + 0.04;
+        ctx.fillRect(0, 0, width, height);
         ctx.fillStyle = 'rgba(0, 0, 200,' + entity.marked * 0.5 + ')';
-        ctx.fillRect(0, 0, entity.width, entity.height);
+        ctx.fillRect(0, 0, width, height);
         break;
       }
     case 'LOCATION':
@@ -2481,7 +2503,7 @@ function BehaviorCard(props) {
     subjects = ['MOVE', 'PICKUP', 'PUTDOWN', 'IDLE', 'EAT', 'FEED', 'LAY'];
     selectedSubject = behavior.action.type;
   } else if (behavior.type == 'IF' || behavior.type == 'WHILE') {
-    subjects = ['LOCATION', 'RANDOM', 'HOLDING', 'NEIGHBORING', 'CALORIES', 'AGE'];
+    subjects = ['LOCATION', 'RANDOM', 'HOLDING', 'NEIGHBORING', 'BLOCKED', 'CALORIES', 'AGE'];
     selectedSubject = behavior.condition.type;
   } else {
     subjects = state.game.tasks.map(function (t) {
@@ -2654,10 +2676,7 @@ function Conditional(props) {
       }),
       selected: conditionObject,
       onChange: function onChange(locName) {
-        var loc = getEntitiesByType(state.game, ['LOCATION']).filter(function (l) {
-          return l.name === locName;
-        })[0];
-        behavior.condition.payload.object = loc;
+        behavior.condition.payload.object = locName;
         setBehavior(behavior);
       }
     });
@@ -2674,7 +2693,7 @@ function Conditional(props) {
   }
   if (typeName === 'NEIGHBORING') {
     objectField = React.createElement(Dropdown, {
-      options: ['MARKED', 'DIRT', 'FOOD', 'ANYTHING', 'NOTHING'].concat(getEntitiesByType(state.game, ['LOCATION']).map(function (l) {
+      options: ['MARKED', 'DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'ANYTHING', 'NOTHING'].concat(getEntitiesByType(state.game, ['LOCATION']).map(function (l) {
         return l.name;
       })),
       selected: conditionObject,
@@ -2746,14 +2765,7 @@ function DoActionCard(props) {
       options: actionOptions,
       selected: selectedObject,
       onChange: function onChange(nextActionOption) {
-        if (actionType === 'MOVE' && nextActionOption !== 'RANDOM') {
-          var loc = getEntitiesByType(state.game, ['LOCATION']).filter(function (l) {
-            return l.name === nextActionOption;
-          })[0];
-          behavior.action.payload.object = loc;
-        } else {
-          behavior.action.payload.object = nextActionOption;
-        }
+        behavior.action.payload.object = nextActionOption;
         setBehavior(behavior);
       }
     })
@@ -2762,15 +2774,26 @@ function DoActionCard(props) {
 
 module.exports = BehaviorCard;
 },{"../config":1,"../selectors/selectors":15,"./components/Button.react":31,"./components/Checkbox.react":32,"./components/Dropdown.react":33,"react":51}],24:[function(require,module,exports){
-"use strict";
+'use strict';
 
 var React = require('react');
 
 function Canvas(props) {
-  return React.createElement("canvas", {
-    id: "canvas", className: "gameCanvas",
-    width: props.width, height: props.height
-  });
+  // canvasWrapper allows for checking dynamic width/height
+  return React.createElement(
+    'div',
+    { id: 'canvasWrapper',
+      style: {
+        width: '66%', height: '100%',
+        display: 'inline-block',
+        float: 'left'
+      }
+    },
+    React.createElement('canvas', {
+      id: 'canvas', style: { backgroundColor: 'white' },
+      width: props.width, height: props.height
+    })
+  );
 }
 
 module.exports = Canvas;
@@ -2835,6 +2858,17 @@ var Button = require('./components/Button.react');
 
 function Main(props) {
 
+  var canvasDiv = document.getElementById('canvasWrapper');
+  if (canvasDiv != null) {
+    var rect = canvasDiv.getBoundingClientRect();
+    if (rect.height < rect.width) {
+      config.canvasHeight = rect.height;
+      config.canvasWidth = rect.height;
+    } else {
+      config.canvasHeight = rect.width;
+      config.canvasWidth = rect.width;
+    }
+  }
   var content = React.useMemo(function () {
     if (props.state.game == null) {
       return React.createElement(Lobby, { dispatch: props.dispatch });
@@ -2935,9 +2969,14 @@ function Sidebar(props) {
   return React.createElement(
     'div',
     {
-      className: 'sidebar',
       style: {
-        height: config.canvasHeight
+        border: '1px solid black',
+        display: 'inline-block',
+        width: 500,
+        position: 'absolute',
+        left: config.canvasWidth,
+        height: config.canvasHeight,
+        overflowY: 'scroll'
       }
     },
     React.createElement(

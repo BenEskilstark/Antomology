@@ -38,11 +38,6 @@ body {
   padding: 2px;
 }
 
-.chatBar {
-  float: right;
-  margin-right: 8px;
-}
-
 p {
   display: inline;
   margin-right: 4px;
@@ -51,17 +46,6 @@ p {
 /******************************************************************************
  * Game
  ******************************************************************************/
-
-.sidebar {
-  border: 1px solid black;
-  display: inline-block;
-  width: 500px;
-}
-
-.gameCanvas {
-  background-color: white;
-  float: left;
-}
 
 .modal {
   position: absolute;

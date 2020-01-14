@@ -1,47 +1,43 @@
 
  - - - - - - TODO - - - - - -
  - handle grid stuff with entities with larger size (locations)
- - tasks need a "parent" task or else switching tasks within a repeating task won't repeat
- - support canvas resize
- - make UI elements screen-size responsive
+ - switch dead ants/larva to their own entity type
+ - make location position in center instead of top left
+ - RANDOM move behavior for staying inside a location
 
  - - - - - - NEXT - - - - - -
- - switch dead ants/larva to their own entity type
- - implement holding for each type
- - implement neighboring for each type
- - implement BLOCKED in condition UI
- - allow nested behaviors to themselves have a queue
- - make location position in center instead of top left
- - make food amount scale by calorie amount
- - RANDOM move behavior for staying inside a location
+ - make food size scale by calorie amount with better thresholds
  - compute old-age death for ants
  - Call out ants near death of old age
  - ant calories should only go down when they do something?
+ - behaviors should support lists of child behaviors
  - option for deleting behaviors in Task Editor
+ - add background layer
 
  - - - - -  LATER - - - - - -
+ - mark should be its own entity instead of applying just to dirt
+ - make UI elements screen-size responsive
  - A*-like for ants moving towards location?
  - implement pan/zoom with grid-to-canvas size conversion
- - add background layer
- - implement the rest of the conditions
- - implement the rest of the actions
+ - implement MARK action
  - conditionals with OR/AND
- - mark should be its own entity instead of applying just to dirt
+ - saving with local storage
 
  - - - - - REFACTOR - - - - -
  - essentially need a "stack" for nested behavior execution or else e.g. a
    do-while inside a conditional while also only do the do-while as long as
-   the outer condition is true
- - get flow working
- - as long as we're treating locations/tasks uniquely by name, store only those names
- - get optional chaining working
+   the outer condition is true. Also child tasks should be treated as part of
+   this behavior stack
+ - fix flow errors
  - MOVE action implementation sucks
+ - get optional chaining working
 
 
  - - - - - - BUGS - - - - - -
  - number input (in e.g. RANDOM condition) doesn't like being cleared out temporarily
  - checkboxes in task editor complain about control
  - picked-up larva never hatch and then die on putdown. Should probably just wait to hatch
+ - don't allow creating a task called "New Task"
 
 
  - - - - - - DONE - - - - - -
@@ -160,3 +156,10 @@
  - fix picking up entity that has been put down somewhere else already
  - fix digging out blueprint always leaving colony
  - fix ants passing through blocking entities
+ - fix aliased-looking blocks
+ - tasks need a "parent" task or else switching tasks within a repeating task won't repeat
+ - support canvas resize
+ - as long as we're treating locations/tasks uniquely by name, store only those names
+ - implement holding for each type
+ - implement neighboring for each type
+ - implement BLOCKED in condition UI

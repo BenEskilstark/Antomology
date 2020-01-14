@@ -9,11 +9,11 @@
  * to the location separately. This way you get out of the while loop
  * even if the location is occupied
  */
-var createGoToLocationTask = function createGoToLocationTask(location) {
+var createGoToLocationTask = function createGoToLocationTask(locName) {
   return {
     name: 'Go To Location',
     repeating: false,
-    behaviorQueue: [createGoToLocationNeighborBehavior(location), createDoAction('MOVE', location)]
+    behaviorQueue: [createGoToLocationNeighborBehavior(locName), createDoAction('MOVE', locName)]
   };
 };
 // Helpers for creating tasks/locations via the console
@@ -50,13 +50,13 @@ var createLayEggTask = function createLayEggTask() {
 // move
 ///////////////////////////////////////////////////////////////
 
-var createMoveBehavior = function createMoveBehavior(location) {
+var createMoveBehavior = function createMoveBehavior(locName) {
   return {
     type: 'DO_ACTION',
     action: {
       type: 'MOVE',
       payload: {
-        object: location != null ? location : 'RANDOM'
+        object: locName != null ? locName : 'RANDOM'
       }
     }
   };
@@ -74,7 +74,7 @@ var createRandomMoveTask = function createRandomMoveTask() {
 // go to location
 ///////////////////////////////////////////////////////////////
 
-var createGoToLocationBehavior = function createGoToLocationBehavior(location) {
+var createGoToLocationBehavior = function createGoToLocationBehavior(locName) {
   return {
     type: 'WHILE',
     condition: {
@@ -82,14 +82,14 @@ var createGoToLocationBehavior = function createGoToLocationBehavior(location) {
       not: true,
       comparator: 'EQUALS',
       payload: {
-        object: location
+        object: locName
       }
     },
-    behavior: createMoveBehavior(location)
+    behavior: createMoveBehavior(locName)
   };
 };
 
-var createGoToLocationNeighborBehavior = function createGoToLocationNeighborBehavior(location) {
+var createGoToLocationNeighborBehavior = function createGoToLocationNeighborBehavior(locName) {
   return {
     type: 'WHILE',
     condition: {
@@ -97,20 +97,20 @@ var createGoToLocationNeighborBehavior = function createGoToLocationNeighborBeha
       not: true,
       comparator: 'EQUALS',
       payload: {
-        object: location
+        object: locName
       }
     },
-    behavior: createMoveBehavior(location)
+    behavior: createMoveBehavior(locName)
   };
 };
 
 var getIthLocation = function getIthLocation(game, i) {
   var locationID = game.LOCATION[i];
-  return game.entities[locationID];
+  return game.entities[locationID].name;
 };
 
 var getLocation = function getLocation(game, locationID) {
-  return game.entities[locationID];
+  return game.entities[locationID].name;
 };
 
 ///////////////////////////////////////////////////////////////
@@ -187,7 +187,12 @@ var createDigBlueprintTask = function createDigBlueprintTask(game) {
   return {
     name: 'Dig Out Blueprint',
     repeating: true,
-    behaviorQueue: [createGoToLocationBehavior(getIthLocation(game, 0)), createFindBlueprintBehavior(), createPickupBlueprintBehavior(), createGoToLocationBehavior(getIthLocation(game, 0)), createFindDropOffLocationBehavior(), createPutDownBehavior(), {
+    behaviorQueue: [
+    // createGoToLocationBehavior('Colony Entrance'),
+    {
+      type: 'SWITCH_TASK',
+      task: 'Move Dirt Out of the Way to the Entrance'
+    }, createFindBlueprintBehavior(), createPickupBlueprintBehavior(), createGoToLocationBehavior('Colony Entrance'), createFindDropOffLocationBehavior(), createPutDownBehavior(), {
       type: 'SWITCH_TASK',
       task: 'Move Dirt Out of the Way to the Entrance'
     }]
@@ -205,7 +210,7 @@ var createGoToColonyEntranceWithBlockerTask = function createGoToColonyEntranceW
         not: true,
         comparator: 'EQUALS',
         payload: {
-          object: getIthLocation(game, 0)
+          object: 'Colony Entrance'
         }
       },
       behavior: {
@@ -218,16 +223,13 @@ var createGoToColonyEntranceWithBlockerTask = function createGoToColonyEntranceW
             object: null
           }
         },
-        behavior: createMoveBehavior(getIthLocation(game, 0)),
+        behavior: createMoveBehavior('Colony Entrance'),
         elseBehavior: {
           type: 'SWITCH_TASK',
           done: false,
           task: 'Put Down Blocking Dirt'
         }
       }
-    }, {
-      type: 'SWITCH_TASK',
-      task: 'Dig Out Blueprint'
     }]
   };
 };
@@ -241,24 +243,6 @@ var createMoveBlockerTask = function createMoveBlockerTask() {
       task: 'Move Dirt Out of the Way to the Entrance'
     }]
   };
-};
-
-var gatherFoodTask = { "name": "Gather Food", "repeating": false, "behaviorQueue": [{ "type": "WHILE", "condition": { "type": "NEIGHBORING", "comparator": "LESS_THAN", "payload": { "object": "FOOD" } }, "behavior": { "type": "DO_ACTION", "action": { "type": "MOVE", "payload": { "object": "RANDOM" } } }, "not": true }, { "type": "DO_ACTION", "action": { "type": "PICKUP", "payload": { "object": "FOOD" } } }, { "type": "WHILE", "condition": { "type": "LOCATION", "comparator": "LESS_THAN", "payload": { "object": { "id": 1521, "type": "LOCATION", "width": 5, "height": 3, "age": 0, "position": { "x": 36, "y": 34 }, "prevPosition": { "x": 0, "y": 0 }, "velocity": { "x": 0, "y": 0 }, "accel": { "x": 0, "y": 0 }, "theta": 0, "thetaSpeed": 0, "marked": 0, "frameIndex": 0, "maxFrames": 1, "name": "Food Store" } } }, "behavior": { "type": "DO_ACTION", "action": { "type": "MOVE", "payload": { "object": { "id": 1521, "type": "LOCATION", "width": 5, "height": 3, "age": 0, "position": { "x": 36, "y": 34 }, "prevPosition": { "x": 0, "y": 0 }, "velocity": { "x": 0, "y": 0 }, "accel": { "x": 0, "y": 0 }, "theta": 0, "thetaSpeed": 0, "marked": 0, "frameIndex": 0, "maxFrames": 1, "name": "Food Store" } } } }, "not": true }, { "type": "WHILE", "condition": { "type": "RANDOM", "comparator": "LESS_THAN", "payload": { "object": 0.7 } }, "behavior": { "type": "DO_ACTION", "action": { "type": "MOVE", "payload": { "object": "RANDOM" } } } }, { "type": "DO_ACTION", "action": { "type": "PUTDOWN", "payload": { "object": null } } }] };
-
-var findFoodTask = {
-  "name": "Find Food",
-  "repeating": false,
-  "behaviorQueue": [{
-    "type": "WHILE",
-    "condition": {
-      "type": "NEIGHBORING",
-      "comparator": "EQUALS",
-      "payload": { "object": "FOOD" },
-      "not": true
-    },
-    "behavior": {
-      "type": "DO_ACTION",
-      "action": { "type": "MOVE", "payload": { "object": "RANDOM" } } } }, { "type": "DO_ACTION", "action": { "type": "PICKUP", "payload": { "object": "FOOD" } } }]
 };
 
 ///////////////////////////////////////////////////////////////
@@ -296,8 +280,7 @@ var tasks = {
   sendAllAntsToBlueprint: sendAllAntsToBlueprint,
   createDoAction: createDoAction,
   createIdleTask: createIdleTask,
-  createLayEggTask: createLayEggTask,
-  gatherFoodTask: gatherFoodTask
+  createLayEggTask: createLayEggTask
 };
 window.tasks = tasks;
 

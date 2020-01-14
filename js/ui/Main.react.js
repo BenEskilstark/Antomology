@@ -15,6 +15,17 @@ type Props = {
 
 function Main(props: Props): React.Node {
 
+  const canvasDiv = document.getElementById('canvasWrapper');
+  if (canvasDiv != null) {
+    const rect = canvasDiv.getBoundingClientRect();
+    if (rect.height < rect.width) {
+      config.canvasHeight = rect.height;
+      config.canvasWidth = rect.height;
+    } else {
+      config.canvasHeight = rect.width;
+      config.canvasWidth = rect.width;
+    }
+  }
   const content = React.useMemo(() => {
     if (props.state.game == null) {
       return <Lobby dispatch={props.dispatch} />;

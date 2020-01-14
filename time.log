@@ -54,13 +54,13 @@ Date  Time Started  Time Spent  Work Completed
                                 Only lay eggs on top of dirt. UI for naming locations
                                 Location labels in the world.
                                 Making another location with same name replaces it
-                                (14hr 10min --> 27hr 50min)
 
 1/10     9:30am     2hr 10min   Fixed numerous bugs
                                 Implement PICKUP for every type
                                 Button for exporting a task to JSON
          2:15pm     50min       Make eggs/larva/pupa selectable
                                 Make mouse controls more intuitive
+                                (17hr 10min -> 30hr 50min)
 
 1/11     8:30am     30min       Button for importing tasks from JSON
                                 Implement maxAntCalories
@@ -73,3 +73,7 @@ Date  Time Started  Time Spent  Work Completed
           2:20pm    1hr 10min   Refactoring for faster collision detection everywhere
 
 1/14      8:55am    2hr         Got the refactoring done and fixed all* the ensuing bugs
+         11:55am    3hr         Implemented stack of parent tasks so that you can switch
+                                tasks inside a repeating task and resume the parent
+                                Refactor to store only location names instead of location entity
+

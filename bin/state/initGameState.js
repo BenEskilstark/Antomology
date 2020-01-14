@@ -59,7 +59,11 @@ var initGameState = function initGameState() {
   };
 
   // seed start location
-  var colonyEntrance = makeLocation('Colony Entrance', 1, 1, { x: 25, y: 29 });
+  var clickedLocation = _extends({}, makeLocation('Clicked Position', 1, 1, { x: 0, y: 0 }), { id: config.clickedPosition
+  });
+  addEntity(gameState, clickedLocation);
+  var colonyEntrance = _extends({}, makeLocation('Colony Entrance', 1, 1, { x: 25, y: 29 }), { id: config.colonyEntrance
+  });
   addEntity(gameState, colonyEntrance);
 
   // initial tasks

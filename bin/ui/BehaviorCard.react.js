@@ -41,7 +41,7 @@ function BehaviorCard(props) {
     subjects = ['MOVE', 'PICKUP', 'PUTDOWN', 'IDLE', 'EAT', 'FEED', 'LAY'];
     selectedSubject = behavior.action.type;
   } else if (behavior.type == 'IF' || behavior.type == 'WHILE') {
-    subjects = ['LOCATION', 'RANDOM', 'HOLDING', 'NEIGHBORING', 'CALORIES', 'AGE'];
+    subjects = ['LOCATION', 'RANDOM', 'HOLDING', 'NEIGHBORING', 'BLOCKED', 'CALORIES', 'AGE'];
     selectedSubject = behavior.condition.type;
   } else {
     subjects = state.game.tasks.map(function (t) {
@@ -214,10 +214,7 @@ function Conditional(props) {
       }),
       selected: conditionObject,
       onChange: function onChange(locName) {
-        var loc = getEntitiesByType(state.game, ['LOCATION']).filter(function (l) {
-          return l.name === locName;
-        })[0];
-        behavior.condition.payload.object = loc;
+        behavior.condition.payload.object = locName;
         setBehavior(behavior);
       }
     });
@@ -234,7 +231,7 @@ function Conditional(props) {
   }
   if (typeName === 'NEIGHBORING') {
     objectField = React.createElement(Dropdown, {
-      options: ['MARKED', 'DIRT', 'FOOD', 'ANYTHING', 'NOTHING'].concat(getEntitiesByType(state.game, ['LOCATION']).map(function (l) {
+      options: ['MARKED', 'DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'ANYTHING', 'NOTHING'].concat(getEntitiesByType(state.game, ['LOCATION']).map(function (l) {
         return l.name;
       })),
       selected: conditionObject,
@@ -306,14 +303,7 @@ function DoActionCard(props) {
       options: actionOptions,
       selected: selectedObject,
       onChange: function onChange(nextActionOption) {
-        if (actionType === 'MOVE' && nextActionOption !== 'RANDOM') {
-          var loc = getEntitiesByType(state.game, ['LOCATION']).filter(function (l) {
-            return l.name === nextActionOption;
-          })[0];
-          behavior.action.payload.object = loc;
-        } else {
-          behavior.action.payload.object = nextActionOption;
-        }
+        behavior.action.payload.object = nextActionOption;
         setBehavior(behavior);
       }
     })

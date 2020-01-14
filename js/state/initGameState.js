@@ -47,10 +47,13 @@ const initGameState = (): GameState => {
   };
 
   // seed start location
-  const colonyEntrance = makeLocation(
-    'Colony Entrance',
-    1, 1, {x: 25, y: 29},
-  );
+  const clickedLocation = {
+    ...makeLocation('Clicked Position', 1, 1, {x:0, y:0}), id: config.clickedPosition,
+  }
+  addEntity(gameState, clickedLocation);
+  const colonyEntrance = {
+    ...makeLocation('Colony Entrance', 1, 1, {x: 25, y: 29}), id: config.colonyEntrance,
+  };
   addEntity(gameState, colonyEntrance);
 
   // initial tasks

@@ -19,6 +19,10 @@ const makeAnt = (position: Vector, subType: AntSubType): Ant => {
     // task: createRandomMoveTask(),
     task: createIdleTask(),
     taskIndex: 0,
+    taskStack: [{
+      name: 'Idle',
+      index: 0,
+    }],
     blocked: false,
     blockedBy: null,
     alive: true,

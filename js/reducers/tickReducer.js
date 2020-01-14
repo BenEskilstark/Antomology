@@ -143,10 +143,20 @@ const performTask = (game: GameState, ant: Ant): void => {
     return;
   }
   const {task, taskIndex} = ant;
-  // if ran off the end of the behavior queue, switch to idle task
+  // if run off the end of the behavior queue, then repeat or pop back to parent
   if (taskIndex >= task.behaviorQueue.length) {
-    ant.taskIndex = 0;
-    ant.task = createIdleTask();
+    if (task.repeating) {
+      ant.taskIndex = 0;
+    } else {
+      const parentTask = ant.taskStack.pop();
+      if (parentTask == null) {
+        ant.taskIndex = 0;
+        ant.task = createIdleTask();
+      } else {
+        ant.taskIndex = parentTask.index + 1;
+        ant.task = game.tasks.filter(t => t.name === parentTask.name)[0];
+      }
+    }
     return;
   }
   const behavior = task.behaviorQueue[taskIndex];
@@ -196,7 +206,12 @@ const performBehavior = (game: GameState, ant: Ant, behavior: Behavior): boolean
       break;
     }
     case 'SWITCH_TASK': {
+      const parentTask = ant.task;
       ant.task = game.tasks.filter(t => t.name === behavior.task)[0];
+      ant.taskStack.push({
+        name: parentTask.name,
+        index: ant.taskIndex,
+      });
       // HACK: this sucks. done doesn't always propagate up particularly if
       // you switch tasks from inside a do-while
       ant.taskIndex = -1; // it's about to +1 in performTask
@@ -229,6 +244,12 @@ const evaluateCondition = (
         isTrue = true;
       } else if (object === 'NOTHING' && (ant.holding == null || ant.holding.type == null)) {
         isTrue = true;
+      } else if (
+        object === 'DIRT' || object === 'FOOD' ||
+        object === 'EGG' || object === 'LARVA' ||
+        object === 'PUPA' || object === 'DEAD_ANT'
+      ) {
+        isTrue = ant.holding != null && ant.holding.type == object;
       } else {
         isTrue = (ant.holding == null && object == null) ||
           ant.holding.type == object; // object is the held type
@@ -244,10 +265,16 @@ const evaluateCondition = (
         isTrue = neighbors.length === 0;
       } else if (object === 'MARKED') {
         isTrue = neighbors.filter(n => n.marked > 0).length > 0;
-      } else if (object === 'FOOD') {
-        isTrue = neighbors.filter(n => n.type === 'FOOD').length > 0;
-      } else if (object != null && object.id !== null) {
+      } else if (
+        object === 'DIRT' || object === 'FOOD' ||
+        object === 'EGG' || object === 'LARVA' ||
+        object === 'PUPA' || object === 'DEAD_ANT'
+      ) {
+        isTrue = neighbors.filter(n => n.type === object).length > 0;
+      } else if (object != null && object.id != null) {
         isTrue = neighbors.filter(n => n.id === object.id).length > 0;
+      } else if (typeof object === 'string') {
+        loc = getEntitiesByType(game, ['LOCATION']).filter(l => l.name === object)[0];
       }
       break;
     }
@@ -345,6 +372,8 @@ const performAction = (
           }
           loc = {position: oneOf(freePositions)};
         }
+      } else if (typeof object === 'string') {
+        loc = getEntitiesByType(game, ['LOCATION']).filter(l => l.name === object)[0];
       }
       const distVec = subtract(loc.position, ant.position);
       if (distVec.x == 0 && distVec.y == 0) {

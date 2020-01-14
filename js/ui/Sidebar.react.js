@@ -28,9 +28,14 @@ function Sidebar(props: Props): React.Node {
   ));
   return (
     <div
-      className="sidebar"
       style={{
+        border: '1px solid black',
+        display: 'inline-block',
+        width: 500,
+        position: 'absolute',
+        left: config.canvasWidth,
         height: config.canvasHeight,
+        overflowY: 'scroll',
       }}
     >
       <div><b>Controls</b></div>

@@ -13,7 +13,8 @@ const config = {
   canvasWidth: 800,
   canvasHeight: 800,
 
-  // colony entrance location id:
+  // hardcoded location ids:
+  clickedPosition: -1,
   colonyEntrance: 0,
 
   // food

@@ -37,9 +37,14 @@ function Sidebar(props) {
   return React.createElement(
     'div',
     {
-      className: 'sidebar',
       style: {
-        height: config.canvasHeight
+        border: '1px solid black',
+        display: 'inline-block',
+        width: 500,
+        position: 'absolute',
+        left: config.canvasWidth,
+        height: config.canvasHeight,
+        overflowY: 'scroll'
       }
     },
     React.createElement(

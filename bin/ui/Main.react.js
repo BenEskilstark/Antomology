@@ -11,6 +11,17 @@ var Button = require('./components/Button.react');
 
 function Main(props) {
 
+  var canvasDiv = document.getElementById('canvasWrapper');
+  if (canvasDiv != null) {
+    var rect = canvasDiv.getBoundingClientRect();
+    if (rect.height < rect.width) {
+      config.canvasHeight = rect.height;
+      config.canvasWidth = rect.height;
+    } else {
+      config.canvasHeight = rect.width;
+      config.canvasWidth = rect.width;
+    }
+  }
   var content = React.useMemo(function () {
     if (props.state.game == null) {
       return React.createElement(Lobby, { dispatch: props.dispatch });

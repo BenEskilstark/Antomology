@@ -167,7 +167,9 @@ const handleRightClick = (state: State, dispatch: Dispatch, gridPos: Vector): vo
   // TODO add config for which entities block the ant
   const blocked = clickedEntity != null || clickedFood != null;
 
-  const clickedLocation = {...makeLocation('Clicked Position', 1, 1, gridPos), id: -1};
+  const clickedLocation = {
+    ...makeLocation('Clicked Position', 1, 1, gridPos), id: config.clickedPosition,
+  };
   dispatch({type: 'CREATE_ENTITY', entity: clickedLocation});
   if (selectedAntIDs.length > 0) {
     const task = createGoToLocationTask(clickedLocation);

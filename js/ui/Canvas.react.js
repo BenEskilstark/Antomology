@@ -8,11 +8,20 @@ type Props = {
 };
 
 function Canvas(props: Props): React.Node {
+  // canvasWrapper allows for checking dynamic width/height
   return (
-    <canvas
-        id="canvas" className="gameCanvas"
+    <div id="canvasWrapper"
+      style={{
+        width: '66%', height: '100%',
+        display: 'inline-block',
+        float: 'left',
+      }}
+    >
+      <canvas
+        id="canvas" style={{backgroundColor: 'white'}}
         width={props.width} height={props.height}
       />
+    </div>
   );
 }
 

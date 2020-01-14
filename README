@@ -1,16 +1,32 @@
 Antomology 2020
 
+NOTE: you shouldn't need to compile when you first clone because I commit all
+the compiled bin files too
 compile with
  > ./compile.bash
 files in js get babelified into the bin directory,
 and then browser-side-required into bundle.js
 
 deploy with
- > git commit -a -m "some message"
- > git push origin master
+ > git add --all
+ > git commit -m "some message"
+ > git push -u origin master
 
 run the app locally with:
  > npm start
 then in the browser go to:
   localhost:8000
 
+Game Instructions:
+ - select ants with left-click and drag
+ - send them somewhere with right-click
+ - use the dropdowns in the sidebar to change what left- and right-click does
+ - assign pre-made tasks to selected ants OR
+ - use the task editor to edit or create new tasks ants can do
+ - the larger ant is the queen who can lay eggs if she is directly above dirt
+   (use Lay Egg task)
+ - eggs become larva, then larva need to be fed food until they reach a calorie threshold
+   to become pupa. Then pupa hatch into more ants
+ - ants can die of starvation so they need to eat too
+ - food spawns randomly every ~5 seconds
+ - how many ants can you keep alive at the same time?

@@ -21,6 +21,10 @@ var makeAnt = function makeAnt(position, subType) {
     // task: createRandomMoveTask(),
     task: createIdleTask(),
     taskIndex: 0,
+    taskStack: [{
+      name: 'Idle',
+      index: 0
+    }],
     blocked: false,
     blockedBy: null,
     alive: true
