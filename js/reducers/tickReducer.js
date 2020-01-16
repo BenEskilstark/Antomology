@@ -1,6 +1,13 @@
 // @flow
 
-const {add, equals, subtract, distance} = require('../utils/vectors');
+const {
+  add,
+  equals,
+  subtract,
+  distance,
+  makeVector,
+  vectorTheta,
+} = require('../utils/vectors');
 const {config} = require('../config');
 const {sin, cos, abs, sqrt} = Math;
 const {gameReducer} = require('./gameReducer');
@@ -263,14 +270,30 @@ const evaluateCondition = (
         isTrue = neighbors.length > 0;
       } else if (object === 'NOTHING') {
         isTrue = neighbors.length === 0;
-      } else if (object === 'MARKED') {
-        isTrue = neighbors.filter(n => n.marked > 0).length > 0;
+      } else if (object === 'MARKED_DIRT') {
+        let pheromoneNeighbors = neighbors
+          .filter(e => e.type === 'PHEROMONE');
+        let dirtNeighbors = neighbors
+          .filter(e => e.type === 'DIRT');
+        isTrue = false;
+        for (const dirt of dirtNeighbors) {
+          for (const pheromone of pheromoneNeighbors) {
+            if (equals(dirt.position, pheromone.position)) {
+              isTrue = true;
+            }
+          }
+        }
       } else if (
         object === 'DIRT' || object === 'FOOD' ||
         object === 'EGG' || object === 'LARVA' ||
-        object === 'PUPA' || object === 'DEAD_ANT'
+        object === 'PUPA' || object === 'DEAD_ANT' ||
+        object === 'TRAIL'
       ) {
-        isTrue = neighbors.filter(n => n.type === object).length > 0;
+        let typeName = object;
+        if (object === 'TRAIL') {
+          typeName = 'PHEROMONE';
+        }
+        isTrue = neighbors.filter(n => n.type === typeName).length > 0;
       } else if (object != null && object.id != null) {
         isTrue = neighbors.filter(n => n.id === object.id).length > 0;
       } else if (typeof object === 'string') {
@@ -352,7 +375,18 @@ const performAction = (
     }
     case 'MOVE': {
       let loc = object;
-      if (object === 'RANDOM') {
+      let obj = object;
+      if (obj === 'TRAIL') {
+        const pheromone = lookupInGrid(game.grid, ant.position)
+          .map(id => game.entities[id])
+          .filter(e => e.type === 'PHEROMONE')[0];
+        if (pheromone != null) {
+          loc = {position: add(ant.position, makeVector(pheromone.theta, 1))};
+        } else {
+          obj = 'RANDOM';
+        }
+      }
+      if (obj === 'RANDOM') {
         // randomly select loc based on free neighbors
         let freePositions = fastGetEmptyNeighborPositions(
           game, ant, config.antBlockingEntities
@@ -377,8 +411,8 @@ const performAction = (
           }
           loc = {position: oneOf(freePositions)};
         }
-      } else if (typeof object === 'string') {
-        loc = getEntitiesByType(game, ['LOCATION']).filter(l => l.name === object)[0];
+      } else if (obj != 'TRAIL' && typeof obj === 'string') {
+        loc = getEntitiesByType(game, ['LOCATION']).filter(l => l.name === obj)[0];
       }
       const distVec = subtract(loc.position, ant.position);
       if (distVec.x == 0 && distVec.y == 0) {
@@ -432,10 +466,22 @@ const performAction = (
       let entityToPickup = object;
       if (entityToPickup === 'BLOCKER') {
         entityToPickup = ant.blockedBy;
-      } else if (entityToPickup === 'MARKED') {
-        entityToPickup = oneOf(
-          fastGetNeighbors(game, ant).filter(e => e.marked > 0)
-        );
+      } else if (entityToPickup === 'MARKED_DIRT') {
+        const neighbors = fastGetNeighbors(game, ant);
+        let pheromoneNeighbors = neighbors
+          .filter(e => e.type === 'PHEROMONE');
+        let dirtNeighbors = neighbors
+          .filter(e => e.type === 'DIRT');
+        console.log(pheromoneNeighbors, dirtNeighbors);
+        const markedDirt = [];
+        for (const dirt of dirtNeighbors) {
+          for (const pheromone of pheromoneNeighbors) {
+            if (equals(dirt.position, pheromone.position)) {
+              markedDirt.push(dirt);
+            }
+          }
+        }
+        entityToPickup = oneOf(markedDirt);
       } else if (
         entityToPickup === 'DIRT' || entityToPickup === 'FOOD' ||
         entityToPickup === 'EGG' || entityToPickup === 'LARVA' ||
@@ -457,8 +503,6 @@ const performAction = (
         ant.blockedBy = null;
         deleteFromGrid(game.grid, entityToPickup.position, entityToPickup.id);
         entityToPickup.position = null;
-        // reduce mark quantity
-        entityToPickup.marked = Math.max(0, entityToPickup.marked - 1);
       }
       break;
     }

@@ -231,7 +231,7 @@ function Conditional(props) {
   }
   if (typeName === 'NEIGHBORING') {
     objectField = React.createElement(Dropdown, {
-      options: ['MARKED', 'DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'ANYTHING', 'NOTHING'].concat(getEntitiesByType(state.game, ['LOCATION']).map(function (l) {
+      options: ['MARKED_DIRT', 'DIRT', 'FOOD', 'TRAIL', 'EGG', 'LARVA', 'PUPA', 'ANYTHING', 'NOTHING'].concat(getEntitiesByType(state.game, ['LOCATION']).map(function (l) {
         return l.name;
       })),
       selected: conditionObject,
@@ -273,12 +273,12 @@ function DoActionCard(props) {
   switch (actionType) {
     case 'MOVE':
       actionPreposition = 'towards: ';
-      actionOptions = ['RANDOM'].concat(getEntitiesByType(state.game, ['LOCATION']).map(function (l) {
+      actionOptions = ['RANDOM', 'TRAIL'].concat(getEntitiesByType(state.game, ['LOCATION']).map(function (l) {
         return l.name;
       }));
       break;
     case 'PICKUP':
-      actionOptions = ['DIRT', 'MARKED', 'BLOCKER', 'FOOD', 'EGG', 'LARVA', 'PUPA'];
+      actionOptions = ['DIRT', 'MARKED_DIRT', 'BLOCKER', 'FOOD', 'EGG', 'LARVA', 'PUPA'];
       break;
     case 'PUTDOWN':
       break;
@@ -294,6 +294,9 @@ function DoActionCard(props) {
   // for locations:
   if (selectedObject.name != null) {
     selectedObject = selectedObject.name;
+  }
+  if (selectedObject === 'TRAIL') {
+    actionPreposition = 'following: ';
   }
   return React.createElement(
     'span',

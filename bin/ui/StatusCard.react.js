@@ -40,7 +40,7 @@ function AntCard(props) {
   var ant = entity;
 
   var hungryStr = ant.calories < config.antStartingCalories * config.antStarvationWarningThreshold ? ' - Hungry' : '';
-  var deadStr = ant.alive ? '' : 'Dead ';
+  var deadStr = ant.alive ? '' : 'DEAD ';
 
   return React.createElement(
     'div',
@@ -167,7 +167,7 @@ function LarvaCard(props) {
   var larva = entity;
 
   var hungryStr = larva.calories < config.larvaStartingCalories * config.antStarvationWarningThreshold ? ' - Hungry' : '';
-  var deadStr = ant.alive ? '' : 'Dead ';
+  var deadStr = ant.alive ? '' : 'DEAD ';
 
   return React.createElement(
     'div',

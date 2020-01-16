@@ -1,9 +1,12 @@
 
  - - - - - - TODO - - - - - -
  - pheromone trails
-    - mark should be its own entity instead of applying just to dirt
-    - it should be a vector that an ant can follow
-    - tool for laying pheromone trail
+    - behavior for ant following trail
+    - update MARKED condition
+    - fix/delete the digging out blueprint behavior
+    - tool for clearing pheromone
+    - potentially have pheromone fade over time
+    - support categories of pheromone you can select and have different colors
  - implement pan/zoom with grid-to-canvas size conversion
     - how to handle at controls level with click-and-drag already used for marquee?
  - add background layer
@@ -188,3 +191,14 @@
  - make dead ants more obvious looking
  - mention ants are dead in the UI
  - RANDOM move behavior for staying inside a location
+
+ - pheromone trails
+    - mark should be its own entity instead of applying just to dirt
+    - it should be a vector that an ant can follow
+    - tool for laying pheromone trail
+    - rename MARK to TRAIL or something
+    - last pheromone always has theta = 0
+    - pheromone trails only 90 degree angles
+    - only rotate prevPheromone if it is a neighbor
+    - fixed one ant being colored green
+    - when putting pheromone somewhere there already is, update its theta

@@ -84,6 +84,9 @@ function TaskCard(props: Props): React.Node {
       <Button
         label={newTask || taskName != task.name ? 'Create Task' : 'Update Task'}
         onClick={() => {
+          if (taskName === 'New Task') {
+            return;
+          }
           const editedTask = {name: taskName, repeating, behaviorQueue};
           if (newTask || taskName != task.name) {
             dispatch({type: 'CREATE_TASK', task: editedTask});

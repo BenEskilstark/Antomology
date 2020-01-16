@@ -8,6 +8,8 @@ const Button = require('./ui/Button.react');
 
 export type Color = string;
 
+export type Radian = number;
+
 export type Listener = () => mixed; // some callback passed to subscribe
 export type Unsubscribe = () => mixed; // unsubscribe a listener
 export type Store = {
@@ -35,7 +37,7 @@ export type State = {
 // Game State
 // -------------------------------------------------------------------------------
 
-export type UserMode = 'MARK' | 'CREATE_LOCATION' | 'SELECT';
+export type UserMode = 'MARK_TRAIL' | 'CREATE_LOCATION' | 'SELECT';
 export type AntMode = 'PICKUP' | 'FEED' | 'EAT';
 export type Mouse = {
   isLeftDown: boolean,
@@ -53,7 +55,9 @@ export type GameState = {
   userMode: UserMode,
   mouse: Mouse,
 
+  // UI-based partial state
   nextLocationName: string,
+  prevPheromone: EntityID,
 
   selectedEntities: Array<EntityID>,
   // ALL entities (including ants) here:
@@ -66,7 +70,8 @@ export type GameState = {
   EGG: Array<EntityID>,
   LARVA: Array<EntityID>,
   PUPA: Array<EntityID>,
-  DEAD_ANT: Array<EntityID>,
+  DEAD_ANT: Array<EntityID>, // TODO: not actually implemented
+  PHEROMONE: Array<EntityID>,
 
   // for faster collision detection
   grid: Array<Array<Array<EntityID>>>,
@@ -80,7 +85,8 @@ export type GameState = {
 
 export type EntityID = number;
 export type EntityType =
-  'ANT' | 'DIRT' | 'FOOD' | 'EGG' | 'LARVA' | 'PUPA' | 'LOCATION' | 'DEAD_ANT';
+  'ANT' | 'DIRT' | 'FOOD' | 'EGG' | 'LARVA' | 'PUPA' | 'LOCATION' | 'DEAD_ANT' |
+  'PHEROMONE';
 
 export type Entity = {
   id: EntityID,
@@ -94,6 +100,7 @@ export type Entity = {
   width: number,
   height: number,
 
+  // DEPRECATED
   marked: number, // scalar showing how "marked" this is e.g. for digging
 
   theta: Radians,
@@ -123,6 +130,10 @@ export type Location = Entity & {
 export type Food = Entity & {
   name: string,
   calories: number,
+};
+export type Pheromone = Entity & {
+  category: number, // so there can be different kinds of trails
+  quantity: number,
 };
 
 // -------------------------------------------------------------------------------
@@ -233,6 +244,7 @@ export type Action =
   {type: 'SET_USER_MODE', userMode: UserMode} |
   {type: 'SET_ANT_MODE', antMode: AntMode} |
   {type: 'SET_MOUSE_DOWN', isLeft: boolean, isDown: boolean, downPos: Vector} |
-  {type: 'SET_MOUSE_POS', curPos: Vector} |
-  {type: 'MARK_ENTITY', entityID: EntityID, quantity: number};
+  {type: 'UPDATE_THETA', id: EntityID, theta: Radian} |
+  {type: 'SET_PREV_PHEROMONE', id: EntityID} |
+  {type: 'SET_MOUSE_POS', curPos: Vector};
 

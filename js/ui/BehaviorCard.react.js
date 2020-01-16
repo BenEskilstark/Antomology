@@ -217,7 +217,7 @@ function Conditional(
   if (typeName === 'NEIGHBORING') {
     objectField = <Dropdown
       options={
-        ['MARKED', 'DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'ANYTHING', 'NOTHING']
+        ['MARKED_DIRT', 'DIRT', 'FOOD', 'TRAIL', 'EGG', 'LARVA', 'PUPA', 'ANYTHING', 'NOTHING']
         .concat(getEntitiesByType(state.game, ['LOCATION']).map(l => l.name))
       }
       selected={conditionObject}
@@ -255,11 +255,11 @@ function DoActionCard(props: mixed): React.Node {
   switch (actionType) {
     case 'MOVE':
       actionPreposition = 'towards: ';
-      actionOptions = ['RANDOM']
+      actionOptions = ['RANDOM', 'TRAIL']
         .concat(getEntitiesByType(state.game, ['LOCATION']).map(l => l.name));
       break;
     case 'PICKUP':
-      actionOptions = ['DIRT', 'MARKED', 'BLOCKER', 'FOOD', 'EGG', 'LARVA', 'PUPA'];
+      actionOptions = ['DIRT', 'MARKED_DIRT', 'BLOCKER', 'FOOD', 'EGG', 'LARVA', 'PUPA'];
       break
     case 'PUTDOWN':
       break;
@@ -275,6 +275,9 @@ function DoActionCard(props: mixed): React.Node {
   // for locations:
   if (selectedObject.name != null) {
     selectedObject = selectedObject.name;
+  }
+  if (selectedObject === 'TRAIL') {
+    actionPreposition = 'following: ';
   }
   return (
     <span>

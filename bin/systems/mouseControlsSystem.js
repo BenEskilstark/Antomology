@@ -17,14 +17,23 @@ var _require3 = require('../utils/canvasHelpers'),
 
 var _require4 = require('../utils/vectors'),
     add = _require4.add,
-    subtract = _require4.subtract;
+    subtract = _require4.subtract,
+    equals = _require4.equals,
+    makeVector = _require4.makeVector,
+    vectorTheta = _require4.vectorTheta;
 
 var _require5 = require('../entities/location'),
     makeLocation = _require5.makeLocation;
 
-var _require6 = require('../state/tasks'),
-    createGoToLocationTask = _require6.createGoToLocationTask,
-    createDoAction = _require6.createDoAction;
+var _require6 = require('../entities/pheromone'),
+    makePheromone = _require6.makePheromone;
+
+var _require7 = require('../utils/stateHelpers'),
+    lookupInGrid = _require7.lookupInGrid;
+
+var _require8 = require('../state/tasks'),
+    createGoToLocationTask = _require8.createGoToLocationTask,
+    createDoAction = _require8.createDoAction;
 
 var initMouseControlsSystem = function initMouseControlsSystem(store) {
   var dispatch = store.dispatch;
@@ -69,37 +78,41 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
     var gridPos = getClickedPos(ev);
     if (gridPos == null) return;
     dispatch({ type: 'SET_MOUSE_POS', curPos: gridPos });
-    if (state.game.mouse.isLeftDown && state.game.userMode === 'MARK') {
-      var clickedEntities = fastCollidesWith(state.game, { position: gridPos, width: 1, height: 1 }).filter(function (e) {
-        return e.type === 'DIRT';
-      });
-      var _iteratorNormalCompletion = true;
-      var _didIteratorError = false;
-      var _iteratorError = undefined;
-
-      try {
-        for (var _iterator = clickedEntities[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-          var clickedEntity = _step.value;
-
-          dispatch({
-            type: 'MARK_ENTITY',
-            entityID: clickedEntity.id,
-            quantity: 1
-          });
+    if (state.game.mouse.isLeftDown && state.game.userMode === 'MARK_TRAIL') {
+      var prevPheromone = state.game.entities[state.game.prevPheromone];
+      if (prevPheromone == null) {
+        dispatch({
+          type: 'CREATE_ENTITY',
+          entity: makePheromone(gridPos, theta, 1, 1)
+        });
+        return;
+      }
+      if (equals(gridPos, prevPheromone.position)) {
+        return; // don't make another at its current spot
+      }
+      var theta = vectorTheta(subtract(gridPos, prevPheromone.position));
+      var xDiff = Math.abs(gridPos.x - prevPheromone.position.x);
+      var yDiff = Math.abs(gridPos.y - prevPheromone.position.y);
+      if (xDiff > 1 || yDiff > 1 || xDiff == 1 && yDiff == 1) {
+        theta = 0; // no theta update if they aren't neighbors
+      } else {
+        dispatch({ type: 'UPDATE_THETA', id: prevPheromone.id, theta: theta });
+      }
+      var pheromone = lookupInGrid(state.game.grid, gridPos).filter(function (id) {
+        return state.game.entities[id].type === 'PHEROMONE';
+      }).map(function (id) {
+        return state.game.entities[id];
+      })[0];
+      if (pheromone != null) {
+        if (pheromone.theta != theta) {
+          dispatch({ type: 'UPDATE_THETA', id: pheromone.id, theta: theta });
+          dispatch({ type: 'SET_PREV_PHEROMONE', id: pheromone.id });
         }
-      } catch (err) {
-        _didIteratorError = true;
-        _iteratorError = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion && _iterator.return) {
-            _iterator.return();
-          }
-        } finally {
-          if (_didIteratorError) {
-            throw _iteratorError;
-          }
-        }
+      } else {
+        dispatch({
+          type: 'CREATE_ENTITY',
+          entity: makePheromone(gridPos, theta, 1, 1)
+        });
       }
     }
   };
@@ -167,17 +180,6 @@ var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
       dispatch({
         type: 'SET_SELECTED_ENTITIES',
         entityIDs: []
-      });
-    }
-  } else if (state.game.userMode === 'MARK') {
-    var clickedEntity = entitiesInMarquee(state.game, { position: gridPos, width: 1, height: 1 }).filter(function (e) {
-      return e.type == 'DIRT';
-    })[0];
-    if (clickedEntity != null) {
-      dispatch({
-        type: 'MARK_ENTITY',
-        entityID: clickedEntity.id,
-        quantity: 1
       });
     }
   }

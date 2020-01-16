@@ -136,7 +136,7 @@ const createFindBlueprintBehavior = (): Behavior => {
       not: true,
       comparator: 'EQUALS',
       payload: {
-        object: 'MARKED',
+        object: 'MARKED_DIRT',
       },
     },
     behavior: createMoveBehavior(), // move randomly
@@ -149,7 +149,7 @@ const createPickupBlueprintBehavior = (): Behavior => {
     action: {
       type: 'PICKUP',
       payload: {
-        object: 'MARKED',
+        object: 'MARKED_DIRT',
       },
     },
   };

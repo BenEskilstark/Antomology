@@ -6,7 +6,9 @@ var _require = require('../utils/vectors'),
     add = _require.add,
     equals = _require.equals,
     subtract = _require.subtract,
-    distance = _require.distance;
+    distance = _require.distance,
+    makeVector = _require.makeVector,
+    vectorTheta = _require.vectorTheta;
 
 var _require2 = require('../config'),
     config = _require2.config;
@@ -381,13 +383,69 @@ var evaluateCondition = function evaluateCondition(game, ant, condition) {
           isTrue = neighbors.length > 0;
         } else if (object === 'NOTHING') {
           isTrue = neighbors.length === 0;
-        } else if (object === 'MARKED') {
+        } else if (object === 'MARKED_DIRT') {
+          var pheromoneNeighbors = neighbors.filter(function (e) {
+            return e.type === 'PHEROMONE';
+          });
+          var dirtNeighbors = neighbors.filter(function (e) {
+            return e.type === 'DIRT';
+          });
+          isTrue = false;
+          var _iteratorNormalCompletion5 = true;
+          var _didIteratorError5 = false;
+          var _iteratorError5 = undefined;
+
+          try {
+            for (var _iterator5 = dirtNeighbors[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+              var dirt = _step5.value;
+              var _iteratorNormalCompletion6 = true;
+              var _didIteratorError6 = false;
+              var _iteratorError6 = undefined;
+
+              try {
+                for (var _iterator6 = pheromoneNeighbors[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+                  var pheromone = _step6.value;
+
+                  if (equals(dirt.position, pheromone.position)) {
+                    isTrue = true;
+                  }
+                }
+              } catch (err) {
+                _didIteratorError6 = true;
+                _iteratorError6 = err;
+              } finally {
+                try {
+                  if (!_iteratorNormalCompletion6 && _iterator6.return) {
+                    _iterator6.return();
+                  }
+                } finally {
+                  if (_didIteratorError6) {
+                    throw _iteratorError6;
+                  }
+                }
+              }
+            }
+          } catch (err) {
+            _didIteratorError5 = true;
+            _iteratorError5 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                _iterator5.return();
+              }
+            } finally {
+              if (_didIteratorError5) {
+                throw _iteratorError5;
+              }
+            }
+          }
+        } else if (object === 'DIRT' || object === 'FOOD' || object === 'EGG' || object === 'LARVA' || object === 'PUPA' || object === 'DEAD_ANT' || object === 'TRAIL') {
+          var typeName = object;
+          if (object === 'TRAIL') {
+            typeName = 'PHEROMONE';
+          }
           isTrue = neighbors.filter(function (n) {
-            return n.marked > 0;
-          }).length > 0;
-        } else if (object === 'DIRT' || object === 'FOOD' || object === 'EGG' || object === 'LARVA' || object === 'PUPA' || object === 'DEAD_ANT') {
-          isTrue = neighbors.filter(function (n) {
-            return n.type === object;
+            return n.type === typeName;
           }).length > 0;
         } else if (object != null && object.id != null) {
           isTrue = neighbors.filter(function (n) {
@@ -478,7 +536,20 @@ var performAction = function performAction(game, ant, action) {
     case 'MOVE':
       {
         var loc = object;
-        if (object === 'RANDOM') {
+        var obj = object;
+        if (obj === 'TRAIL') {
+          var pheromone = lookupInGrid(game.grid, ant.position).map(function (id) {
+            return game.entities[id];
+          }).filter(function (e) {
+            return e.type === 'PHEROMONE';
+          })[0];
+          if (pheromone != null) {
+            loc = { position: add(ant.position, makeVector(pheromone.theta, 1)) };
+          } else {
+            obj = 'RANDOM';
+          }
+        }
+        if (obj === 'RANDOM') {
           // randomly select loc based on free neighbors
           var _freePositions = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities).filter(insideWorld);
           if (_freePositions.length == 0) {
@@ -503,9 +574,9 @@ var performAction = function performAction(game, ant, action) {
             }
             loc = { position: oneOf(_freePositions) };
           }
-        } else if (typeof object === 'string') {
+        } else if (obj != 'TRAIL' && typeof obj === 'string') {
           loc = getEntitiesByType(game, ['LOCATION']).filter(function (l) {
-            return l.name === object;
+            return l.name === obj;
           })[0];
         }
         var distVec = subtract(loc.position, ant.position);
@@ -564,10 +635,66 @@ var performAction = function performAction(game, ant, action) {
         var entityToPickup = object;
         if (entityToPickup === 'BLOCKER') {
           entityToPickup = ant.blockedBy;
-        } else if (entityToPickup === 'MARKED') {
-          entityToPickup = oneOf(fastGetNeighbors(game, ant).filter(function (e) {
-            return e.marked > 0;
-          }));
+        } else if (entityToPickup === 'MARKED_DIRT') {
+          var neighbors = fastGetNeighbors(game, ant);
+          var pheromoneNeighbors = neighbors.filter(function (e) {
+            return e.type === 'PHEROMONE';
+          });
+          var dirtNeighbors = neighbors.filter(function (e) {
+            return e.type === 'DIRT';
+          });
+          console.log(pheromoneNeighbors, dirtNeighbors);
+          var markedDirt = [];
+          var _iteratorNormalCompletion7 = true;
+          var _didIteratorError7 = false;
+          var _iteratorError7 = undefined;
+
+          try {
+            for (var _iterator7 = dirtNeighbors[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+              var dirt = _step7.value;
+              var _iteratorNormalCompletion8 = true;
+              var _didIteratorError8 = false;
+              var _iteratorError8 = undefined;
+
+              try {
+                for (var _iterator8 = pheromoneNeighbors[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+                  var _pheromone = _step8.value;
+
+                  if (equals(dirt.position, _pheromone.position)) {
+                    markedDirt.push(dirt);
+                  }
+                }
+              } catch (err) {
+                _didIteratorError8 = true;
+                _iteratorError8 = err;
+              } finally {
+                try {
+                  if (!_iteratorNormalCompletion8 && _iterator8.return) {
+                    _iterator8.return();
+                  }
+                } finally {
+                  if (_didIteratorError8) {
+                    throw _iteratorError8;
+                  }
+                }
+              }
+            }
+          } catch (err) {
+            _didIteratorError7 = true;
+            _iteratorError7 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion7 && _iterator7.return) {
+                _iterator7.return();
+              }
+            } finally {
+              if (_didIteratorError7) {
+                throw _iteratorError7;
+              }
+            }
+          }
+
+          entityToPickup = oneOf(markedDirt);
         } else if (entityToPickup === 'DIRT' || entityToPickup === 'FOOD' || entityToPickup === 'EGG' || entityToPickup === 'LARVA' || entityToPickup === 'PUPA' || entityToPickup === 'DEAD_ANT') {
           entityToPickup = oneOf(fastGetNeighbors(game, ant).filter(function (e) {
             return e.type == entityToPickup;
@@ -586,8 +713,6 @@ var performAction = function performAction(game, ant, action) {
           ant.blockedBy = null;
           deleteFromGrid(game.grid, entityToPickup.position, entityToPickup.id);
           entityToPickup.position = null;
-          // reduce mark quantity
-          entityToPickup.marked = Math.max(0, entityToPickup.marked - 1);
         }
         break;
       }
@@ -644,13 +769,13 @@ var performAction = function performAction(game, ant, action) {
         if (ant.holding != null && ant.holding.type === 'FOOD' && feedableEntities.length > 0) {
           // prefer to feed larva if possible
           var fedEntity = oneOf(feedableEntities);
-          var _iteratorNormalCompletion5 = true;
-          var _didIteratorError5 = false;
-          var _iteratorError5 = undefined;
+          var _iteratorNormalCompletion9 = true;
+          var _didIteratorError9 = false;
+          var _iteratorError9 = undefined;
 
           try {
-            for (var _iterator5 = feedableEntities[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-              var e = _step5.value;
+            for (var _iterator9 = feedableEntities[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+              var e = _step9.value;
 
               if (e.type === 'LARVA') {
                 fedEntity = e;
@@ -658,16 +783,16 @@ var performAction = function performAction(game, ant, action) {
               }
             }
           } catch (err) {
-            _didIteratorError5 = true;
-            _iteratorError5 = err;
+            _didIteratorError9 = true;
+            _iteratorError9 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion5 && _iterator5.return) {
-                _iterator5.return();
+              if (!_iteratorNormalCompletion9 && _iterator9.return) {
+                _iterator9.return();
               }
             } finally {
-              if (_didIteratorError5) {
-                throw _iteratorError5;
+              if (_didIteratorError9) {
+                throw _iteratorError9;
               }
             }
           }

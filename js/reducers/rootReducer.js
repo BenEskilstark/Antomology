@@ -30,8 +30,6 @@ const rootReducer = (state: State, action: Action): State => {
       };
     case 'CREATE_ENTITY':
     case 'DESTROY_ENTITY':
-    case 'CREATE_ANT':
-    case 'DESTROY_ANT':
     case 'SET_SELECTED_ENTITIES':
     case 'CREATE_TASK':
     case 'UPDATE_TASK':
@@ -39,9 +37,10 @@ const rootReducer = (state: State, action: Action): State => {
     case 'ASSIGN_TASK':
     case 'SET_USER_MODE':
     case 'SET_ANT_MODE':
-    case 'MARK_ENTITY':
     case 'SET_MOUSE_DOWN':
     case 'SET_MOUSE_POS':
+    case 'UPDATE_THETA':
+    case 'SET_PREV_PHEROMONE':
       if (!state.game) return state;
       return {
         ...state,

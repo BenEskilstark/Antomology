@@ -7,8 +7,10 @@ const {
   entitiesInMarquee,
 } = require('../selectors/selectors');
 const {canvasToGrid, gridToCanvas} = require('../utils/canvasHelpers');
-const {add, subtract} = require('../utils/vectors');
+const {add, subtract, equals, makeVector, vectorTheta} = require('../utils/vectors');
 const {makeLocation} = require('../entities/location');
+const {makePheromone} = require('../entities/pheromone');
+const {lookupInGrid} = require('../utils/stateHelpers');
 const {
   createGoToLocationTask,
   createDoAction,
@@ -53,15 +55,38 @@ const initMouseControlsSystem = (store) => {
     const gridPos = getClickedPos(ev);
     if (gridPos == null) return;
     dispatch({type: 'SET_MOUSE_POS', curPos: gridPos});
-    if (state.game.mouse.isLeftDown && state.game.userMode === 'MARK') {
-      const clickedEntities = fastCollidesWith(
-        state.game, {position: gridPos, width: 1, height: 1},
-      ).filter(e => e.type === 'DIRT');
-      for (const clickedEntity of clickedEntities) {
+    if (state.game.mouse.isLeftDown && state.game.userMode === 'MARK_TRAIL') {
+      let prevPheromone = state.game.entities[state.game.prevPheromone];
+      if (prevPheromone == null) {
         dispatch({
-          type: 'MARK_ENTITY',
-          entityID: clickedEntity.id,
-          quantity: 1,
+          type: 'CREATE_ENTITY',
+          entity: makePheromone(gridPos, theta: 0, 1, 1),
+        });
+        return;
+      }
+      if (equals(gridPos, prevPheromone.position)) {
+        return; // don't make another at its current spot
+      }
+      let theta = vectorTheta(subtract(gridPos, prevPheromone.position));
+      const xDiff = Math.abs(gridPos.x - prevPheromone.position.x);
+      const yDiff = Math.abs(gridPos.y - prevPheromone.position.y);
+      if ((xDiff > 1 || yDiff > 1) || (xDiff == 1 && yDiff == 1)) {
+        theta = 0; // no theta update if they aren't neighbors
+      } else {
+        dispatch({type: 'UPDATE_THETA', id: prevPheromone.id, theta});
+      }
+      const pheromone = lookupInGrid(state.game.grid, gridPos)
+        .filter(id => state.game.entities[id].type === 'PHEROMONE')
+        .map(id => state.game.entities[id])[0];
+      if (pheromone != null) {
+        if (pheromone.theta != theta) {
+          dispatch({type: 'UPDATE_THETA', id: pheromone.id, theta});
+          dispatch({type: 'SET_PREV_PHEROMONE', id: pheromone.id});
+        }
+      } else {
+        dispatch({
+          type: 'CREATE_ENTITY',
+          entity: makePheromone(gridPos, theta, 1, 1),
         });
       }
     }
@@ -137,18 +162,6 @@ const handleLeftClick = (
       dispatch({
         type: 'SET_SELECTED_ENTITIES',
         entityIDs: [],
-      });
-    }
-  } else if (state.game.userMode === 'MARK') {
-    const clickedEntity = entitiesInMarquee(
-      state.game,
-      {position: gridPos, width: 1, height: 1},
-    ).filter(e => e.type == 'DIRT')[0];
-    if (clickedEntity != null) {
-      dispatch({
-        type: 'MARK_ENTITY',
-        entityID: clickedEntity.id,
-        quantity: 1,
       });
     }
   }

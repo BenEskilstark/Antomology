@@ -62,7 +62,7 @@ function Sidebar(props) {
       'Left-click and drag will:',
       React.createElement(Dropdown, {
         noNoneOption: true,
-        options: ['SELECT', 'MARK', 'CREATE_LOCATION'],
+        options: ['SELECT', 'MARK_TRAIL', 'CREATE_LOCATION'],
         selected: game.userMode,
         onChange: function onChange(userMode) {
           return dispatch({ type: 'SET_USER_MODE', userMode: userMode });

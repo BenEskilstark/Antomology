@@ -36,6 +36,7 @@ var initGameState = function initGameState() {
     antMode: 'PICKUP',
     userMode: 'SELECT',
     nextLocationName: 'Give Locations Unique Names',
+    prevPheromone: null,
     mouse: {
       isLeftDown: false,
       isRightDown: false,
@@ -51,8 +52,9 @@ var initGameState = function initGameState() {
     EGG: [],
     LARVA: [],
     PUPA: [],
-    DEAD_ANT: [],
+    DEAD_ANT: [], // TODO: not actually implemented
     LOCATION: [],
+    PHEROMONE: [],
 
     tasks: [],
     grid: []

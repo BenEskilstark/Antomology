@@ -80,3 +80,7 @@ Date  Time Started  Time Spent  Work Completed
 1/15      9:00am    1hr         Render ants as 3 circles + legs with rotation
          10:30am    1hr         Debug everything again via play-testing
 
+1/16     10:20am    1hr 10min   Start implementing real pheromone trails
+          1:30pm    1hr 20min   Get pheromone trail MVP mostly working w/behaviors
+                                Fix some task bugs
+

@@ -32,6 +32,9 @@ var gameReducer = function gameReducer(game, action) {
         } else {
           addEntity(game, entity);
         }
+        if (entity.type === 'PHEROMONE') {
+          game.prevPheromone = entity.id;
+        }
         return game;
       }
     case 'DESTROY_ENTITY':
@@ -39,20 +42,6 @@ var gameReducer = function gameReducer(game, action) {
         var id = action.id;
 
         removeEntity(game, game.entities[id]);
-        return game;
-      }
-    case 'CREATE_ANT':
-      {
-        var ant = action.ant;
-
-        addEntity(game, ant);
-        return game;
-      }
-    case 'DESTROY_ANT':
-      {
-        var _id = action.id;
-
-        removeEntity(game, game.entities[_id]);
         return game;
       }
     case 'SET_SELECTED_ENTITIES':
@@ -98,10 +87,11 @@ var gameReducer = function gameReducer(game, action) {
 
         try {
           for (var _iterator = ants[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-            var _id2 = _step.value;
+            var _id = _step.value;
 
-            game.entities[_id2].task = _task2;
-            game.entities[_id2].taskIndex = 0;
+            game.entities[_id].task = _task2;
+            game.entities[_id].taskStack = [];
+            game.entities[_id].taskIndex = 0;
           }
           // add the task to the task array
         } catch (err) {
@@ -143,15 +133,23 @@ var gameReducer = function gameReducer(game, action) {
           antMode: antMode
         });
       }
-    case 'MARK_ENTITY':
+    case 'UPDATE_THETA':
       {
-        var entityID = action.entityID,
-            quantity = action.quantity;
+        var _id2 = action.id,
+            theta = action.theta;
 
-        if (entityID != null && game.entities[entityID] != null) {
-          game.entities[entityID].marked = quantity;
+        if (game.entities[_id2] != null) {
+          game.entities[_id2].theta = theta;
         }
         return game;
+      }
+    case 'SET_PREV_PHEROMONE':
+      {
+        var _id3 = action.id;
+
+        return _extends({}, game, {
+          prevPheromone: _id3
+        });
       }
     case 'SET_MOUSE_DOWN':
       {

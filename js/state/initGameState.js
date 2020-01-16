@@ -24,6 +24,7 @@ const initGameState = (): GameState => {
     antMode: 'PICKUP',
     userMode: 'SELECT',
     nextLocationName: 'Give Locations Unique Names',
+    prevPheromone: null,
     mouse: {
       isLeftDown: false,
       isRightDown: false,
@@ -39,8 +40,9 @@ const initGameState = (): GameState => {
     EGG: [],
     LARVA: [],
     PUPA: [],
-    DEAD_ANT: [],
+    DEAD_ANT: [], // TODO: not actually implemented
     LOCATION: [],
+    PHEROMONE: [],
 
     tasks: [],
     grid: [],

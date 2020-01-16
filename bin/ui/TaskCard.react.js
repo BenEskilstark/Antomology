@@ -110,6 +110,9 @@ function TaskCard(props) {
     React.createElement(Button, {
       label: newTask || taskName != task.name ? 'Create Task' : 'Update Task',
       onClick: function onClick() {
+        if (taskName === 'New Task') {
+          return;
+        }
         var editedTask = { name: taskName, repeating: repeating, behaviorQueue: behaviorQueue };
         if (newTask || taskName != task.name) {
           dispatch({ type: 'CREATE_TASK', task: editedTask });

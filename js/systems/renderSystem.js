@@ -70,7 +70,7 @@ const render = (state: State, ctx: any): void => {
 
   // render marquees
   const {mouse} = game;
-  if (mouse.isLeftDown && game.userMode !== 'MARK') {
+  if (mouse.isLeftDown && game.userMode !== 'MARK_TRAIL') {
     if (game.userMode === 'CREATE_LOCATION') {
       ctx.fillStyle = 'rgba(100, 100, 100, 0.25)';
     } else if (game.userMode === 'SELECT') {
@@ -102,6 +102,7 @@ const renderEntity = (state: State, ctx: any, entity: Entity): void => {
   switch (entity.type) {
     case 'ANT': {
       ctx.fillStyle = 'black';
+      ctx.beginPath();
       if (!entity.alive) {
         ctx.fillStyle = 'rgba(100, 100, 100, 0.5)';
         ctx.strokeStyle = 'rgba(100, 100, 100, 0.5)';
@@ -117,7 +118,6 @@ const renderEntity = (state: State, ctx: any, entity: Entity): void => {
         ctx.fillStyle = '#FF6347';
       }
       // body
-      ctx.beginPath();
       let radius = entity.subType == 'QUEEN' ? entity.width / 2 : 0.8 * entity.width / 2;
       radius = radius/2;
       ctx.arc(entity.width / 2 + 2 * radius, entity.height / 2, radius, 0, Math.PI * 2);
@@ -126,7 +126,6 @@ const renderEntity = (state: State, ctx: any, entity: Entity): void => {
       ctx.stroke();
       ctx.arc(entity.width / 2 - 2 * radius, entity.height / 2, radius, 0, Math.PI * 2);
       ctx.stroke();
-      ctx.closePath();
       ctx.fill();
 
       // legs
@@ -153,6 +152,7 @@ const renderEntity = (state: State, ctx: any, entity: Entity): void => {
         renderEntity(state, ctx, {...heldEntity, position: {x: 0, y: 0}});
         ctx.restore();
       }
+      ctx.closePath();
       break;
     }
     case 'DIRT': {
@@ -227,6 +227,27 @@ const renderEntity = (state: State, ctx: any, entity: Entity): void => {
         ctx.lineWidth = 2 / (config.canvasWidth / config.width);
         ctx.strokeRect(0, 0, entity.width, entity.height);
       }
+      break;
+    }
+    case 'PHEROMONE': {
+      ctx.save();
+      ctx.fillStyle = "rgba(0, 200, 0, 0.9)";
+      // relative to center
+      ctx.translate(entity.width / 2, entity.height / 2);
+      const radius = entity.width / 2;
+      ctx.beginPath();
+      ctx.moveTo(radius, 0);
+      ctx.lineTo(radius / 3, -2 * radius / 3);
+      ctx.lineTo(radius / 3, -1 * radius / 3);
+      ctx.lineTo(-1 * radius, -1 * radius / 3);
+      ctx.lineTo(-1 * radius , radius / 3);
+      ctx.lineTo(radius / 3, radius / 3);
+      ctx.lineTo(radius / 3, 2 * radius / 3);
+      ctx.closePath();
+      ctx.fill();
+      // shift back
+      ctx.translate(-entity.width / 2, -entity.height / 2);
+      ctx.restore();
       break;
     }
   }

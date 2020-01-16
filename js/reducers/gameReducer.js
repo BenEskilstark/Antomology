@@ -27,19 +27,12 @@ const gameReducer = (game: GameState, action: Action): GameState => {
       } else {
         addEntity(game, entity);
       }
+      if (entity.type === 'PHEROMONE') {
+        game.prevPheromone = entity.id;
+      }
       return game;
     }
     case 'DESTROY_ENTITY': {
-      const {id} = action;
-      removeEntity(game, game.entities[id]);
-      return game;
-    }
-    case 'CREATE_ANT': {
-      const {ant} = action;
-      addEntity(game, ant);
-      return game;
-    }
-    case 'DESTROY_ANT': {
       const {id} = action;
       removeEntity(game, game.entities[id]);
       return game;
@@ -75,6 +68,7 @@ const gameReducer = (game: GameState, action: Action): GameState => {
       const {task, ants} = action;
       for (const id of ants) {
         game.entities[id].task = task;
+        game.entities[id].taskStack = [];
         game.entities[id].taskIndex = 0;
       }
       // add the task to the task array
@@ -98,12 +92,19 @@ const gameReducer = (game: GameState, action: Action): GameState => {
         antMode,
       };
     }
-    case 'MARK_ENTITY': {
-      const {entityID, quantity} = action;
-      if (entityID != null && game.entities[entityID] != null) {
-        game.entities[entityID].marked = quantity;
+    case 'UPDATE_THETA': {
+      const {id, theta} = action;
+      if (game.entities[id] != null) {
+        game.entities[id].theta = theta;
       }
       return game;
+    }
+    case 'SET_PREV_PHEROMONE': {
+      const {id} = action;
+      return {
+        ...game,
+        prevPheromone: id,
+      };
     }
     case 'SET_MOUSE_DOWN': {
       const {isLeft, isDown, downPos} = action;
