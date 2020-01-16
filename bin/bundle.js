@@ -1680,7 +1680,7 @@ var initGameState = function initGameState() {
   addEntity(gameState, colonyEntrance);
 
   // initial tasks
-  gameState.tasks = [tasks.createIdleTask(), _extends({}, tasks.createGoToLocationTask(colonyEntrance), { name: 'Go To Colony Entrance' }), tasks.createRandomMoveTask(), tasks.createDigBlueprintTask(gameState), tasks.createMoveBlockerTask(), tasks.createGoToColonyEntranceWithBlockerTask(gameState), tasks.createLayEggTask(), {
+  gameState.tasks = [tasks.createIdleTask(), _extends({}, tasks.createGoToLocationTask(colonyEntrance), { name: 'Go To Colony Entrance' }), tasks.createRandomMoveTask(), tasks.createDigBlueprintTask(gameState), tasks.createMoveBlockerTask(), tasks.createGoToColonyEntranceWithBlockerTask(gameState), tasks.createLayEggTask(), tasks.createFollowTrailTask(), {
     name: 'Find Food',
     repeating: false,
     behaviorQueue: [{
@@ -1808,6 +1808,25 @@ var createLayEggTask = function createLayEggTask() {
     name: 'Lay Egg',
     repeating: false,
     behaviorQueue: [createDoAction('LAY', null)]
+  };
+};
+
+var createFollowTrailTask = function createFollowTrailTask() {
+  return {
+    name: 'Follow Trail',
+    repeating: false,
+    behaviorQueue: [{
+      type: 'WHILE',
+      condition: {
+        type: 'NEIGHBORING',
+        not: false,
+        comparator: 'EQUALS',
+        payload: {
+          object: 'TRAIL'
+        }
+      },
+      behavior: createMoveBehavior('TRAIL')
+    }]
   };
 };
 
@@ -2045,7 +2064,8 @@ var tasks = {
   sendAllAntsToBlueprint: sendAllAntsToBlueprint,
   createDoAction: createDoAction,
   createIdleTask: createIdleTask,
-  createLayEggTask: createLayEggTask
+  createLayEggTask: createLayEggTask,
+  createFollowTrailTask: createFollowTrailTask
 };
 window.tasks = tasks;
 
@@ -2431,29 +2451,27 @@ var render = function render(state, ctx) {
   // render non-location entities
   for (var id in game.entities) {
     var entity = game.entities[id];
-    if (entity.position == null || entity.type == 'LOCATION') {
+    if (entity.position == null || entity.type == 'LOCATION' || entity.type === 'ANT') {
       continue;
     }
     renderEntity(state, ctx, entity);
   }
-  // render locations last so they go on top
+  // then render ants
   var _iteratorNormalCompletion = true;
   var _didIteratorError = false;
   var _iteratorError = undefined;
 
   try {
-    for (var _iterator = game.LOCATION[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+    for (var _iterator = game.ANT[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
       var _id = _step.value;
 
       var _entity = game.entities[_id];
-      if (_entity.position == null || _entity.id === -1) {
-        // don't render clicked location
+      if (_entity.position == null) {
         continue;
       }
       renderEntity(state, ctx, _entity);
     }
-
-    // render marquees
+    // render locations last so they go on top
   } catch (err) {
     _didIteratorError = true;
     _iteratorError = err;
@@ -2465,6 +2483,38 @@ var render = function render(state, ctx) {
     } finally {
       if (_didIteratorError) {
         throw _iteratorError;
+      }
+    }
+  }
+
+  var _iteratorNormalCompletion2 = true;
+  var _didIteratorError2 = false;
+  var _iteratorError2 = undefined;
+
+  try {
+    for (var _iterator2 = game.LOCATION[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+      var _id2 = _step2.value;
+
+      var _entity2 = game.entities[_id2];
+      if (_entity2.position == null || _entity2.id === -1) {
+        // don't render clicked location
+        continue;
+      }
+      renderEntity(state, ctx, _entity2);
+    }
+
+    // render marquees
+  } catch (err) {
+    _didIteratorError2 = true;
+    _iteratorError2 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion2 && _iterator2.return) {
+        _iterator2.return();
+      }
+    } finally {
+      if (_didIteratorError2) {
+        throw _iteratorError2;
       }
     }
   }

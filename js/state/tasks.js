@@ -55,6 +55,27 @@ const createLayEggTask = (): Task => {
   };
 }
 
+const createFollowTrailTask = (): Task => {
+  return {
+    name: 'Follow Trail',
+    repeating: false,
+    behaviorQueue: [
+      {
+        type: 'WHILE',
+        condition: {
+          type: 'NEIGHBORING',
+          not: false,
+          comparator: 'EQUALS',
+          payload: {
+            object: 'TRAIL',
+          },
+        },
+        behavior: createMoveBehavior('TRAIL'),
+      },
+    ]
+  };
+}
+
 ///////////////////////////////////////////////////////////////
 // move
 ///////////////////////////////////////////////////////////////
@@ -310,6 +331,7 @@ const tasks = {
   createDoAction,
   createIdleTask,
   createLayEggTask,
+  createFollowTrailTask,
 };
 window.tasks = tasks;
 

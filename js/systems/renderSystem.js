@@ -53,7 +53,15 @@ const render = (state: State, ctx: any): void => {
   // render non-location entities
   for (const id in game.entities) {
     const entity = game.entities[id];
-    if (entity.position == null || entity.type == 'LOCATION') {
+    if (entity.position == null || entity.type == 'LOCATION' || entity.type === 'ANT') {
+      continue;
+    }
+    renderEntity(state, ctx, entity);
+  }
+  // then render ants
+  for (const id of game.ANT) {
+    const entity = game.entities[id];
+    if (entity.position == null) {
       continue;
     }
     renderEntity(state, ctx, entity);

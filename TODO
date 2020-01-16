@@ -1,11 +1,10 @@
 
  - - - - - - TODO - - - - - -
  - pheromone trails
-    - behavior for ant following trail
-    - update MARKED condition
     - fix/delete the digging out blueprint behavior
     - tool for clearing pheromone
     - potentially have pheromone fade over time
+    - behavior setting to follow trail backwards
     - support categories of pheromone you can select and have different colors
  - implement pan/zoom with grid-to-canvas size conversion
     - how to handle at controls level with click-and-drag already used for marquee?
@@ -15,7 +14,6 @@
     - specific level with some story component
  - Task Stack
     - explicitly return to parent behavior as a setting in the SWITCH_TASK behavior
-    - assigning a task should clear the stack
 
  - - - - - - NEXT - - - - - -
  - ant calories should only go down when they do something?
@@ -57,7 +55,6 @@
  - number input (in e.g. RANDOM condition) doesn't like being cleared out temporarily
  - checkboxes in task editor complain about control
  - picked-up larva never hatch and then die on putdown. Should probably just wait to hatch
- - don't allow creating a task called "New Task"
  - clicking go to position unwinds up the parent stack after getting there
 
  - - - - - - DONE - - - - - -
@@ -202,3 +199,7 @@
     - only rotate prevPheromone if it is a neighbor
     - fixed one ant being colored green
     - when putting pheromone somewhere there already is, update its theta
+    - behavior for ant following trail
+    - update MARKED condition
+ - assigning a task should clear the stack
+ - don't allow creating a task called "New Task"

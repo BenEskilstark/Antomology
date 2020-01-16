@@ -46,6 +46,25 @@ var createLayEggTask = function createLayEggTask() {
   };
 };
 
+var createFollowTrailTask = function createFollowTrailTask() {
+  return {
+    name: 'Follow Trail',
+    repeating: false,
+    behaviorQueue: [{
+      type: 'WHILE',
+      condition: {
+        type: 'NEIGHBORING',
+        not: false,
+        comparator: 'EQUALS',
+        payload: {
+          object: 'TRAIL'
+        }
+      },
+      behavior: createMoveBehavior('TRAIL')
+    }]
+  };
+};
+
 ///////////////////////////////////////////////////////////////
 // move
 ///////////////////////////////////////////////////////////////
@@ -280,7 +299,8 @@ var tasks = {
   sendAllAntsToBlueprint: sendAllAntsToBlueprint,
   createDoAction: createDoAction,
   createIdleTask: createIdleTask,
-  createLayEggTask: createLayEggTask
+  createLayEggTask: createLayEggTask,
+  createFollowTrailTask: createFollowTrailTask
 };
 window.tasks = tasks;
 
