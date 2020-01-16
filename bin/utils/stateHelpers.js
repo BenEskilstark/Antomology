@@ -1,5 +1,11 @@
 'use strict';
 
+var _require = require('../utils/vectors'),
+    add = _require.add,
+    subtract = _require.subtract,
+    makeVector = _require.makeVector,
+    vectorTheta = _require.vectorTheta;
+
 ////////////////////////////////////////////////////////////////////////
 // Grid Functions
 ////////////////////////////////////////////////////////////////////////
@@ -51,8 +57,20 @@ function lookupInGrid(grid, position) {
 function addEntity(game, entity) {
   game.entities[entity.id] = entity;
   game[entity.type].push(entity.id);
-  insertInGrid(game.grid, entity.position, entity.id);
-  // TODO handle entities with larger size
+
+  var position = entity.position,
+      width = entity.width,
+      height = entity.height;
+
+  if (position == null) {
+    return;
+  }
+  // handle entities with larger size
+  for (var x = position.x; x < position.x + width; x++) {
+    for (var y = position.y; y < position.y + height; y++) {
+      insertInGrid(game.grid, { x: x, y: y }, entity.id);
+    }
+  }
 }
 
 function removeEntity(game, entity) {
@@ -60,20 +78,46 @@ function removeEntity(game, entity) {
   game[entity.type] = game[entity.type].filter(function (id) {
     return id != entity.id;
   });
-  deleteFromGrid(game.grid, entity.position, entity.id);
-  // TODO handle entities with larger size
+  var position = entity.position,
+      width = entity.width,
+      height = entity.height;
+
+  if (position == null) {
+    return;
+  }
+  // handle entities with larger size
+  for (var x = position.x; x < position.x + width; x++) {
+    for (var y = position.y; y < position.y + height; y++) {
+      deleteFromGrid(game.grid, { x: x, y: y }, entity.id);
+    }
+  }
 }
 
 function moveEntity(game, entity, nextPos) {
-  deleteFromGrid(game.grid, entity.position, entity.id);
-  insertInGrid(game.grid, nextPos, entity.id);
+  var position = entity.position,
+      width = entity.width,
+      height = entity.height;
+  // handle entities with larger size
+
+  if (position != null) {
+    for (var x = position.x; x < position.x + width; x++) {
+      for (var y = position.y; y < position.y + height; y++) {
+        deleteFromGrid(game.grid, { x: x, y: y }, entity.id);
+      }
+    }
+  }
+  for (var _x = nextPos.x; _x < nextPos.x + width; _x++) {
+    for (var _y = nextPos.y; _y < nextPos.y + height; _y++) {
+      insertInGrid(game.grid, { x: _x, y: _y }, entity.id);
+    }
+  }
   entity.prevPosition = entity.position;
   entity.position = nextPos;
-  // TODO handle entities with larger size
+  entity.theta = vectorTheta(subtract(entity.prevPosition, entity.position));
 }
 
 function changeEntityType(game, entity, oldType, nextType) {
-  game[oldType] = game[entity.type].filter(function (id) {
+  game[oldType] = game[oldType].filter(function (id) {
     return id != entity.id;
   });
   game[nextType].push(entity.id);

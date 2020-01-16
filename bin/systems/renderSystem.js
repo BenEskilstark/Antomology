@@ -7,7 +7,8 @@ var _require = require('../config'),
 
 var _require2 = require('../utils/vectors'),
     subtract = _require2.subtract,
-    add = _require2.add;
+    add = _require2.add,
+    makeVector = _require2.makeVector;
 
 /**
  * Render things into the canvas
@@ -117,34 +118,59 @@ var render = function render(state, ctx) {
 
 var renderEntity = function renderEntity(state, ctx, entity) {
   ctx.save();
-  // render relative to top left of grid square
-  ctx.translate(entity.position.x, entity.position.y);
+  // render relative to top left of grid square, but first translate for rotation
+  // around the center
+  ctx.translate(entity.position.x + entity.width / 2, entity.position.y + entity.height / 2);
+  ctx.rotate(entity.theta);
+  ctx.translate(-entity.width / 2, -entity.height / 2);
   switch (entity.type) {
     case 'ANT':
       {
-        ctx.fillStyle = 'orange';
+        ctx.fillStyle = 'black';
         if (!entity.alive) {
           ctx.fillStyle = 'rgba(100, 100, 100, 0.5)';
+          ctx.strokeStyle = 'rgba(100, 100, 100, 0.5)';
         } else if (entity.calories < config.antStartingCalories * config.antStarvationWarningThreshold) {
           ctx.fillStyle = 'rgba(250, 50, 0, 0.9)';
         }
+        ctx.lineWidth = 1 / (config.canvasWidth / config.width);
+        if (state.game.selectedEntities.includes(entity.id)) {
+          ctx.strokeStyle = '#FF6347';
+          ctx.fillStyle = '#FF6347';
+        }
+        // body
         ctx.beginPath();
         var radius = entity.subType == 'QUEEN' ? entity.width / 2 : 0.8 * entity.width / 2;
+        radius = radius / 2;
+        ctx.arc(entity.width / 2 + 2 * radius, entity.height / 2, radius, 0, Math.PI * 2);
+        ctx.stroke();
         ctx.arc(entity.width / 2, entity.height / 2, radius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.arc(entity.width / 2 - 2 * radius, entity.height / 2, radius, 0, Math.PI * 2);
+        ctx.stroke();
         ctx.closePath();
         ctx.fill();
 
-        if (state.game.selectedEntities.includes(entity.id)) {
-          ctx.strokeStyle = 'black';
-          ctx.lineWidth = 2 / (config.canvasWidth / config.width);
+        // legs
+        ctx.translate(entity.width / 2, entity.height / 2);
+        for (var deg = 60; deg <= 120; deg += 30) {
+          var rad = deg * Math.PI / 180;
+          var leg1 = makeVector(rad, entity.width * 0.7);
+          var leg2 = makeVector(-rad, entity.width * 0.7);
+          ctx.moveTo(0, 0);
+          ctx.lineTo(leg1.x, leg1.y);
+          ctx.stroke();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(leg2.x, leg2.y);
           ctx.stroke();
         }
+        ctx.translate(-entity.width / 2, -entity.height / 2);
 
         if (entity.holding != null) {
           var heldEntity = entity.holding;
           ctx.save();
           ctx.scale(0.45, 0.45);
-          ctx.translate(1, 1);
+          ctx.translate(0.5, 1);
           renderEntity(state, ctx, _extends({}, heldEntity, { position: { x: 0, y: 0 } }));
           ctx.restore();
         }
@@ -152,7 +178,7 @@ var renderEntity = function renderEntity(state, ctx, entity) {
       }
     case 'DIRT':
       {
-        ctx.fillStyle = 'brown';
+        ctx.fillStyle = '#8B4513';
         var width = entity.width + 0.04;
         var height = entity.height + 0.04;
         ctx.fillRect(0, 0, width, height);

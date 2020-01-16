@@ -351,13 +351,13 @@ var evaluateCondition = function evaluateCondition(game, ant, condition) {
       {
         // comparator must be EQUALS
         // ant is considered to be at a location if it is within its boundingRect
-        var _loc = object;
-        if (typeof _loc === 'string') {
-          _loc = getEntitiesByType(game, ['LOCATION']).filter(function (l) {
-            return l.name === _loc;
+        var loc = object;
+        if (typeof loc === 'string') {
+          loc = getEntitiesByType(game, ['LOCATION']).filter(function (l) {
+            return l.name === loc;
           })[0];
         }
-        isTrue = collides(ant, _loc);
+        isTrue = collides(ant, loc);
         break;
       }
     case 'HOLDING':
@@ -394,9 +394,9 @@ var evaluateCondition = function evaluateCondition(game, ant, condition) {
             return n.id === object.id;
           }).length > 0;
         } else if (typeof object === 'string') {
-          loc = getEntitiesByType(game, ['LOCATION']).filter(function (l) {
+          isTrue = neighbors.filter(function (l) {
             return l.name === object;
-          })[0];
+          }).length > 0;
         }
         break;
       }
@@ -467,12 +467,17 @@ var performAction = function performAction(game, ant, action) {
           if (freePositions.length > 0) {
             moveEntity(game, ant, oneOf(freePositions));
           }
+        } else {
+          if (Math.random() < 0.05) {
+            var factor = Math.random() < 0.5 ? 1 : -1;
+            ant.theta += factor * Math.PI / 2;
+          }
         }
         break;
       }
     case 'MOVE':
       {
-        var _loc2 = object;
+        var loc = object;
         if (object === 'RANDOM') {
           // randomly select loc based on free neighbors
           var _freePositions = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities).filter(insideWorld);
@@ -485,7 +490,7 @@ var performAction = function performAction(game, ant, action) {
           });
           if (_freePositions.length == 0) {
             // then previous position was removed, so fall back to it
-            _loc2 = { position: ant.prevPosition };
+            loc = { position: ant.prevPosition };
           } else {
             // don't cross colonyEntrance boundary
             var colEnt = game.entities[config.colonyEntrance].position;
@@ -494,16 +499,16 @@ var performAction = function performAction(game, ant, action) {
             });
             if (_freePositions.length == 0) {
               // fall back to previous position
-              _loc2 = { position: ant.prevPosition };
+              loc = { position: ant.prevPosition };
             }
-            _loc2 = { position: oneOf(_freePositions) };
+            loc = { position: oneOf(_freePositions) };
           }
         } else if (typeof object === 'string') {
-          _loc2 = getEntitiesByType(game, ['LOCATION']).filter(function (l) {
+          loc = getEntitiesByType(game, ['LOCATION']).filter(function (l) {
             return l.name === object;
           })[0];
         }
-        var distVec = subtract(_loc2.position, ant.position);
+        var distVec = subtract(loc.position, ant.position);
         if (distVec.x == 0 && distVec.y == 0) {
           break; // you're there
         }
@@ -627,8 +632,7 @@ var performAction = function performAction(game, ant, action) {
         entityToEat.calories -= caloriesEaten;
         // remove the food item if it has no more calories
         if (entityToEat.calories <= 0) {
-          delete game.entities[entityToEat.id];
-          game.food = deleteFromArray(game.food, entityToEat.id);
+          removeEntity(game, entityToEat);
         }
         break;
       }

@@ -77,3 +77,6 @@ Date  Time Started  Time Spent  Work Completed
                                 tasks inside a repeating task and resume the parent
                                 Refactor to store only location names instead of location entity
 
+1/15      9:00am    1hr         Render ants as 3 circles + legs with rotation
+         10:30am    1hr         Debug everything again via play-testing
+

@@ -1,24 +1,41 @@
 
  - - - - - - TODO - - - - - -
- - handle grid stuff with entities with larger size (locations)
- - switch dead ants/larva to their own entity type
- - make location position in center instead of top left
- - RANDOM move behavior for staying inside a location
+ - pheromone trails
+    - mark should be its own entity instead of applying just to dirt
+    - it should be a vector that an ant can follow
+    - tool for laying pheromone trail
+ - implement pan/zoom with grid-to-canvas size conversion
+    - how to handle at controls level with click-and-drag already used for marquee?
+ - add background layer
+ - add gravity
+ - add "levels" that can be selected in lobby
+    - specific level with some story component
+ - Task Stack
+    - explicitly return to parent behavior as a setting in the SWITCH_TASK behavior
+    - assigning a task should clear the stack
 
  - - - - - - NEXT - - - - - -
+ - ant calories should only go down when they do something?
+ - add other entities: beetles, worms, spiders, aphids
  - make food size scale by calorie amount with better thresholds
  - compute old-age death for ants
  - Call out ants near death of old age
- - ant calories should only go down when they do something?
  - behaviors should support lists of child behaviors
  - option for deleting behaviors in Task Editor
- - add background layer
+ - better anti-aliasing for dirt
+ - switch dead ants/larva to their own entity type
+ - make location position in center instead of top left for moving towards
+ - use sprites for entities
 
  - - - - -  LATER - - - - - -
- - mark should be its own entity instead of applying just to dirt
+ - big entities:
+    - simpler collision function based on grid lookup
+    - support rotated big-entities
+    - picking up big entities
+    - subdividing bigger entities on pickup
+    - collision detection when bigger entities move around
  - make UI elements screen-size responsive
  - A*-like for ants moving towards location?
- - implement pan/zoom with grid-to-canvas size conversion
  - implement MARK action
  - conditionals with OR/AND
  - saving with local storage
@@ -38,7 +55,7 @@
  - checkboxes in task editor complain about control
  - picked-up larva never hatch and then die on putdown. Should probably just wait to hatch
  - don't allow creating a task called "New Task"
-
+ - clicking go to position unwinds up the parent stack after getting there
 
  - - - - - - DONE - - - - - -
  - clicking to select ants
@@ -163,3 +180,11 @@
  - implement holding for each type
  - implement neighboring for each type
  - implement BLOCKED in condition UI
+
+ - handle grid stuff with entities with larger size (locations)
+ - some eggs get stuck and never hatch
+ - string tasks together (?) appears to make many ticks or jumps of some sort
+   ants jump around and go down and up in calories simultaneously
+ - make dead ants more obvious looking
+ - mention ants are dead in the UI
+ - RANDOM move behavior for staying inside a location

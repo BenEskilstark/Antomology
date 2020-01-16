@@ -1,5 +1,7 @@
 // @flow
 
+const {add, subtract, makeVector, vectorTheta} = require('../utils/vectors');
+
 import type {EntityID, GameState, Vector, EntityType} from '../types';
 
 export type Grid = Array<Array<Array<EntityID>>>;
@@ -47,30 +49,59 @@ function lookupInGrid(grid: Grid, position: Vector): Array<EntityID> {
 function addEntity(game: GameState, entity: Entity): void {
   game.entities[entity.id] = entity;
   game[entity.type].push(entity.id);
-  insertInGrid(game.grid, entity.position, entity.id);
-  // TODO handle entities with larger size
+
+  const {position, width, height} = entity;
+  if (position == null) {
+    return;
+  }
+  // handle entities with larger size
+  for (let x = position.x; x < position.x + width; x++) {
+    for (let y = position.y; y < position.y + height; y++) {
+      insertInGrid(game.grid, {x, y}, entity.id);
+    }
+  }
 }
 
 function removeEntity(game: GameState, entity: Entity): void {
   delete game.entities[entity.id];
   game[entity.type] = game[entity.type].filter(id => id != entity.id);
-  deleteFromGrid(game.grid, entity.position, entity.id);
-  // TODO handle entities with larger size
+  const {position, width, height} = entity;
+  if (position == null) {
+    return;
+  }
+  // handle entities with larger size
+  for (let x = position.x; x < position.x + width; x++) {
+    for (let y = position.y; y < position.y + height; y++) {
+      deleteFromGrid(game.grid, {x, y}, entity.id);
+    }
+  }
 }
 
 function moveEntity(game: GameState, entity: Entity, nextPos: Vector): void {
-  deleteFromGrid(game.grid, entity.position, entity.id);
-  insertInGrid(game.grid, nextPos, entity.id);
+  const {position, width, height} = entity;
+  // handle entities with larger size
+  if (position != null) {
+    for (let x = position.x; x < position.x + width; x++) {
+      for (let y = position.y; y < position.y + height; y++) {
+        deleteFromGrid(game.grid, {x, y}, entity.id);
+      }
+    }
+  }
+  for (let x = nextPos.x; x < nextPos.x + width; x++) {
+    for (let y = nextPos.y; y < nextPos.y + height; y++) {
+      insertInGrid(game.grid, {x, y}, entity.id);
+    }
+  }
   entity.prevPosition = entity.position;
   entity.position = nextPos;
-  // TODO handle entities with larger size
+  entity.theta = vectorTheta(subtract(entity.prevPosition, entity.position));
 }
 
 function changeEntityType(
   game: GameState, entity: Entity,
   oldType: EntityType, nextType: EntityType,
 ): void {
-  game[oldType] = game[entity.type].filter(id => id != entity.id);
+  game[oldType] = game[oldType].filter(id => id != entity.id);
   game[nextType].push(entity.id);
   entity.type = nextType;
 }

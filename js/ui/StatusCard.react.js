@@ -42,6 +42,7 @@ function AntCard(props: Props): React.Node {
     ant.calories < config.antStartingCalories * config.antStarvationWarningThreshold
     ? ' - Hungry'
     : '';
+  const deadStr = ant.alive ? '' : 'DEAD ';
 
   return (
     <div
@@ -50,7 +51,7 @@ function AntCard(props: Props): React.Node {
         border: '1px solid black',
       }}
     >
-      <div><b>{ant.subType} {ant.type}</b></div>
+      <div><b>{deadStr}{ant.subType} {ant.type}</b></div>
       <div>Calories: {ant.calories}{hungryStr}</div>
       <div>HP: 10/10</div>
       <div>
@@ -112,6 +113,7 @@ function LarvaCard(props: Props): React.Node {
     larva.calories < config.larvaStartingCalories * config.antStarvationWarningThreshold
     ? ' - Hungry'
     : '';
+  const deadStr = ant.alive ? '' : 'DEAD ';
 
   return (
     <div
@@ -120,7 +122,7 @@ function LarvaCard(props: Props): React.Node {
         border: '1px solid black',
       }}
     >
-      <div><b>{larva.type}</b></div>
+      <div><b>{deadStr}{larva.type}</b></div>
       <div>Calories: {larva.calories}{hungryStr}</div>
       <div>Calories needed to hatch: {config.larvaEndCalories - larva.calories}</div>
       <div>HP: 10/10</div>

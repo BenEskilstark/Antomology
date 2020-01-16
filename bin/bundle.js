@@ -30,7 +30,7 @@ var config = {
   antPickupEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'DEAD_ANT'],
   antBlockingEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA'],
   antEatEntities: ['FOOD', 'DEAD_ANT'],
-  antStartingCalories: 4000,
+  antStartingCalories: 40,
   antCaloriesPerEat: 1000,
   antMaxCalories: 6000,
   antStarvationWarningThreshold: 0.3,
@@ -869,13 +869,13 @@ var evaluateCondition = function evaluateCondition(game, ant, condition) {
       {
         // comparator must be EQUALS
         // ant is considered to be at a location if it is within its boundingRect
-        var _loc = object;
-        if (typeof _loc === 'string') {
-          _loc = getEntitiesByType(game, ['LOCATION']).filter(function (l) {
-            return l.name === _loc;
+        var loc = object;
+        if (typeof loc === 'string') {
+          loc = getEntitiesByType(game, ['LOCATION']).filter(function (l) {
+            return l.name === loc;
           })[0];
         }
-        isTrue = collides(ant, _loc);
+        isTrue = collides(ant, loc);
         break;
       }
     case 'HOLDING':
@@ -912,9 +912,9 @@ var evaluateCondition = function evaluateCondition(game, ant, condition) {
             return n.id === object.id;
           }).length > 0;
         } else if (typeof object === 'string') {
-          loc = getEntitiesByType(game, ['LOCATION']).filter(function (l) {
+          isTrue = neighbors.filter(function (l) {
             return l.name === object;
-          })[0];
+          }).length > 0;
         }
         break;
       }
@@ -985,12 +985,17 @@ var performAction = function performAction(game, ant, action) {
           if (freePositions.length > 0) {
             moveEntity(game, ant, oneOf(freePositions));
           }
+        } else {
+          if (Math.random() < 0.05) {
+            var factor = Math.random() < 0.5 ? 1 : -1;
+            ant.theta += factor * Math.PI / 2;
+          }
         }
         break;
       }
     case 'MOVE':
       {
-        var _loc2 = object;
+        var loc = object;
         if (object === 'RANDOM') {
           // randomly select loc based on free neighbors
           var _freePositions = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities).filter(insideWorld);
@@ -1003,7 +1008,7 @@ var performAction = function performAction(game, ant, action) {
           });
           if (_freePositions.length == 0) {
             // then previous position was removed, so fall back to it
-            _loc2 = { position: ant.prevPosition };
+            loc = { position: ant.prevPosition };
           } else {
             // don't cross colonyEntrance boundary
             var colEnt = game.entities[config.colonyEntrance].position;
@@ -1012,16 +1017,16 @@ var performAction = function performAction(game, ant, action) {
             });
             if (_freePositions.length == 0) {
               // fall back to previous position
-              _loc2 = { position: ant.prevPosition };
+              loc = { position: ant.prevPosition };
             }
-            _loc2 = { position: oneOf(_freePositions) };
+            loc = { position: oneOf(_freePositions) };
           }
         } else if (typeof object === 'string') {
-          _loc2 = getEntitiesByType(game, ['LOCATION']).filter(function (l) {
+          loc = getEntitiesByType(game, ['LOCATION']).filter(function (l) {
             return l.name === object;
           })[0];
         }
-        var distVec = subtract(_loc2.position, ant.position);
+        var distVec = subtract(loc.position, ant.position);
         if (distVec.x == 0 && distVec.y == 0) {
           break; // you're there
         }
@@ -1145,8 +1150,7 @@ var performAction = function performAction(game, ant, action) {
         entityToEat.calories -= caloriesEaten;
         // remove the food item if it has no more calories
         if (entityToEat.calories <= 0) {
-          delete game.entities[entityToEat.id];
-          game.food = deleteFromArray(game.food, entityToEat.id);
+          removeEntity(game, entityToEat);
         }
         break;
       }
@@ -2234,7 +2238,8 @@ var _require = require('../config'),
 
 var _require2 = require('../utils/vectors'),
     subtract = _require2.subtract,
-    add = _require2.add;
+    add = _require2.add,
+    makeVector = _require2.makeVector;
 
 /**
  * Render things into the canvas
@@ -2344,34 +2349,59 @@ var render = function render(state, ctx) {
 
 var renderEntity = function renderEntity(state, ctx, entity) {
   ctx.save();
-  // render relative to top left of grid square
-  ctx.translate(entity.position.x, entity.position.y);
+  // render relative to top left of grid square, but first translate for rotation
+  // around the center
+  ctx.translate(entity.position.x + entity.width / 2, entity.position.y + entity.height / 2);
+  ctx.rotate(entity.theta);
+  ctx.translate(-entity.width / 2, -entity.height / 2);
   switch (entity.type) {
     case 'ANT':
       {
-        ctx.fillStyle = 'orange';
+        ctx.fillStyle = 'black';
         if (!entity.alive) {
           ctx.fillStyle = 'rgba(100, 100, 100, 0.5)';
+          ctx.strokeStyle = 'rgba(100, 100, 100, 0.5)';
         } else if (entity.calories < config.antStartingCalories * config.antStarvationWarningThreshold) {
           ctx.fillStyle = 'rgba(250, 50, 0, 0.9)';
         }
+        ctx.lineWidth = 1 / (config.canvasWidth / config.width);
+        if (state.game.selectedEntities.includes(entity.id)) {
+          ctx.strokeStyle = '#FF6347';
+          ctx.fillStyle = '#FF6347';
+        }
+        // body
         ctx.beginPath();
         var radius = entity.subType == 'QUEEN' ? entity.width / 2 : 0.8 * entity.width / 2;
+        radius = radius / 2;
+        ctx.arc(entity.width / 2 + 2 * radius, entity.height / 2, radius, 0, Math.PI * 2);
+        ctx.stroke();
         ctx.arc(entity.width / 2, entity.height / 2, radius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.arc(entity.width / 2 - 2 * radius, entity.height / 2, radius, 0, Math.PI * 2);
+        ctx.stroke();
         ctx.closePath();
         ctx.fill();
 
-        if (state.game.selectedEntities.includes(entity.id)) {
-          ctx.strokeStyle = 'black';
-          ctx.lineWidth = 2 / (config.canvasWidth / config.width);
+        // legs
+        ctx.translate(entity.width / 2, entity.height / 2);
+        for (var deg = 60; deg <= 120; deg += 30) {
+          var rad = deg * Math.PI / 180;
+          var leg1 = makeVector(rad, entity.width * 0.7);
+          var leg2 = makeVector(-rad, entity.width * 0.7);
+          ctx.moveTo(0, 0);
+          ctx.lineTo(leg1.x, leg1.y);
+          ctx.stroke();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(leg2.x, leg2.y);
           ctx.stroke();
         }
+        ctx.translate(-entity.width / 2, -entity.height / 2);
 
         if (entity.holding != null) {
           var heldEntity = entity.holding;
           ctx.save();
           ctx.scale(0.45, 0.45);
-          ctx.translate(1, 1);
+          ctx.translate(0.5, 1);
           renderEntity(state, ctx, _extends({}, heldEntity, { position: { x: 0, y: 0 } }));
           ctx.restore();
         }
@@ -2379,7 +2409,7 @@ var renderEntity = function renderEntity(state, ctx, entity) {
       }
     case 'DIRT':
       {
-        ctx.fillStyle = 'brown';
+        ctx.fillStyle = '#8B4513';
         var width = entity.width + 0.04;
         var height = entity.height + 0.04;
         ctx.fillRect(0, 0, width, height);
@@ -3149,6 +3179,7 @@ function AntCard(props) {
   var ant = entity;
 
   var hungryStr = ant.calories < config.antStartingCalories * config.antStarvationWarningThreshold ? ' - Hungry' : '';
+  var deadStr = ant.alive ? '' : 'Dead ';
 
   return React.createElement(
     'div',
@@ -3164,6 +3195,7 @@ function AntCard(props) {
       React.createElement(
         'b',
         null,
+        deadStr,
         ant.subType,
         ' ',
         ant.type
@@ -3274,6 +3306,7 @@ function LarvaCard(props) {
   var larva = entity;
 
   var hungryStr = larva.calories < config.larvaStartingCalories * config.antStarvationWarningThreshold ? ' - Hungry' : '';
+  var deadStr = ant.alive ? '' : 'Dead ';
 
   return React.createElement(
     'div',
@@ -3289,6 +3322,7 @@ function LarvaCard(props) {
       React.createElement(
         'b',
         null,
+        deadStr,
         larva.type
       )
     ),
@@ -3876,6 +3910,12 @@ module.exports = {
 },{}],38:[function(require,module,exports){
 'use strict';
 
+var _require = require('../utils/vectors'),
+    add = _require.add,
+    subtract = _require.subtract,
+    makeVector = _require.makeVector,
+    vectorTheta = _require.vectorTheta;
+
 ////////////////////////////////////////////////////////////////////////
 // Grid Functions
 ////////////////////////////////////////////////////////////////////////
@@ -3927,8 +3967,20 @@ function lookupInGrid(grid, position) {
 function addEntity(game, entity) {
   game.entities[entity.id] = entity;
   game[entity.type].push(entity.id);
-  insertInGrid(game.grid, entity.position, entity.id);
-  // TODO handle entities with larger size
+
+  var position = entity.position,
+      width = entity.width,
+      height = entity.height;
+
+  if (position == null) {
+    return;
+  }
+  // handle entities with larger size
+  for (var x = position.x; x < position.x + width; x++) {
+    for (var y = position.y; y < position.y + height; y++) {
+      insertInGrid(game.grid, { x: x, y: y }, entity.id);
+    }
+  }
 }
 
 function removeEntity(game, entity) {
@@ -3936,20 +3988,46 @@ function removeEntity(game, entity) {
   game[entity.type] = game[entity.type].filter(function (id) {
     return id != entity.id;
   });
-  deleteFromGrid(game.grid, entity.position, entity.id);
-  // TODO handle entities with larger size
+  var position = entity.position,
+      width = entity.width,
+      height = entity.height;
+
+  if (position == null) {
+    return;
+  }
+  // handle entities with larger size
+  for (var x = position.x; x < position.x + width; x++) {
+    for (var y = position.y; y < position.y + height; y++) {
+      deleteFromGrid(game.grid, { x: x, y: y }, entity.id);
+    }
+  }
 }
 
 function moveEntity(game, entity, nextPos) {
-  deleteFromGrid(game.grid, entity.position, entity.id);
-  insertInGrid(game.grid, nextPos, entity.id);
+  var position = entity.position,
+      width = entity.width,
+      height = entity.height;
+  // handle entities with larger size
+
+  if (position != null) {
+    for (var x = position.x; x < position.x + width; x++) {
+      for (var y = position.y; y < position.y + height; y++) {
+        deleteFromGrid(game.grid, { x: x, y: y }, entity.id);
+      }
+    }
+  }
+  for (var _x = nextPos.x; _x < nextPos.x + width; _x++) {
+    for (var _y = nextPos.y; _y < nextPos.y + height; _y++) {
+      insertInGrid(game.grid, { x: _x, y: _y }, entity.id);
+    }
+  }
   entity.prevPosition = entity.position;
   entity.position = nextPos;
-  // TODO handle entities with larger size
+  entity.theta = vectorTheta(subtract(entity.prevPosition, entity.position));
 }
 
 function changeEntityType(game, entity, oldType, nextType) {
-  game[oldType] = game[entity.type].filter(function (id) {
+  game[oldType] = game[oldType].filter(function (id) {
     return id != entity.id;
   });
   game[nextType].push(entity.id);
@@ -3966,7 +4044,7 @@ module.exports = {
   moveEntity: moveEntity,
   changeEntityType: changeEntityType
 };
-},{}],39:[function(require,module,exports){
+},{"../utils/vectors":39}],39:[function(require,module,exports){
 "use strict";
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };

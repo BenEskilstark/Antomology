@@ -29,7 +29,7 @@ var config = {
   antPickupEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'DEAD_ANT'],
   antBlockingEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA'],
   antEatEntities: ['FOOD', 'DEAD_ANT'],
-  antStartingCalories: 4000,
+  antStartingCalories: 40,
   antCaloriesPerEat: 1000,
   antMaxCalories: 6000,
   antStarvationWarningThreshold: 0.3,

@@ -274,7 +274,7 @@ const evaluateCondition = (
       } else if (object != null && object.id != null) {
         isTrue = neighbors.filter(n => n.id === object.id).length > 0;
       } else if (typeof object === 'string') {
-        loc = getEntitiesByType(game, ['LOCATION']).filter(l => l.name === object)[0];
+        isTrue = neighbors.filter(l => l.name === object).length > 0;
       }
       break;
     }
@@ -341,6 +341,11 @@ const performAction = (
         );
         if (freePositions.length > 0) {
           moveEntity(game, ant, oneOf(freePositions));
+        }
+      } else {
+        if (Math.random() < 0.05) {
+          const factor = Math.random() < 0.5 ? 1 : -1;
+          ant.theta += factor * Math.PI/2;
         }
       }
       break;
@@ -499,8 +504,7 @@ const performAction = (
       entityToEat.calories -= caloriesEaten;
       // remove the food item if it has no more calories
       if (entityToEat.calories <= 0) {
-        delete game.entities[entityToEat.id];
-        game.food = deleteFromArray(game.food, entityToEat.id);
+        removeEntity(game, entityToEat);
       }
       break;
     }
