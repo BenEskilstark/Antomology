@@ -643,7 +643,6 @@ var performAction = function performAction(game, ant, action) {
           var dirtNeighbors = neighbors.filter(function (e) {
             return e.type === 'DIRT';
           });
-          console.log(pheromoneNeighbors, dirtNeighbors);
           var markedDirt = [];
           var _iteratorNormalCompletion7 = true;
           var _didIteratorError7 = false;

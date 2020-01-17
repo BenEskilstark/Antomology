@@ -113,7 +113,7 @@ function LarvaCard(props: Props): React.Node {
     larva.calories < config.larvaStartingCalories * config.antStarvationWarningThreshold
     ? ' - Hungry'
     : '';
-  const deadStr = ant.alive ? '' : 'DEAD ';
+  const deadStr = larva.alive ? '' : 'DEAD ';
 
   return (
     <div

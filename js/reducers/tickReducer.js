@@ -472,7 +472,6 @@ const performAction = (
           .filter(e => e.type === 'PHEROMONE');
         let dirtNeighbors = neighbors
           .filter(e => e.type === 'DIRT');
-        console.log(pheromoneNeighbors, dirtNeighbors);
         const markedDirt = [];
         for (const dirt of dirtNeighbors) {
           for (const pheromone of pheromoneNeighbors) {
