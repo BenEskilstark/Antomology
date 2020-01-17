@@ -28,6 +28,7 @@ const Dropdown = function(props: Props) {
     <select
       onChange={(ev) => {
         const val = ev.target.value;
+        console.log("val");
         if (val != 'NONE') {
           onChange(val);
         }

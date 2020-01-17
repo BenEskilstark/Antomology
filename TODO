@@ -27,6 +27,7 @@
  - switch dead ants/larva to their own entity type
  - make location position in center instead of top left for moving towards
  - use sprites for entities
+ - test on firefox
 
  - - - - -  LATER - - - - - -
  - big entities:

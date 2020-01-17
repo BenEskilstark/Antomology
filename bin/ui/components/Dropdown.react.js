@@ -35,6 +35,7 @@ var Dropdown = function Dropdown(props) {
     {
       onChange: function onChange(ev) {
         var val = ev.target.value;
+        console.log("val");
         if (val != 'NONE') {
           _onChange(val);
         }
