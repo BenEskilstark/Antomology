@@ -18,7 +18,7 @@ var Dropdown = function Dropdown(props) {
   var optionTags = options.map(function (option) {
     return React.createElement(
       'option',
-      { key: 'option_' + option, value: option, selected: option === selected },
+      { key: 'option_' + option, value: option },
       option
     );
   });
@@ -35,7 +35,13 @@ var Dropdown = function Dropdown(props) {
     {
       onChange: function onChange(ev) {
         var val = ev.target.value;
-        console.log("val");
+        console.log('in on change', val);
+        if (val != 'NONE') {
+          _onChange(val);
+        }
+      },
+      change: function change(ev) {
+        console.log('in change', val);
         if (val != 'NONE') {
           _onChange(val);
         }

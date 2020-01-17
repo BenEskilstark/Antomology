@@ -11,7 +11,7 @@ const React = require('React');
 const Dropdown = function(props: Props) {
   const {options, noNoneOption, selected, onChange} = props;
   const optionTags = options.map(option => (
-    <option key={'option_' + option} value={option} selected={option === selected}>
+    <option key={'option_' + option} value={option}>
       {option}
     </option>
   ));
@@ -28,7 +28,13 @@ const Dropdown = function(props: Props) {
     <select
       onChange={(ev) => {
         const val = ev.target.value;
-        console.log("val");
+        console.log('in on change', val);
+        if (val != 'NONE') {
+          onChange(val);
+        }
+      }}
+      change={(ev) => {
+        console.log('in change', val);
         if (val != 'NONE') {
           onChange(val);
         }
