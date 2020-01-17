@@ -16,6 +16,7 @@
     - explicitly return to parent behavior as a setting in the SWITCH_TASK behavior
 
  - - - - - - NEXT - - - - - -
+ - change cursor based on userMode
  - ant calories should only go down when they do something?
  - add other entities: beetles, worms, spiders, aphids
  - make food size scale by calorie amount with better thresholds
@@ -28,6 +29,8 @@
  - make location position in center instead of top left for moving towards
  - use sprites for entities
  - test on firefox
+   - fix dropdowns
+   - fix selection weirdness
 
  - - - - -  LATER - - - - - -
  - big entities:
@@ -50,13 +53,11 @@
  - fix flow errors
  - MOVE action implementation sucks
  - get optional chaining working
+ - state/tasks is disorganized
 
 
  - - - - - - BUGS - - - - - -
- - number input (in e.g. RANDOM condition) doesn't like being cleared out temporarily
- - checkboxes in task editor complain about control
- - picked-up larva never hatch and then die on putdown. Should probably just wait to hatch
- - clicking go to position unwinds up the parent stack after getting there
+ - picked-up pupa never hatch and then die on putdown. Should probably just wait to hatch
 
  - - - - - - DONE - - - - - -
  - clicking to select ants
@@ -204,3 +205,7 @@
     - update MARKED condition
  - assigning a task should clear the stack
  - don't allow creating a task called "New Task"
+ - clicking go to position unwinds up the parent stack after getting there
+
+ - checkboxes in task editor complain about control
+ - number input (in e.g. RANDOM condition) doesn't like being cleared out temporarily

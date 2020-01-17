@@ -28,13 +28,6 @@ const Dropdown = function(props: Props) {
     <select
       onChange={(ev) => {
         const val = ev.target.value;
-        console.log('in on change', val);
-        if (val != 'NONE') {
-          onChange(val);
-        }
-      }}
-      change={(ev) => {
-        console.log('in change', val);
         if (val != 'NONE') {
           onChange(val);
         }

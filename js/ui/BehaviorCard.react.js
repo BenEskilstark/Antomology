@@ -64,6 +64,7 @@ function BehaviorCard(props: Props): React.Node {
             newBehavior.condition = {
               type: 'RANDOM',
               comparator: 'EQUALS',
+              not: false,
               payload: {
                 object: 1,
               },
@@ -90,6 +91,7 @@ function BehaviorCard(props: Props): React.Node {
             newBehavior.condition = {
               type: 'RANDOM',
               comparator: 'EQUALS',
+              not: false,
               payload: {
                 object: 1,
               },
@@ -186,10 +188,18 @@ function Conditional(
   }
   let objectField = 'True';
   if (typeName === 'RANDOM' || typeName === 'CALORIES' || typeName === 'AGE') {
-    objectField = <input type="number"
+    objectField = <input type="text"
       value={conditionObject}
       onChange={(ev) => {
-        behavior.condition.payload.object = parseFloat(ev.target.value);
+        const val = ev.target.value;
+        if (val == '' || val[val.length - 1] === '.') {
+          behavior.condition.payload.object = val;
+        } else if (parseFloat(val) == NaN) {
+          console.log(val);
+          return;
+        } else {
+          behavior.condition.payload.object = parseFloat(val);
+        }
         setBehavior(behavior);
       }}
     />;

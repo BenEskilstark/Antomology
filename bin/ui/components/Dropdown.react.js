@@ -35,13 +35,6 @@ var Dropdown = function Dropdown(props) {
     {
       onChange: function onChange(ev) {
         var val = ev.target.value;
-        console.log('in on change', val);
-        if (val != 'NONE') {
-          _onChange(val);
-        }
-      },
-      change: function change(ev) {
-        console.log('in change', val);
         if (val != 'NONE') {
           _onChange(val);
         }

@@ -2782,6 +2782,7 @@ function BehaviorCard(props) {
           newBehavior.condition = {
             type: 'RANDOM',
             comparator: 'EQUALS',
+            not: false,
             payload: {
               object: 1
             }
@@ -2808,6 +2809,7 @@ function BehaviorCard(props) {
           newBehavior.condition = {
             type: 'RANDOM',
             comparator: 'EQUALS',
+            not: false,
             payload: {
               object: 1
             }
@@ -2905,10 +2907,18 @@ function Conditional(props) {
   }
   var objectField = 'True';
   if (typeName === 'RANDOM' || typeName === 'CALORIES' || typeName === 'AGE') {
-    objectField = React.createElement('input', { type: 'number',
+    objectField = React.createElement('input', { type: 'text',
       value: conditionObject,
       onChange: function onChange(ev) {
-        behavior.condition.payload.object = parseFloat(ev.target.value);
+        var val = ev.target.value;
+        if (val == '' || val[val.length - 1] === '.') {
+          behavior.condition.payload.object = val;
+        } else if (parseFloat(val) == NaN) {
+          console.log(val);
+          return;
+        } else {
+          behavior.condition.payload.object = parseFloat(val);
+        }
         setBehavior(behavior);
       }
     });
@@ -3898,13 +3908,6 @@ var Dropdown = function Dropdown(props) {
     {
       onChange: function onChange(ev) {
         var val = ev.target.value;
-        console.log('in on change', val);
-        if (val != 'NONE') {
-          _onChange(val);
-        }
-      },
-      change: function change(ev) {
-        console.log('in change', val);
         if (val != 'NONE') {
           _onChange(val);
         }
