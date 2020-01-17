@@ -18,7 +18,7 @@ var Dropdown = function Dropdown(props) {
   var optionTags = options.map(function (option) {
     return React.createElement(
       'option',
-      { key: 'option_' + option, value: option },
+      { key: 'option_' + option, value: option, selected: option === selected },
       option
     );
   });

@@ -11,7 +11,7 @@ const React = require('React');
 const Dropdown = function(props: Props) {
   const {options, noNoneOption, selected, onChange} = props;
   const optionTags = options.map(option => (
-    <option key={'option_' + option} value={option}>
+    <option key={'option_' + option} value={option} selected={option === selected}>
       {option}
     </option>
   ));
