@@ -119,7 +119,6 @@ const handleTick = (game: GameState): GameState => {
       game.entities[id] = {...makePupa(larva.position, larva.subType), id};
       changeEntityType(game, game.entities[id], 'LARVA', 'PUPA');
     }
-
   }
 
   // update pupa
@@ -129,6 +128,24 @@ const handleTick = (game: GameState): GameState => {
     if (pupa.age > config.pupaHatchAge) {
       game.entities[id] = {...makeAnt(pupa.position, pupa.subType), id};
       changeEntityType(game, game.entities[id], 'PUPA', 'ANT');
+    }
+  }
+
+  // update pheromones
+  for (const id of game.PHEROMONE) {
+    const pheromone = game.entities[id];
+    pheromone.quantity -= 1;
+    const antsHere = lookupInGrid(game.grid, pheromone.position)
+      .map(i => game.entities[i])
+      .filter(e => e.type === 'ANT')
+      .length > 0;
+    if (antsHere) {
+      pheromone.quantity += 1;
+    } else {
+      pheromone.quantity -= 1;
+    }
+    if (pheromone.quantity <= 0) {
+      removeEntity(game, pheromone);
     }
   }
 

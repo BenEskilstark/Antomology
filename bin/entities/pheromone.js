@@ -5,11 +5,15 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 var _require = require('./entity'),
     makeEntity = _require.makeEntity;
 
+var _require2 = require('../config'),
+    config = _require2.config;
+
 var makePheromone = function makePheromone(position, theta, category, quantity) {
+  var amount = quantity != null ? quantity : config.pheromoneStartingQuantity;
   return _extends({}, makeEntity('PHEROMONE', 1, 1, position), {
     theta: theta,
     category: category,
-    quantity: quantity
+    quantity: amount
   });
 };
 

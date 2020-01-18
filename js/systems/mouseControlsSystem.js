@@ -60,7 +60,7 @@ const initMouseControlsSystem = (store) => {
       if (prevPheromone == null) {
         dispatch({
           type: 'CREATE_ENTITY',
-          entity: makePheromone(gridPos, theta: 0, 1, 1),
+          entity: makePheromone(gridPos, theta: 0, 1),
         });
         return;
       }
@@ -86,7 +86,7 @@ const initMouseControlsSystem = (store) => {
       } else {
         dispatch({
           type: 'CREATE_ENTITY',
-          entity: makePheromone(gridPos, theta, 1, 1),
+          entity: makePheromone(gridPos, theta, 1),
         });
       }
     }

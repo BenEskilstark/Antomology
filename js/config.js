@@ -40,6 +40,9 @@ const config = {
   larvaStartingCalories: 3000,
   larvaEndCalories: 4000,
   pupaHatchAge: 200,
+
+  // pheromones
+  pheromoneStartingQuantity: 60,
 };
 
 module.exports = {config};
