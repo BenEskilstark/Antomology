@@ -42,7 +42,8 @@ const config = {
   pupaHatchAge: 200,
 
   // pheromones
-  pheromoneStartingQuantity: 60,
+  pheromoneStartingQuantity: 120,
+  pheromoneMaxQuantity: 120,
 };
 
 module.exports = {config};

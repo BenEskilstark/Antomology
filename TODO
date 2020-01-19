@@ -1,29 +1,27 @@
 
  - - - - - - TODO - - - - - -
+ - behaviors should support lists of child behaviors
+ - Task Stack
+    - explicitly return to parent behavior as a setting in the SWITCH_TASK behavior
+ - Add a bunch of tasks to default tasks
  - pheromone trails
-    - test ants re-inforcing trails
-    - color trail alpha based on strength
-    - fix/delete the digging out blueprint behavior
     - tool for clearing pheromone
     - behavior setting to follow trail backwards
     - support categories of pheromone you can select and have different colors
+    - allow ants to lay trail fowards/backwards
  - implement pan/zoom with grid-to-canvas size conversion
     - how to handle at controls level with click-and-drag already used for marquee?
  - add background layer
  - add gravity
  - add "levels" that can be selected in lobby
     - specific level with some story component
- - Task Stack
-    - explicitly return to parent behavior as a setting in the SWITCH_TASK behavior
 
  - - - - - - NEXT - - - - - -
  - change cursor based on userMode
- - ant calories should only go down when they do something?
  - add other entities: beetles, worms, spiders, aphids
  - make food size scale by calorie amount with better thresholds
  - compute old-age death for ants
  - Call out ants near death of old age
- - behaviors should support lists of child behaviors
  - option for deleting behaviors in Task Editor
  - better anti-aliasing for dirt
  - switch dead ants/larva to their own entity type
@@ -41,6 +39,7 @@
     - subdividing bigger entities on pickup
     - collision detection when bigger entities move around
  - make UI elements screen-size responsive
+ - food that ants can coordinate to lift
  - A*-like for ants moving towards location?
  - implement MARK action
  - conditionals with OR/AND
@@ -203,6 +202,7 @@
     - fixed one ant being colored green
     - when putting pheromone somewhere there already is, update its theta
     - behavior for ant following trail
+    - fix/delete the digging out blueprint behavior
     - update MARKED condition
  - assigning a task should clear the stack
  - don't allow creating a task called "New Task"
@@ -212,3 +212,6 @@
  - number input (in e.g. RANDOM condition) doesn't like being cleared out temporarily
  - pheromone trails
     - potentially have pheromone fade over time
+    - test ants re-inforcing trails
+    - color trail alpha based on strength
+ - ant calories only go down when they do something

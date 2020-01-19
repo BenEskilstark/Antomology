@@ -245,14 +245,13 @@ var handleTick = function handleTick(game) {
       var _id4 = _step5.value;
 
       var pheromone = game.entities[_id4];
-      pheromone.quantity -= 1;
       var antsHere = lookupInGrid(game.grid, pheromone.position).map(function (i) {
         return game.entities[i];
       }).filter(function (e) {
         return e.type === 'ANT';
       }).length > 0;
       if (antsHere) {
-        pheromone.quantity += 1;
+        pheromone.quantity = Math.min(pheromone.quantity + 1, config.pheromoneMaxQuantity);
       } else {
         pheromone.quantity -= 1;
       }
@@ -570,6 +569,8 @@ var performAction = function performAction(game, ant, action) {
           if (Math.random() < 0.05) {
             var factor = Math.random() < 0.5 ? 1 : -1;
             ant.theta += factor * Math.PI / 2;
+          } else {
+            ant.calories += 1; // calories don't go down if you fully idle
           }
         }
         break;

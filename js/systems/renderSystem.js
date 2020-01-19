@@ -239,7 +239,8 @@ const renderEntity = (state: State, ctx: any, entity: Entity): void => {
     }
     case 'PHEROMONE': {
       ctx.save();
-      ctx.fillStyle = "rgba(0, 200, 0, 0.9)";
+      const alpha = 0.75 * (entity.quantity / config.pheromoneMaxQuantity) + 0.25;
+      ctx.fillStyle = "rgba(0, 200, 0, " + alpha + ")";
       // relative to center
       ctx.translate(entity.width / 2, entity.height / 2);
       const radius = entity.width / 2;

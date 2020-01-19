@@ -286,7 +286,8 @@ var renderEntity = function renderEntity(state, ctx, entity) {
     case 'PHEROMONE':
       {
         ctx.save();
-        ctx.fillStyle = "rgba(0, 200, 0, 0.9)";
+        var alpha = 0.75 * (entity.quantity / config.pheromoneMaxQuantity) + 0.25;
+        ctx.fillStyle = "rgba(0, 200, 0, " + alpha + ")";
         // relative to center
         ctx.translate(entity.width / 2, entity.height / 2);
         var _radius3 = entity.width / 2;

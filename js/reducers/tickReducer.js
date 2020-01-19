@@ -134,13 +134,14 @@ const handleTick = (game: GameState): GameState => {
   // update pheromones
   for (const id of game.PHEROMONE) {
     const pheromone = game.entities[id];
-    pheromone.quantity -= 1;
     const antsHere = lookupInGrid(game.grid, pheromone.position)
       .map(i => game.entities[i])
       .filter(e => e.type === 'ANT')
       .length > 0;
     if (antsHere) {
-      pheromone.quantity += 1;
+      pheromone.quantity = Math.min(
+        pheromone.quantity + 1, config.pheromoneMaxQuantity,
+      );
     } else {
       pheromone.quantity -= 1;
     }
@@ -386,6 +387,8 @@ const performAction = (
         if (Math.random() < 0.05) {
           const factor = Math.random() < 0.5 ? 1 : -1;
           ant.theta += factor * Math.PI/2;
+        } else {
+          ant.calories += 1; // calories don't go down if you fully idle
         }
       }
       break;

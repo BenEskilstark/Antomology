@@ -43,7 +43,8 @@ var config = {
   pupaHatchAge: 200,
 
   // pheromones
-  pheromoneStartingQuantity: 60
+  pheromoneStartingQuantity: 120,
+  pheromoneMaxQuantity: 120
 };
 
 module.exports = { config: config };
@@ -784,14 +785,13 @@ var handleTick = function handleTick(game) {
       var _id4 = _step5.value;
 
       var pheromone = game.entities[_id4];
-      pheromone.quantity -= 1;
       var antsHere = lookupInGrid(game.grid, pheromone.position).map(function (i) {
         return game.entities[i];
       }).filter(function (e) {
         return e.type === 'ANT';
       }).length > 0;
       if (antsHere) {
-        pheromone.quantity += 1;
+        pheromone.quantity = Math.min(pheromone.quantity + 1, config.pheromoneMaxQuantity);
       } else {
         pheromone.quantity -= 1;
       }
@@ -1109,6 +1109,8 @@ var performAction = function performAction(game, ant, action) {
           if (Math.random() < 0.05) {
             var factor = Math.random() < 0.5 ? 1 : -1;
             ant.theta += factor * Math.PI / 2;
+          } else {
+            ant.calories += 1; // calories don't go down if you fully idle
           }
         }
         break;
@@ -2727,7 +2729,8 @@ var renderEntity = function renderEntity(state, ctx, entity) {
     case 'PHEROMONE':
       {
         ctx.save();
-        ctx.fillStyle = "rgba(0, 200, 0, 0.9)";
+        var alpha = 0.75 * (entity.quantity / config.pheromoneMaxQuantity) + 0.25;
+        ctx.fillStyle = "rgba(0, 200, 0, " + alpha + ")";
         // relative to center
         ctx.translate(entity.width / 2, entity.height / 2);
         var _radius3 = entity.width / 2;
