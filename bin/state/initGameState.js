@@ -29,7 +29,53 @@ var _require8 = require('../utils/stateHelpers'),
 
 var tasks = require('../state/tasks');
 
-var initGameState = function initGameState() {
+var initGameState = function initGameState(level) {
+  switch (level) {
+    case 0:
+      return level0();
+    case 1:
+      return level1();
+  }
+};
+
+var level1 = function level1() {
+  var gameState = {
+    time: 0,
+    tickInterval: null,
+    antMode: 'PICKUP',
+    userMode: 'SELECT',
+    nextLocationName: 'Give Locations Unique Names',
+    prevPheromone: null,
+    mouse: {
+      isLeftDown: false,
+      isRightDown: false,
+      downPos: { x: 0, y: 0 },
+      curPos: { x: 0, y: 0 }
+    },
+
+    entities: {},
+    selectedEntities: [],
+    ANT: [],
+    DIRT: [],
+    FOOD: [],
+    EGG: [],
+    LARVA: [],
+    PUPA: [],
+    DEAD_ANT: [], // TODO: not actually implemented
+    LOCATION: [],
+    PHEROMONE: [],
+
+    tasks: [],
+    grid: []
+  };
+  addEntity(gameState, makeAnt({ x: 25, y: 30 }, 'QUEEN'));
+  addEntity(gameState, makeAnt({ x: 20, y: 30 }, 'WORKER'));
+  addEntity(gameState, makeAnt({ x: 30, y: 30 }, 'WORKER'));
+
+  return gameState;
+};
+
+var level0 = function level0() {
   var gameState = {
     time: 0,
     tickInterval: null,

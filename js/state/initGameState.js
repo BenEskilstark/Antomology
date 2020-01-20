@@ -17,7 +17,53 @@ const tasks = require('../state/tasks');
 
 import type {GameState} from '../types';
 
-const initGameState = (): GameState => {
+const initGameState = (level: number): GameState => {
+  switch (level) {
+    case 0:
+      return level0();
+    case 1:
+      return level1();
+  }
+}
+
+const level1 = (): GameState => {
+  const gameState = {
+    time: 0,
+    tickInterval: null,
+    antMode: 'PICKUP',
+    userMode: 'SELECT',
+    nextLocationName: 'Give Locations Unique Names',
+    prevPheromone: null,
+    mouse: {
+      isLeftDown: false,
+      isRightDown: false,
+      downPos: {x: 0, y: 0},
+      curPos: {x: 0, y: 0},
+    },
+
+    entities: {},
+    selectedEntities: [],
+    ANT: [],
+    DIRT: [],
+    FOOD: [],
+    EGG: [],
+    LARVA: [],
+    PUPA: [],
+    DEAD_ANT: [], // TODO: not actually implemented
+    LOCATION: [],
+    PHEROMONE: [],
+
+    tasks: [],
+    grid: [],
+  };
+  addEntity(gameState, makeAnt({x: 25, y: 30}, 'QUEEN'));
+  addEntity(gameState, makeAnt({x: 20, y: 30}, 'WORKER'));
+  addEntity(gameState, makeAnt({x: 30, y: 30}, 'WORKER'));
+
+  return gameState;
+}
+
+const level0 = (): GameState => {
   const gameState = {
     time: 0,
     tickInterval: null,

@@ -22,9 +22,13 @@ var rootReducer = function rootReducer(state, action) {
 
   switch (action.type) {
     case 'START':
-      return _extends({}, state, {
-        game: initGameState()
-      });
+      {
+        var level = action.level;
+
+        return _extends({}, state, {
+          game: initGameState(level)
+        });
+      }
     case 'SET_MODAL':
     case 'DISMISS_MODAL':
       return modalReducer(state, action);

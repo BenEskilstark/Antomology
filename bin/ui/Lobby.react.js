@@ -13,14 +13,25 @@ var Button = require('./components/Button.react');
 function Lobby(props) {
   var dispatch = props.dispatch;
 
-  return React.createElement(Button, {
-    label: 'Start Game',
-    hotkey: 13 // enter
-    , onClick: function onClick() {
-      dispatch({ type: 'START' });
-      dispatch({ type: 'START_TICK' });
-    }
-  });
+  return React.createElement(
+    'span',
+    null,
+    React.createElement(Button, {
+      label: 'Start Test Level',
+      hotkey: 13 // enter
+      , onClick: function onClick() {
+        dispatch({ type: 'START', level: 0 });
+        dispatch({ type: 'START_TICK' });
+      }
+    }),
+    React.createElement(Button, {
+      label: 'Start Level 1',
+      onClick: function onClick() {
+        dispatch({ type: 'START', level: 1 });
+        dispatch({ type: 'START_TICK' });
+      }
+    })
+  );
 }
 
 module.exports = Lobby;

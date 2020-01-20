@@ -229,7 +229,7 @@ export type Task = {
 
 export type Action =
   {type: 'RESTART'} |
-  {type: 'START'} |
+  {type: 'START', level: number} |
   {type: 'SET_MODAL', modal: Modal} |
   {type: 'DISMISS_MODAL'} |
   {type: 'STOP_TICK'} |

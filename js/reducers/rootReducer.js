@@ -12,11 +12,13 @@ const rootReducer = (state: State, action: Action): State => {
   if (state === undefined) return initState();
 
   switch (action.type) {
-    case 'START':
+    case 'START': {
+      const {level} = action;
       return {
         ...state,
-        game: initGameState(),
+        game: initGameState(level),
       };
+    }
     case 'SET_MODAL':
     case 'DISMISS_MODAL':
       return modalReducer(state, action);

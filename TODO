@@ -13,7 +13,11 @@
     - how to handle at controls level with click-and-drag already used for marquee?
  - add background layer
  - add gravity
+ - add pause functionality/button
  - add "levels" that can be selected in lobby
+    - world size should be on the state, not the config
+    - tasks etc. should be initialized in all levels
+    - init systems should be inside level creation
     - specific level with some story component
 
  - - - - - - NEXT - - - - - -
@@ -215,3 +219,5 @@
     - test ants re-inforcing trails
     - color trail alpha based on strength
  - ant calories only go down when they do something
+
+ - add "levels" that can be selected in lobby
