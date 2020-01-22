@@ -27,7 +27,8 @@ var makeAnt = function makeAnt(position, subType) {
     }],
     blocked: false,
     blockedBy: null,
-    alive: true
+    alive: true,
+    visible: true
   });
 };
 

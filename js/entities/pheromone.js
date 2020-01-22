@@ -17,6 +17,7 @@ const makePheromone = (
     theta,
     category,
     quantity: amount,
+    visible: true,
   };
 };
 

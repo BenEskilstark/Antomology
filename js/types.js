@@ -80,6 +80,7 @@ export type GameState = {
   PUPA: Array<EntityID>,
   DEAD_ANT: Array<EntityID>, // TODO: not actually implemented
   PHEROMONE: Array<EntityID>,
+  SKY: Array<EntityID>,
 
   // for faster collision detection
   grid: Array<Array<Array<EntityID>>>,
@@ -94,7 +95,7 @@ export type GameState = {
 export type EntityID = number;
 export type EntityType =
   'ANT' | 'DIRT' | 'FOOD' | 'EGG' | 'LARVA' | 'PUPA' | 'LOCATION' | 'DEAD_ANT' |
-  'PHEROMONE';
+  'PHEROMONE' | 'SKY';
 
 export type Entity = {
   id: EntityID,
@@ -108,8 +109,9 @@ export type Entity = {
   width: number,
   height: number,
 
-  // DEPRECATED
-  marked: number, // scalar showing how "marked" this is e.g. for digging
+  // for fog of war
+  visible: boolean,
+  lastSeenPos: Vector,
 
   theta: Radians,
   thetaSpeed: Radians, // how theta changes over time

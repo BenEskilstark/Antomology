@@ -36,6 +36,7 @@ const {
   getEntitiesByType,
   filterEntitiesByType,
   insideWorld,
+  getEntitiesInRadius,
 } = require('../selectors/selectors');
 const {makeEgg} = require('../entities/egg');
 const {makeLarva} = require('../entities/larva');
@@ -90,6 +91,65 @@ const handleTick = (game: GameState): GameState => {
     }
   }
 
+  updateAntLifeCycles(game);
+
+  // update pheromones
+  for (const id of game.PHEROMONE) {
+    const pheromone = game.entities[id];
+    const antsHere = lookupInGrid(game.grid, pheromone.position)
+      .map(i => game.entities[i])
+      .filter(e => e.type === 'ANT')
+      .length > 0;
+    if (antsHere) {
+      pheromone.quantity = Math.min(
+        pheromone.quantity + 1, config.pheromoneMaxQuantity,
+      );
+    } else {
+      pheromone.quantity -= 1;
+    }
+    if (pheromone.quantity <= 0) {
+      removeEntity(game, pheromone);
+    }
+  }
+
+  // update FoW vision
+  const previouslyVisible = [];
+  for (const entityType of config.entitiesInFog) {
+    for (const id of game[entityType]) {
+      const entity = game.entities[id];
+      if (entity.position == null) {
+        entity.visible = true; // held entities are visible
+        continue;
+      }
+      if (entity.visible) {
+        previouslyVisible.push(entity);
+        entity.visible = false;
+      }
+    }
+  }
+  for (const id of game.ANT) {
+    const ant = game.entities[id];
+    getEntitiesInRadius(game, ant.position, config.antVisionRadius)
+      .forEach(e => e.visible = true);
+  }
+  for (const entity of previouslyVisible) {
+    if (!entity.visible) {
+      entity.lastSeenPos = entity.position;
+    }
+  }
+
+  game.time += 1;
+
+  // const time = performance.now() - startTime;
+  // totalTime += time;
+  // if (game.time % 10 === 0) {
+  //   console.log(time.toFixed(3), 'avg', (totalTime / game.time).toFixed(3));
+  // }
+
+  return game;
+}
+
+const updateAntLifeCycles = (game): void => {
   // update eggs
   for (const id of game.EGG) {
     const egg = game.entities[id];
@@ -130,35 +190,6 @@ const handleTick = (game: GameState): GameState => {
       changeEntityType(game, game.entities[id], 'PUPA', 'ANT');
     }
   }
-
-  // update pheromones
-  for (const id of game.PHEROMONE) {
-    const pheromone = game.entities[id];
-    const antsHere = lookupInGrid(game.grid, pheromone.position)
-      .map(i => game.entities[i])
-      .filter(e => e.type === 'ANT')
-      .length > 0;
-    if (antsHere) {
-      pheromone.quantity = Math.min(
-        pheromone.quantity + 1, config.pheromoneMaxQuantity,
-      );
-    } else {
-      pheromone.quantity -= 1;
-    }
-    if (pheromone.quantity <= 0) {
-      removeEntity(game, pheromone);
-    }
-  }
-
-  game.time += 1;
-
-  // const time = performance.now() - startTime;
-  // totalTime += time;
-  // if (game.time % 10 === 0) {
-  //   console.log(time.toFixed(3), 'avg', (totalTime / game.time).toFixed(3));
-  // }
-
-  return game;
 }
 
 // Update the world based on the ant (attempting) performing its task.

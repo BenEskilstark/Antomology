@@ -3,6 +3,7 @@
 const {makeEntity} = require('../entities/entity');
 const {makeAnt} = require('../entities/ant');
 const {makeDirt} = require('../entities/dirt');
+const {makeSky} = require('../entities/sky');
 const {makeFood} = require('../entities/food');
 const {makeLocation} = require('../entities/location');
 const {config} = require('../config');
@@ -40,7 +41,7 @@ const level1 = (): GameState => {
 }
 
 const level0 = (): GameState => {
-  const game = baseState(100, 100);
+  const game = baseState(1000, 100);
   // seed start location
   const clickedLocation = {
     ...makeLocation('Clicked Position', 1, 1, {x:0, y:0}), id: config.clickedPosition,
@@ -93,6 +94,13 @@ const level0 = (): GameState => {
       ],
     },
   ];
+
+  // seed sky
+  for (let x = 0; x < game.worldWidth; x++) {
+    for (let y = 0; y < game.worldHeight; y++) {
+      addEntity(game, makeSky({x, y}));
+    }
+  }
 
   // seed bottom 1/4's with dirt
   for (let x = 0; x < game.worldWidth; x++) {
@@ -171,6 +179,7 @@ const baseState = (worldWidth: number, worldHeight: number): GameState => {
     DEAD_ANT: [], // TODO: not actually implemented
     LOCATION: [],
     PHEROMONE: [],
+    SKY: [],
 
     tasks: [],
     grid: [],

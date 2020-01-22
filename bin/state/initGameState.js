@@ -11,21 +11,24 @@ var _require2 = require('../entities/ant'),
 var _require3 = require('../entities/dirt'),
     makeDirt = _require3.makeDirt;
 
-var _require4 = require('../entities/food'),
-    makeFood = _require4.makeFood;
+var _require4 = require('../entities/sky'),
+    makeSky = _require4.makeSky;
 
-var _require5 = require('../entities/location'),
-    makeLocation = _require5.makeLocation;
+var _require5 = require('../entities/food'),
+    makeFood = _require5.makeFood;
 
-var _require6 = require('../config'),
-    config = _require6.config;
+var _require6 = require('../entities/location'),
+    makeLocation = _require6.makeLocation;
 
-var _require7 = require('../utils/helpers'),
-    randomIn = _require7.randomIn;
+var _require7 = require('../config'),
+    config = _require7.config;
 
-var _require8 = require('../utils/stateHelpers'),
-    addEntity = _require8.addEntity,
-    insertInGrid = _require8.insertInGrid;
+var _require8 = require('../utils/helpers'),
+    randomIn = _require8.randomIn;
+
+var _require9 = require('../utils/stateHelpers'),
+    addEntity = _require9.addEntity,
+    insertInGrid = _require9.insertInGrid;
 
 var tasks = require('../state/tasks');
 
@@ -52,7 +55,7 @@ var level1 = function level1() {
 };
 
 var level0 = function level0() {
-  var game = baseState(100, 100);
+  var game = baseState(1000, 100);
   // seed start location
   var clickedLocation = _extends({}, makeLocation('Clicked Position', 1, 1, { x: 0, y: 0 }), { id: config.clickedPosition
   });
@@ -91,17 +94,24 @@ var level0 = function level0() {
     }]
   }];
 
-  // seed bottom 1/4's with dirt
+  // seed sky
   for (var x = 0; x < game.worldWidth; x++) {
     for (var y = 0; y < game.worldHeight; y++) {
-      if (y < game.worldHeight * 0.3) {
-        if (x == colonyEntrance.position.x && y == colonyEntrance.position.y) {
+      addEntity(game, makeSky({ x: x, y: y }));
+    }
+  }
+
+  // seed bottom 1/4's with dirt
+  for (var _x = 0; _x < game.worldWidth; _x++) {
+    for (var _y = 0; _y < game.worldHeight; _y++) {
+      if (_y < game.worldHeight * 0.3) {
+        if (_x == colonyEntrance.position.x && _y == colonyEntrance.position.y) {
           continue;
         }
-        if (x == colonyEntrance.position.x && y == colonyEntrance.position.y - 1) {
+        if (_x == colonyEntrance.position.x && _y == colonyEntrance.position.y - 1) {
           continue;
         }
-        addEntity(game, makeDirt({ x: x, y: y }));
+        addEntity(game, makeDirt({ x: _x, y: _y }));
       }
     }
   }
@@ -168,6 +178,7 @@ var baseState = function baseState(worldWidth, worldHeight) {
     DEAD_ANT: [], // TODO: not actually implemented
     LOCATION: [],
     PHEROMONE: [],
+    SKY: [],
 
     tasks: [],
     grid: []

@@ -172,6 +172,27 @@ var insideWorld = function insideWorld(game, pos) {
   return pos.x >= 0 && pos.x < game.worldWidth && pos.y >= 0 && pos.y < game.worldHeight;
 };
 
+var onScreen = function onScreen(game, pos) {
+  var viewPos = game.viewPos;
+
+  var e = 2; // to handle drag lag
+  return pos.x >= viewPos.x - e && pos.y >= viewPos.y - e && pos.x <= viewPos.x + config.width + e && pos.y <= viewPos.y + config.height + e;
+};
+
+var getEntitiesInRadius = function getEntitiesInRadius(game, pos, radius) {
+  var entities = [];
+  for (var _x2 = -radius; _x2 <= radius; _x2++) {
+    for (var _y2 = -radius; _y2 <= radius; _y2++) {
+      if (_x2 * _x2 + _y2 * _y2 < radius * radius) {
+        entities.push.apply(entities, _toConsumableArray(lookupInGrid(game.grid, { x: _x2 + pos.x, y: _y2 + pos.y })));
+      }
+    }
+  }
+  return entities.map(function (id) {
+    return game.entities[id];
+  });
+};
+
 /////////////////////////////////////////////////////////////////
 // Entities by type
 /////////////////////////////////////////////////////////////////
@@ -227,9 +248,11 @@ var selectors = {
   fastGetEmptyNeighborPositions: fastGetEmptyNeighborPositions,
   fastGetNeighbors: fastGetNeighbors,
   insideWorld: insideWorld,
+  onScreen: onScreen,
   collides: collides,
   getSelectedAntIDs: getSelectedAntIDs,
-  entitiesInMarquee: entitiesInMarquee
+  entitiesInMarquee: entitiesInMarquee,
+  getEntitiesInRadius: getEntitiesInRadius
 };
 window.selectors = selectors; // for testing
 

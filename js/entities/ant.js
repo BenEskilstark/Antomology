@@ -26,6 +26,7 @@ const makeAnt = (position: Vector, subType: AntSubType): Ant => {
     blocked: false,
     blockedBy: null,
     alive: true,
+    visible: true,
   };
 };
 

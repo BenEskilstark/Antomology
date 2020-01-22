@@ -10,6 +10,9 @@ var _require2 = require('../utils/vectors'),
     add = _require2.add,
     makeVector = _require2.makeVector;
 
+var _require3 = require('../selectors/selectors'),
+    onScreen = _require3.onScreen;
+
 /**
  * Render things into the canvas
  */
@@ -36,6 +39,7 @@ var initRenderSystem = function initRenderSystem(store) {
     }
 
     // clear
+    // ctx.fillStyle = '#CD853F';
     ctx.fillStyle = 'steelblue';
     ctx.fillRect(0, 0, config.canvasWidth, config.canvasHeight);
 
@@ -56,34 +60,26 @@ var render = function render(state, ctx) {
   ctx.translate(0, config.canvasHeight);
   ctx.scale(1, -1);
   ctx.scale(config.canvasWidth / config.width, config.canvasHeight / config.height);
-  // translate to view port
+  // translate to viewPos
   ctx.translate(-1 * game.viewPos.x, -1 * game.viewPos.y);
   ////////////////////////////////////////////
 
-  // render non-location entities
-  for (var id in game.entities) {
-    var entity = game.entities[id];
-    if (entity.position == null || entity.type == 'LOCATION' || entity.type === 'ANT') {
-      continue;
-    }
-    renderEntity(state, ctx, entity);
-  }
-  // then render ants
+  // sky first
   var _iteratorNormalCompletion = true;
   var _didIteratorError = false;
   var _iteratorError = undefined;
 
   try {
-    for (var _iterator = game.ANT[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+    for (var _iterator = game.SKY[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
       var _id = _step.value;
 
       var _entity = game.entities[_id];
-      if (_entity.position == null) {
-        continue;
-      }
+      if (!onScreen(game, _entity.position)) continue;
+
       renderEntity(state, ctx, _entity);
     }
-    // render locations last so they go on top
+
+    // render non-location, non-ant entities
   } catch (err) {
     _didIteratorError = true;
     _iteratorError = err;
@@ -99,23 +95,34 @@ var render = function render(state, ctx) {
     }
   }
 
+  for (var id in game.entities) {
+    var entity = game.entities[id];
+    if (entity.position == null) continue;
+    if (entity.type == 'LOCATION' || entity.type === 'ANT' || entity.type == 'SKY') continue;
+    if (!onScreen(game, entity.position)) continue;
+    var toRender = entity;
+    if (!entity.visible && entity.lastSeenPos != null) {
+      toRender = _extends({}, entity, { position: entity.lastSeenPos });
+    }
+
+    renderEntity(state, ctx, toRender);
+  }
+  // then render ants
   var _iteratorNormalCompletion2 = true;
   var _didIteratorError2 = false;
   var _iteratorError2 = undefined;
 
   try {
-    for (var _iterator2 = game.LOCATION[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+    for (var _iterator2 = game.ANT[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
       var _id2 = _step2.value;
 
       var _entity2 = game.entities[_id2];
-      if (_entity2.position == null || _entity2.id === -1) {
-        // don't render clicked location
-        continue;
-      }
+      if (_entity2.position == null) continue;
+      if (!onScreen(game, _entity2.position)) continue;
+
       renderEntity(state, ctx, _entity2);
     }
-
-    // render marquees
+    // render locations last so they go on top
   } catch (err) {
     _didIteratorError2 = true;
     _iteratorError2 = err;
@@ -127,6 +134,38 @@ var render = function render(state, ctx) {
     } finally {
       if (_didIteratorError2) {
         throw _iteratorError2;
+      }
+    }
+  }
+
+  var _iteratorNormalCompletion3 = true;
+  var _didIteratorError3 = false;
+  var _iteratorError3 = undefined;
+
+  try {
+    for (var _iterator3 = game.LOCATION[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+      var _id3 = _step3.value;
+
+      var _entity3 = game.entities[_id3];
+      if (_entity3.position == null) continue;
+      if (_entity3.id === -1) continue; // don't render clicked location
+      if (!onScreen(game, _entity3.position)) continue;
+
+      renderEntity(state, ctx, _entity3);
+    }
+
+    // render marquees
+  } catch (err) {
+    _didIteratorError3 = true;
+    _iteratorError3 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion3 && _iterator3.return) {
+        _iterator3.return();
+      }
+    } finally {
+      if (_didIteratorError3) {
+        throw _iteratorError3;
       }
     }
   }
@@ -155,13 +194,30 @@ var render = function render(state, ctx) {
   // TODO
 };
 
-var renderEntity = function renderEntity(state, ctx, entity) {
+// NOTE when rendering underneath FoW, use noRecursion = true to not render infinitely
+var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
   ctx.save();
   // render relative to top left of grid square, but first translate for rotation
   // around the center
   ctx.translate(entity.position.x + entity.width / 2, entity.position.y + entity.height / 2);
   ctx.rotate(entity.theta);
   ctx.translate(-entity.width / 2, -entity.height / 2);
+
+  // handle fog
+  if (!entity.visible && !noRecursion) {
+    var width = entity.width + 0.04;
+    var height = entity.height + 0.04;
+    if (entity.lastSeenPos == null) {
+      ctx.fillStyle = '#101010';
+    } else {
+      renderEntity(state, ctx, _extends({}, entity, { position: { x: 0, y: 0 } }), true);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    }
+    ctx.fillRect(0, 0, width, height);
+    ctx.restore();
+    return;
+  }
+
   switch (entity.type) {
     case 'ANT':
       {
@@ -215,14 +271,20 @@ var renderEntity = function renderEntity(state, ctx, entity) {
         ctx.closePath();
         break;
       }
+    case 'SKY':
+      {
+        ctx.fillStyle = 'steelblue';
+        var _width = entity.width + 0.02;
+        var _height = entity.height + 0.02;
+        ctx.fillRect(0, 0, _width, _height);
+        break;
+      }
     case 'DIRT':
       {
         ctx.fillStyle = '#8B4513';
-        var width = entity.width + 0.04;
-        var height = entity.height + 0.04;
-        ctx.fillRect(0, 0, width, height);
-        ctx.fillStyle = 'rgba(0, 0, 200,' + entity.marked * 0.5 + ')';
-        ctx.fillRect(0, 0, width, height);
+        var _width2 = entity.width + 0.02;
+        var _height2 = entity.height + 0.02;
+        ctx.fillRect(0, 0, _width2, _height2);
         break;
       }
     case 'LOCATION':

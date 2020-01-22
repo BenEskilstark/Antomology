@@ -13,7 +13,8 @@ var makePheromone = function makePheromone(position, theta, category, quantity) 
   return _extends({}, makeEntity('PHEROMONE', 1, 1, position), {
     theta: theta,
     category: category,
-    quantity: amount
+    quantity: amount,
+    visible: true
   });
 };
 

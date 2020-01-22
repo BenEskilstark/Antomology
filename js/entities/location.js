@@ -17,6 +17,7 @@ const makeLocation = (
       position,
     ),
     name,
+    visible: true,
   };
 };
 

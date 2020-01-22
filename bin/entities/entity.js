@@ -18,7 +18,8 @@ var makeEntity = function makeEntity(type, width, height, position, velocity, th
     theta: theta || 0,
     thetaSpeed: 0,
 
-    marked: 0,
+    visible: false,
+    lastSeenPos: null,
 
     frameIndex: 0,
     maxFrames: spriteSet && spriteSet.length ? spriteSet.length : 1,

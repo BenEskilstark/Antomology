@@ -1,13 +1,17 @@
 
  - - - - - - WORLD - - - - - -
- - panning
-    - don't render items not on screen
- - zooming
-    - zoom relative to the center of the screen
-    - screen size in grid cells should be on the state, not the config
-    - configure min and max zoom
+ - fix food system to spawn larger food less frequently
+ - fog of war
+    - easy config option to turn fog off
+    - support partial rendering of big entities that are partially visible
  - add background layer
+    - entities like sky and background dirt that are rendered together
+    - don't interact with anythign else
+ - stone entity that can't be picked up
  - add gravity
+    - background entities that can be stood on
+    - other entities that stop falls
+    - compute free-fall
  - big entities:
     - simpler collision function based on grid lookup
     - fix lookupInGrid uses that should just be collidesWith
@@ -18,6 +22,9 @@
  - add other entities: beetles, worms, spiders, aphids
  - make food size scale by calorie amount with better thresholds
  - food that ants can coordinate to lift
+ - zooming
+    - configure min and max zoom
+    - screen size in grid cells should be on the state, not the config
 
 
  - - - - - - ANTS - - - - - -

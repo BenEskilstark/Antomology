@@ -15,6 +15,10 @@ var config = {
   clickedPosition: -1,
   colonyEntrance: 0,
 
+  // fog-of-war
+  entitiesInFog: ['DIRT', 'FOOD', 'DEAD_ANT', 'SKY'],
+  antVisionRadius: 7,
+
   // food
   foodSpawnRate: 0.02, // ~once per 5 seconds
   foodSpawnCalories: 1000,

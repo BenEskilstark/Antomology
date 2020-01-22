@@ -11,6 +11,7 @@ const makeLarva = (position: Vector, subType: AntSubType): Larva => {
     calories: config.larvaStartingCalories,
     alive: true,
     subType,
+    visible: true,
   };
 };
 

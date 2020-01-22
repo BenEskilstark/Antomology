@@ -12,7 +12,8 @@ var makeLarva = function makeLarva(position, subType) {
   return _extends({}, makeEntity('LARVA', 1, 1, position), {
     calories: config.larvaStartingCalories,
     alive: true,
-    subType: subType
+    subType: subType,
+    visible: true
   });
 };
 

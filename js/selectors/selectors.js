@@ -127,6 +127,27 @@ const insideWorld = (game: GameState, pos: Vector): boolean => {
   return pos.x >= 0 && pos.x < game.worldWidth && pos.y >= 0 && pos.y < game.worldHeight;
 };
 
+const onScreen = (game: GameState, pos: Vector): boolean => {
+  const {viewPos} = game;
+  const e = 2; // to handle drag lag
+  return pos.x >= viewPos.x - e && pos.y >= viewPos.y - e &&
+    pos.x <= viewPos.x + config.width + e && pos.y <= viewPos.y + config.height + e;
+};
+
+const getEntitiesInRadius = (
+  game: GameState, pos: Vector, radius: number,
+): Array<Entity> => {
+  const entities = [];
+  for (let x = -radius; x <= radius; x++) {
+    for (let y = -radius; y <= radius; y++) {
+      if (x*x + y*y < radius*radius) {
+        entities.push(...lookupInGrid(game.grid, {x: x + pos.x, y: y + pos.y}));
+      }
+    }
+  }
+  return entities.map(id => game.entities[id]);
+};
+
 /////////////////////////////////////////////////////////////////
 // Entities by type
 /////////////////////////////////////////////////////////////////
@@ -160,9 +181,11 @@ const selectors = {
   fastGetEmptyNeighborPositions,
   fastGetNeighbors,
   insideWorld,
+  onScreen,
   collides,
   getSelectedAntIDs,
   entitiesInMarquee,
+  getEntitiesInRadius,
 };
 window.selectors = selectors; // for testing
 

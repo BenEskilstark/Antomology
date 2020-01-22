@@ -10,7 +10,8 @@ var _require2 = require('../config'),
 
 var makeEgg = function makeEgg(position, subType) {
   return _extends({}, makeEntity('EGG', 1, 1, position), {
-    subType: subType
+    subType: subType,
+    visible: true
   });
 };
 

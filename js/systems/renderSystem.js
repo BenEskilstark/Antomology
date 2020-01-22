@@ -1,5 +1,6 @@
 const {config} = require('../config');
 const {subtract, add, makeVector} = require('../utils/vectors');
+const {onScreen} = require('../selectors/selectors');
 
 import type {Store, Game} from '../types';
 
@@ -29,6 +30,7 @@ const initRenderSystem = (store: Store): void => {
     }
 
     // clear
+    // ctx.fillStyle = '#CD853F';
     ctx.fillStyle = 'steelblue';
     ctx.fillRect(0, 0, config.canvasWidth, config.canvasHeight);
 
@@ -52,33 +54,46 @@ const render = (state: State, ctx: any): void => {
     config.canvasWidth / config.width,
     config.canvasHeight / config.height,
   );
-  // translate to view port
+  // translate to viewPos
   ctx.translate(-1 * game.viewPos.x, -1 * game.viewPos.y);
   ////////////////////////////////////////////
 
-  // render non-location entities
+  // sky first
+  for (const id of game.SKY) {
+    const entity = game.entities[id];
+    if (!onScreen(game, entity.position)) continue;
+
+    renderEntity(state, ctx, entity);
+  }
+
+  // render non-location, non-ant entities
   for (const id in game.entities) {
     const entity = game.entities[id];
-    if (entity.position == null || entity.type == 'LOCATION' || entity.type === 'ANT') {
-      continue;
+    if (entity.position == null) continue;
+    if (entity.type == 'LOCATION' || entity.type === 'ANT' || entity.type == 'SKY') continue;
+    if (!onScreen(game, entity.position)) continue;
+    let toRender = entity;
+    if (!entity.visible && entity.lastSeenPos != null) {
+      toRender = {...entity, position: entity.lastSeenPos};
     }
-    renderEntity(state, ctx, entity);
+
+    renderEntity(state, ctx, toRender);
   }
   // then render ants
   for (const id of game.ANT) {
     const entity = game.entities[id];
-    if (entity.position == null) {
-      continue;
-    }
+    if (entity.position == null) continue;
+    if (!onScreen(game, entity.position)) continue;
+
     renderEntity(state, ctx, entity);
   }
   // render locations last so they go on top
   for (const id of game.LOCATION) {
     const entity = game.entities[id];
-    if (entity.position == null || entity.id === -1) {
-      // don't render clicked location
-      continue;
-    }
+    if (entity.position == null) continue;
+    if (entity.id === -1) continue; // don't render clicked location
+    if (!onScreen(game, entity.position)) continue;
+
     renderEntity(state, ctx, entity);
   }
 
@@ -109,7 +124,10 @@ const render = (state: State, ctx: any): void => {
   // TODO
 }
 
-const renderEntity = (state: State, ctx: any, entity: Entity): void => {
+// NOTE when rendering underneath FoW, use noRecursion = true to not render infinitely
+const renderEntity = (
+  state: State, ctx: any, entity: Entity, noRecursion: boolean,
+): void => {
   ctx.save();
   // render relative to top left of grid square, but first translate for rotation
   // around the center
@@ -119,6 +137,22 @@ const renderEntity = (state: State, ctx: any, entity: Entity): void => {
   );
   ctx.rotate(entity.theta);
   ctx.translate(-entity.width / 2, -entity.height / 2);
+
+  // handle fog
+  if (!entity.visible && !noRecursion) {
+    const width = entity.width + 0.04;
+    const height = entity.height + 0.04;
+    if (entity.lastSeenPos == null) {
+      ctx.fillStyle = '#101010';
+    } else {
+      renderEntity(state, ctx, {...entity, position: {x: 0, y: 0}}, true);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    }
+    ctx.fillRect(0, 0, width, height);
+    ctx.restore();
+    return;
+  }
+
   switch (entity.type) {
     case 'ANT': {
       ctx.fillStyle = 'black';
@@ -175,12 +209,17 @@ const renderEntity = (state: State, ctx: any, entity: Entity): void => {
       ctx.closePath();
       break;
     }
+    case 'SKY': {
+      ctx.fillStyle = 'steelblue';
+      const width = entity.width + 0.02;
+      const height = entity.height + 0.02;
+      ctx.fillRect(0, 0, width, height);
+      break;
+    }
     case 'DIRT': {
       ctx.fillStyle = '#8B4513';
-      const width = entity.width + 0.04;
-      const height = entity.height + 0.04;
-      ctx.fillRect(0, 0, width, height);
-      ctx.fillStyle = 'rgba(0, 0, 200,' + entity.marked * 0.5 + ')';
+      const width = entity.width + 0.02;
+      const height = entity.height + 0.02;
       ctx.fillRect(0, 0, width, height);
       break;
     }
