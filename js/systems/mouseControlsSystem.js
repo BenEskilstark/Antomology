@@ -62,6 +62,14 @@ const initMouseControlsSystem = (store) => {
     handleMouseMove(state, dispatch, gridPos, canvasPos);
   }
 
+  document.onwheel = (ev) => {
+    const state = store.getState();
+    if (state.game == null) return;
+    const gridPos = getClickedPos(state.game, ev);
+    if (gridPos == null) return;
+    store.dispatch({type: 'ZOOM', out: ev.wheelDelta < 0 ? 1 : -1});
+  }
+
 };
 
 ////////////////////////////////////////////////////////////////////////////

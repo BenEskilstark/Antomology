@@ -5,6 +5,7 @@ const {
   addEntity,
   removeEntity,
 } = require('../utils/stateHelpers');
+const {clamp} = require('../utils/helpers');
 
 import type {State, GameState, Action} from '../types';
 
@@ -136,6 +137,35 @@ const gameReducer = (game: GameState, action: Action): GameState => {
       return {
         ...game,
         viewPos,
+      };
+    }
+    case 'ZOOM': {
+      const {out} = action;
+      const widthToHeight = config.width / config.height;
+      const zoomFactor = 1;
+      const nextWidth = config.width + (widthToHeight * zoomFactor * out);
+      const nextHeight = config.height + (widthToHeight * zoomFactor * out);
+      if (
+        nextWidth > game.worldWidth || nextHeight > game.worldHeight ||
+        nextWidth < 1 || nextHeight < 1
+      ) {
+        return game; // don't zoom too far in or out
+      }
+      const widthDiff = nextWidth - config.width;
+      const heightDiff = nextHeight - config.height;
+
+      // zoom relative to the view position
+      const nextViewPosX = game.viewPos.x - widthDiff / 2;
+      const nextViewPosY = game.viewPos.y - heightDiff / 2;
+
+      config.width = nextWidth;
+      config.height = nextHeight;
+      return {
+        ...game,
+        viewPos: {
+          x: clamp(nextViewPosX, 0, game.worldWidth - config.width),
+          y: clamp(nextViewPosY, 0, game.worldHeight - config.height),
+        },
       };
     }
   }

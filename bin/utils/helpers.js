@@ -39,6 +39,10 @@ var deleteFromArray = function deleteFromArray(arr, item, compareFn) {
   });
 };
 
+var clamp = function clamp(val, min, max) {
+  return Math.min(Math.max(val, min), max);
+};
+
 function insertInGrid(grid, position, item) {
   var x = position.x,
       y = position.y;
@@ -81,5 +85,6 @@ module.exports = {
   deleteFromArray: deleteFromArray,
   insertInGrid: insertInGrid,
   lookupInGrid: lookupInGrid,
-  deleteFromGrid: deleteFromGrid
+  deleteFromGrid: deleteFromGrid,
+  clamp: clamp
 };

@@ -11,6 +11,9 @@ var _require2 = require('../utils/stateHelpers'),
     addEntity = _require2.addEntity,
     removeEntity = _require2.removeEntity;
 
+var _require3 = require('../utils/helpers'),
+    clamp = _require3.clamp;
+
 var gameReducer = function gameReducer(game, action) {
   switch (action.type) {
     case 'CREATE_ENTITY':
@@ -185,6 +188,33 @@ var gameReducer = function gameReducer(game, action) {
 
         return _extends({}, game, {
           viewPos: viewPos
+        });
+      }
+    case 'ZOOM':
+      {
+        var out = action.out;
+
+        var widthToHeight = config.width / config.height;
+        var zoomFactor = 1;
+        var nextWidth = config.width + widthToHeight * zoomFactor * out;
+        var nextHeight = config.height + widthToHeight * zoomFactor * out;
+        if (nextWidth > game.worldWidth || nextHeight > game.worldHeight || nextWidth < 1 || nextHeight < 1) {
+          return game; // don't zoom too far in or out
+        }
+        var widthDiff = nextWidth - config.width;
+        var heightDiff = nextHeight - config.height;
+
+        // zoom relative to the view position
+        var nextViewPosX = game.viewPos.x - widthDiff / 2;
+        var nextViewPosY = game.viewPos.y - heightDiff / 2;
+
+        config.width = nextWidth;
+        config.height = nextHeight;
+        return _extends({}, game, {
+          viewPos: {
+            x: clamp(nextViewPosX, 0, game.worldWidth - config.width),
+            y: clamp(nextViewPosY, 0, game.worldHeight - config.height)
+          }
         });
       }
   }

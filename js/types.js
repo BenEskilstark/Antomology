@@ -255,5 +255,6 @@ export type Action =
   {type: 'UPDATE_THETA', id: EntityID, theta: Radian} |
   {type: 'SET_PREV_PHEROMONE', id: EntityID} |
   {type: 'SET_VIEW_POS', viewPos: Vector} |
+  {type: 'ZOOM', out: number} |
   {type: 'SET_MOUSE_POS', curPos: Vector, curPixel: Vector};
 

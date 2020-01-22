@@ -44,6 +44,7 @@ const rootReducer = (state: State, action: Action): State => {
     case 'UPDATE_THETA':
     case 'SET_PREV_PHEROMONE':
     case 'SET_VIEW_POS':
+    case 'ZOOM':
       if (!state.game) return state;
       return {
         ...state,

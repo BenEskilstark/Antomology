@@ -275,6 +275,9 @@ var _require2 = require('../utils/stateHelpers'),
     addEntity = _require2.addEntity,
     removeEntity = _require2.removeEntity;
 
+var _require3 = require('../utils/helpers'),
+    clamp = _require3.clamp;
+
 var gameReducer = function gameReducer(game, action) {
   switch (action.type) {
     case 'CREATE_ENTITY':
@@ -451,13 +454,40 @@ var gameReducer = function gameReducer(game, action) {
           viewPos: viewPos
         });
       }
+    case 'ZOOM':
+      {
+        var out = action.out;
+
+        var widthToHeight = config.width / config.height;
+        var zoomFactor = 1;
+        var nextWidth = config.width + widthToHeight * zoomFactor * out;
+        var nextHeight = config.height + widthToHeight * zoomFactor * out;
+        if (nextWidth > game.worldWidth || nextHeight > game.worldHeight || nextWidth < 1 || nextHeight < 1) {
+          return game; // don't zoom too far in or out
+        }
+        var widthDiff = nextWidth - config.width;
+        var heightDiff = nextHeight - config.height;
+
+        // zoom relative to the view position
+        var nextViewPosX = game.viewPos.x - widthDiff / 2;
+        var nextViewPosY = game.viewPos.y - heightDiff / 2;
+
+        config.width = nextWidth;
+        config.height = nextHeight;
+        return _extends({}, game, {
+          viewPos: {
+            x: clamp(nextViewPosX, 0, game.worldWidth - config.width),
+            y: clamp(nextViewPosY, 0, game.worldHeight - config.height)
+          }
+        });
+      }
   }
 
   return game;
 };
 
 module.exports = { gameReducer: gameReducer };
-},{"../config":1,"../utils/stateHelpers":39}],13:[function(require,module,exports){
+},{"../config":1,"../utils/helpers":38,"../utils/stateHelpers":39}],13:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -543,6 +573,7 @@ var rootReducer = function rootReducer(state, action) {
     case 'UPDATE_THETA':
     case 'SET_PREV_PHEROMONE':
     case 'SET_VIEW_POS':
+    case 'ZOOM':
       if (!state.game) return state;
       return _extends({}, state, {
         game: gameReducer(state.game, action)
@@ -2324,6 +2355,14 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
     var canvasPos = getMousePixel(ev);
     if (gridPos == null) return;
     handleMouseMove(state, dispatch, gridPos, canvasPos);
+  };
+
+  document.onwheel = function (ev) {
+    var state = store.getState();
+    if (state.game == null) return;
+    var gridPos = getClickedPos(state.game, ev);
+    if (gridPos == null) return;
+    store.dispatch({ type: 'ZOOM', out: ev.wheelDelta < 0 ? 1 : -1 });
   };
 };
 
@@ -4279,6 +4318,10 @@ var deleteFromArray = function deleteFromArray(arr, item, compareFn) {
   });
 };
 
+var clamp = function clamp(val, min, max) {
+  return Math.min(Math.max(val, min), max);
+};
+
 function insertInGrid(grid, position, item) {
   var x = position.x,
       y = position.y;
@@ -4321,7 +4364,8 @@ module.exports = {
   deleteFromArray: deleteFromArray,
   insertInGrid: insertInGrid,
   lookupInGrid: lookupInGrid,
-  deleteFromGrid: deleteFromGrid
+  deleteFromGrid: deleteFromGrid,
+  clamp: clamp
 };
 },{}],39:[function(require,module,exports){
 'use strict';

@@ -84,6 +84,14 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
     if (gridPos == null) return;
     handleMouseMove(state, dispatch, gridPos, canvasPos);
   };
+
+  document.onwheel = function (ev) {
+    var state = store.getState();
+    if (state.game == null) return;
+    var gridPos = getClickedPos(state.game, ev);
+    if (gridPos == null) return;
+    store.dispatch({ type: 'ZOOM', out: ev.wheelDelta < 0 ? 1 : -1 });
+  };
 };
 
 ////////////////////////////////////////////////////////////////////////////

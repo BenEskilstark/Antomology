@@ -25,6 +25,10 @@ const deleteFromArray = (arr, item, compareFn) => {
   return arr.filter(i => i !== item);
 }
 
+const clamp = (val, min, max) => {
+  return Math.min(Math.max(val, min), max);
+}
+
 function insertInGrid(grid, position, item) {
   const {x, y} = position;
   if (grid[x] == null) {
@@ -60,4 +64,5 @@ module.exports = {
   insertInGrid,
   lookupInGrid,
   deleteFromGrid,
+  clamp,
 };

@@ -3,7 +3,9 @@
  - panning
     - don't render items not on screen
  - zooming
+    - zoom relative to the center of the screen
     - screen size in grid cells should be on the state, not the config
+    - configure min and max zoom
  - add background layer
  - add gravity
  - big entities:
