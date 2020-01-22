@@ -410,7 +410,7 @@ const performAction = (
         // randomly select loc based on free neighbors
         let freePositions = fastGetEmptyNeighborPositions(
           game, ant, config.antBlockingEntities
-        ).filter(insideWorld);
+        ).filter((pos) => insideWorld(game, pos));
         if (freePositions.length == 0) {
           break; // can't move
         }
@@ -449,7 +449,7 @@ const performAction = (
       let nextPos = add(moveVec, ant.position);
       let occupied = fastCollidesWith(game, {position: nextPos})
         .filter(e => config.antBlockingEntities.includes(e.type));
-      if (occupied.length == 0 && insideWorld(nextPos)) {
+      if (occupied.length == 0 && insideWorld(game, nextPos)) {
         moveEntity(game, ant, nextPos);
         ant.blocked = false;
         ant.blockedBy = null;
@@ -469,7 +469,7 @@ const performAction = (
         nextPos = add(moveVec, ant.position);
         occupied = fastCollidesWith(game, {position: nextPos})
           .filter(e => config.antBlockingEntities.includes(e.type));
-        if (occupied.length == 0 && insideWorld(nextPos)) {
+        if (occupied.length == 0 && insideWorld(game, nextPos)) {
           moveEntity(game, ant, nextPos);
           ant.blocked = false;
           ant.blockedBy = null;

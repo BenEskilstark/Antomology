@@ -67,6 +67,13 @@ const floor = (vector: Vector): Vector => {
   };
 };
 
+const round = (vector: Vector): Vector => {
+  return {
+    x: Math.round(vector.x),
+    y: Math.round(vector.y),
+  };
+};
+
 const ceil = (vector: Vector): Vector => {
   return {
     x: Math.ceil(vector.x),
@@ -83,5 +90,6 @@ module.exports = {
   vectorTheta,
   multiply,
   floor,
+  round,
   ceil,
 };

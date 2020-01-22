@@ -123,8 +123,8 @@ const fastGetNeighbors = (game: GameState, entity: Entity): Array<Entity> => {
   return neighborEntities.map(id => game.entities[id]);
 }
 
-const insideWorld = (pos: Vector): boolean => {
-  return pos.x >= 0 && pos.x < config.width && pos.y >= 0 && pos.y < config.height;
+const insideWorld = (game: GameState, pos: Vector): boolean => {
+  return pos.x >= 0 && pos.x < game.worldWidth && pos.y >= 0 && pos.y < game.worldHeight;
 };
 
 /////////////////////////////////////////////////////////////////

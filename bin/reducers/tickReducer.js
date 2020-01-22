@@ -593,7 +593,9 @@ var performAction = function performAction(game, ant, action) {
         }
         if (obj === 'RANDOM') {
           // randomly select loc based on free neighbors
-          var _freePositions = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities).filter(insideWorld);
+          var _freePositions = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities).filter(function (pos) {
+            return insideWorld(game, pos);
+          });
           if (_freePositions.length == 0) {
             break; // can't move
           }
@@ -637,7 +639,7 @@ var performAction = function performAction(game, ant, action) {
         var occupied = fastCollidesWith(game, { position: nextPos }).filter(function (e) {
           return config.antBlockingEntities.includes(e.type);
         });
-        if (occupied.length == 0 && insideWorld(nextPos)) {
+        if (occupied.length == 0 && insideWorld(game, nextPos)) {
           moveEntity(game, ant, nextPos);
           ant.blocked = false;
           ant.blockedBy = null;
@@ -659,7 +661,7 @@ var performAction = function performAction(game, ant, action) {
           occupied = fastCollidesWith(game, { position: nextPos }).filter(function (e) {
             return config.antBlockingEntities.includes(e.type);
           });
-          if (occupied.length == 0 && insideWorld(nextPos)) {
+          if (occupied.length == 0 && insideWorld(game, nextPos)) {
             moveEntity(game, ant, nextPos);
             ant.blocked = false;
             ant.blockedBy = null;

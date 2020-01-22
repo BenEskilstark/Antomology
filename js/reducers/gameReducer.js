@@ -119,13 +119,23 @@ const gameReducer = (game: GameState, action: Action): GameState => {
       };
     }
     case 'SET_MOUSE_POS': {
-      const {curPos} = action;
+      const {curPos, curPixel} = action;
       return {
         ...game,
         mouse: {
           ...game.mouse,
+          prevPos: {...game.mouse.curPos},
           curPos,
+          prevPixel: {...game.mouse.curPixel},
+          curPixel,
         },
+      };
+    }
+    case 'SET_VIEW_POS': {
+      const {viewPos} = action;
+      return {
+        ...game,
+        viewPos,
       };
     }
   }

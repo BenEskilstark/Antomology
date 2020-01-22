@@ -40,6 +40,9 @@ const initRenderSystem = (store: Store): void => {
 const render = (state: State, ctx: any): void => {
   const {game} = state;
 
+  ////////////////////////////////////////////
+  // canvas scaling
+  ////////////////////////////////////////////
   // scale world to the canvas
   ctx.save();
   // set the origin to the bottom left instead of top right
@@ -49,6 +52,9 @@ const render = (state: State, ctx: any): void => {
     config.canvasWidth / config.width,
     config.canvasHeight / config.height,
   );
+  // translate to view port
+  ctx.translate(-1 * game.viewPos.x, -1 * game.viewPos.y);
+  ////////////////////////////////////////////
 
   // render non-location entities
   for (const id in game.entities) {
@@ -78,7 +84,10 @@ const render = (state: State, ctx: any): void => {
 
   // render marquees
   const {mouse} = game;
-  if (mouse.isLeftDown && game.userMode !== 'MARK_TRAIL') {
+  if (
+    mouse.isLeftDown &&
+    (game.userMode === 'SELECT' || game.userMode === 'CREATE_LOCATION')
+  ) {
     if (game.userMode === 'CREATE_LOCATION') {
       ctx.fillStyle = 'rgba(100, 100, 100, 0.25)';
     } else if (game.userMode === 'SELECT') {
@@ -95,6 +104,9 @@ const render = (state: State, ctx: any): void => {
   }
 
   ctx.restore();
+
+  // render cursor
+  // TODO
 }
 
 const renderEntity = (state: State, ctx: any, entity: Entity): void => {

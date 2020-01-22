@@ -4,12 +4,10 @@
 var config = {
   msPerTick: 100,
 
+  // screen sizes in grid cells and in pixels:
   // grid size
   width: 50,
   height: 50,
-
-  // TODO: grid-to-canvas conversion for pan/zoom
-
   // canvas size
   canvasWidth: 800,
   canvasHeight: 800,
@@ -43,8 +41,8 @@ var config = {
   pupaHatchAge: 200,
 
   // pheromones
-  pheromoneStartingQuantity: 120,
-  pheromoneMaxQuantity: 120
+  pheromoneStartingQuantity: 600,
+  pheromoneMaxQuantity: 1200
 };
 
 module.exports = { config: config };
@@ -433,12 +431,24 @@ var gameReducer = function gameReducer(game, action) {
       }
     case 'SET_MOUSE_POS':
       {
-        var curPos = action.curPos;
+        var curPos = action.curPos,
+            curPixel = action.curPixel;
 
         return _extends({}, game, {
           mouse: _extends({}, game.mouse, {
-            curPos: curPos
+            prevPos: _extends({}, game.mouse.curPos),
+            curPos: curPos,
+            prevPixel: _extends({}, game.mouse.curPixel),
+            curPixel: curPixel
           })
+        });
+      }
+    case 'SET_VIEW_POS':
+      {
+        var viewPos = action.viewPos;
+
+        return _extends({}, game, {
+          viewPos: viewPos
         });
       }
   }
@@ -532,6 +542,7 @@ var rootReducer = function rootReducer(state, action) {
     case 'SET_MOUSE_POS':
     case 'UPDATE_THETA':
     case 'SET_PREV_PHEROMONE':
+    case 'SET_VIEW_POS':
       if (!state.game) return state;
       return _extends({}, state, {
         game: gameReducer(state.game, action)
@@ -1137,7 +1148,9 @@ var performAction = function performAction(game, ant, action) {
         }
         if (obj === 'RANDOM') {
           // randomly select loc based on free neighbors
-          var _freePositions = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities).filter(insideWorld);
+          var _freePositions = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities).filter(function (pos) {
+            return insideWorld(game, pos);
+          });
           if (_freePositions.length == 0) {
             break; // can't move
           }
@@ -1181,7 +1194,7 @@ var performAction = function performAction(game, ant, action) {
         var occupied = fastCollidesWith(game, { position: nextPos }).filter(function (e) {
           return config.antBlockingEntities.includes(e.type);
         });
-        if (occupied.length == 0 && insideWorld(nextPos)) {
+        if (occupied.length == 0 && insideWorld(game, nextPos)) {
           moveEntity(game, ant, nextPos);
           ant.blocked = false;
           ant.blockedBy = null;
@@ -1203,7 +1216,7 @@ var performAction = function performAction(game, ant, action) {
           occupied = fastCollidesWith(game, { position: nextPos }).filter(function (e) {
             return config.antBlockingEntities.includes(e.type);
           });
-          if (occupied.length == 0 && insideWorld(nextPos)) {
+          if (occupied.length == 0 && insideWorld(game, nextPos)) {
             moveEntity(game, ant, nextPos);
             ant.blocked = false;
             ant.blockedBy = null;
@@ -1595,8 +1608,8 @@ var fastGetNeighbors = function fastGetNeighbors(game, entity) {
   });
 };
 
-var insideWorld = function insideWorld(pos) {
-  return pos.x >= 0 && pos.x < config.width && pos.y >= 0 && pos.y < config.height;
+var insideWorld = function insideWorld(game, pos) {
+  return pos.x >= 0 && pos.x < game.worldWidth && pos.y >= 0 && pos.y < game.worldHeight;
 };
 
 /////////////////////////////////////////////////////////////////
@@ -1702,84 +1715,31 @@ var initGameState = function initGameState(level) {
   }
 };
 
+////////////////////////////////////////////////////////////////////////////
+// Levels
+////////////////////////////////////////////////////////////////////////////
+
 var level1 = function level1() {
-  var gameState = {
-    time: 0,
-    tickInterval: null,
-    antMode: 'PICKUP',
-    userMode: 'SELECT',
-    nextLocationName: 'Give Locations Unique Names',
-    prevPheromone: null,
-    mouse: {
-      isLeftDown: false,
-      isRightDown: false,
-      downPos: { x: 0, y: 0 },
-      curPos: { x: 0, y: 0 }
-    },
+  var game = baseState(100, 100);
+  addEntity(game, makeAnt({ x: 25, y: 30 }, 'QUEEN'));
+  addEntity(game, makeAnt({ x: 20, y: 30 }, 'WORKER'));
+  addEntity(game, makeAnt({ x: 30, y: 30 }, 'WORKER'));
 
-    entities: {},
-    selectedEntities: [],
-    ANT: [],
-    DIRT: [],
-    FOOD: [],
-    EGG: [],
-    LARVA: [],
-    PUPA: [],
-    DEAD_ANT: [], // TODO: not actually implemented
-    LOCATION: [],
-    PHEROMONE: [],
-
-    tasks: [],
-    grid: []
-  };
-  addEntity(gameState, makeAnt({ x: 25, y: 30 }, 'QUEEN'));
-  addEntity(gameState, makeAnt({ x: 20, y: 30 }, 'WORKER'));
-  addEntity(gameState, makeAnt({ x: 30, y: 30 }, 'WORKER'));
-
-  return gameState;
+  return game;
 };
 
 var level0 = function level0() {
-  var gameState = {
-    time: 0,
-    tickInterval: null,
-    antMode: 'PICKUP',
-    userMode: 'SELECT',
-    nextLocationName: 'Give Locations Unique Names',
-    prevPheromone: null,
-    mouse: {
-      isLeftDown: false,
-      isRightDown: false,
-      downPos: { x: 0, y: 0 },
-      curPos: { x: 0, y: 0 }
-    },
-
-    entities: {},
-    selectedEntities: [],
-    ANT: [],
-    DIRT: [],
-    FOOD: [],
-    EGG: [],
-    LARVA: [],
-    PUPA: [],
-    DEAD_ANT: [], // TODO: not actually implemented
-    LOCATION: [],
-    PHEROMONE: [],
-
-    tasks: [],
-    grid: []
-  };
-
+  var game = baseState(100, 100);
   // seed start location
   var clickedLocation = _extends({}, makeLocation('Clicked Position', 1, 1, { x: 0, y: 0 }), { id: config.clickedPosition
   });
-  addEntity(gameState, clickedLocation);
+  addEntity(game, clickedLocation);
   var colonyEntrance = _extends({}, makeLocation('Colony Entrance', 1, 1, { x: 25, y: 29 }), { id: config.colonyEntrance
   });
-  addEntity(gameState, colonyEntrance);
+  addEntity(game, colonyEntrance);
 
   // initial tasks
-  gameState.tasks = [tasks.createIdleTask(), _extends({}, tasks.createGoToLocationTask(colonyEntrance), { name: 'Go To Colony Entrance' }), tasks.createRandomMoveTask(), tasks.createDigBlueprintTask(gameState), tasks.createMoveBlockerTask(), tasks.createGoToColonyEntranceWithBlockerTask(gameState), tasks.createLayEggTask(), tasks.createFollowTrailTask(), {
+  game.tasks = [tasks.createIdleTask(), _extends({}, tasks.createGoToLocationTask(colonyEntrance), { name: 'Go To Colony Entrance' }), tasks.createRandomMoveTask(), tasks.createDigBlueprintTask(game), tasks.createMoveBlockerTask(), tasks.createGoToColonyEntranceWithBlockerTask(game), tasks.createLayEggTask(), tasks.createFollowTrailTask(), {
     name: 'Find Food',
     repeating: false,
     behaviorQueue: [{
@@ -1808,17 +1768,17 @@ var level0 = function level0() {
     }]
   }];
 
-  // seed bottom 3/4's with dirt
-  for (var x = 0; x < config.width; x++) {
-    for (var y = 0; y < config.height; y++) {
-      if (y < config.height * 0.6) {
+  // seed bottom 1/4's with dirt
+  for (var x = 0; x < game.worldWidth; x++) {
+    for (var y = 0; y < game.worldHeight; y++) {
+      if (y < game.worldHeight * 0.3) {
         if (x == colonyEntrance.position.x && y == colonyEntrance.position.y) {
           continue;
         }
         if (x == colonyEntrance.position.x && y == colonyEntrance.position.y - 1) {
           continue;
         }
-        addEntity(gameState, makeDirt({ x: x, y: y }));
+        addEntity(game, makeDirt({ x: x, y: y }));
       }
     }
   }
@@ -1826,27 +1786,71 @@ var level0 = function level0() {
   // seed ants
   // for (let i = 0; i < 10; i++) {
   //   const position = {
-  //     x: randomIn(0, config.width - 1),
-  //     y: randomIn(Math.ceil(config.height * 0.6), config.height - 1),
+  //     x: randomIn(0, game.worldWidth - 1),
+  //     y: randomIn(Math.ceil(game.worldHeight * 0.6), game.worldHeight - 1),
   //   };
   //   const ant = makeAnt(position, 'WORKER');
-  //   addEntity(gameState, ant);
+  //   addEntity(game, ant);
   // }
-  addEntity(gameState, makeAnt({ x: 25, y: 30 }, 'QUEEN'));
-  addEntity(gameState, makeAnt({ x: 20, y: 30 }, 'WORKER'));
-  addEntity(gameState, makeAnt({ x: 30, y: 30 }, 'WORKER'));
+  addEntity(game, makeAnt({ x: 25, y: 30 }, 'QUEEN'));
+  addEntity(game, makeAnt({ x: 20, y: 30 }, 'WORKER'));
+  addEntity(game, makeAnt({ x: 30, y: 30 }, 'WORKER'));
 
   // seed food
   for (var i = 0; i < 15; i++) {
     var position = {
-      x: randomIn(0, config.width - 1),
-      y: randomIn(Math.ceil(config.height * 0.6) + 1, config.height - 1)
+      x: randomIn(0, game.worldWidth - 1),
+      y: randomIn(Math.ceil(game.worldHeight * 0.6) + 1, game.worldHeight - 1)
     };
     var food = makeFood(position, 1000, 'Crumb');
-    addEntity(gameState, food);
+    addEntity(game, food);
   }
 
-  return gameState;
+  return game;
+};
+
+////////////////////////////////////////////////////////////////////////////
+// Helpers
+////////////////////////////////////////////////////////////////////////////
+
+var baseState = function baseState(worldWidth, worldHeight) {
+  var game = {
+    time: 0,
+    tickInterval: null,
+    antMode: 'PICKUP',
+    userMode: 'SELECT',
+    nextLocationName: 'Give Locations Unique Names',
+    prevPheromone: null,
+    mouse: {
+      isLeftDown: false,
+      isRightDown: false,
+      downPos: { x: 0, y: 0 },
+      curPos: { x: 0, y: 0 },
+      curPixel: { x: 0, y: 0 },
+      prevPixel: { x: 0, y: 0 }
+    },
+
+    worldWidth: worldWidth,
+    worldHeight: worldHeight,
+    viewPos: { x: 0, y: 0 },
+
+    entities: {},
+    selectedEntities: [],
+    ANT: [],
+    DIRT: [],
+    FOOD: [],
+    EGG: [],
+    LARVA: [],
+    PUPA: [],
+    DEAD_ANT: [], // TODO: not actually implemented
+    LOCATION: [],
+    PHEROMONE: [],
+
+    tasks: [],
+    grid: []
+  };
+
+  return game;
 };
 
 module.exports = { initGameState: initGameState };
@@ -2200,8 +2204,8 @@ var initFoodSpawnSystem = function initFoodSpawnSystem(store) {
     time = state.game.time;
 
     if (Math.random() < config.foodSpawnRate) {
-      var x = randomIn(0, config.width - 1);
-      var y = randomIn(0, config.height - 1);
+      var x = randomIn(0, state.game.worldWidth - 1);
+      var y = randomIn(0, state.game.worldHeight - 1);
       if (fastCollidesWith(state.game, { position: { x: x, y: y } }).filter(function (e) {
         return config.antBlockingEntities.includes(e.type);
       }).length == 0) {
@@ -2257,7 +2261,9 @@ var _require4 = require('../utils/vectors'),
     subtract = _require4.subtract,
     equals = _require4.equals,
     makeVector = _require4.makeVector,
-    vectorTheta = _require4.vectorTheta;
+    vectorTheta = _require4.vectorTheta,
+    multiply = _require4.multiply,
+    floor = _require4.floor;
 
 var _require5 = require('../entities/location'),
     makeLocation = _require5.makeLocation;
@@ -2280,16 +2286,18 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
   document.onmouseup = function (ev) {
     var state = store.getState();
     if (state.game == null) return;
-    var gridPos = getClickedPos(ev);
-    if (gridPos == null) return;
+    var gridPos = getClickedPos(state.game, ev);
 
     if (ev.button == 0) {
       // left click
       dispatch({ type: 'SET_MOUSE_DOWN', isLeft: true, isDown: false });
+      dispatch({ type: 'SET_VIEW_POS', viewPos: floor(state.game.viewPos) });
+      if (gridPos == null) return;
       handleLeftClick(state, dispatch, gridPos);
     } else if (ev.button == 2) {
       // right click
       dispatch({ type: 'SET_MOUSE_DOWN', isLeft: false, isDown: false });
+      if (gridPos == null) return;
       handleRightClick(state, dispatch, gridPos);
     }
   };
@@ -2297,7 +2305,7 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
   document.onmousedown = function (ev) {
     var state = store.getState();
     if (state.game == null) return;
-    var gridPos = getClickedPos(ev);
+    var gridPos = getClickedPos(state.game, ev);
     if (gridPos == null) return;
 
     if (ev.button == 0) {
@@ -2312,73 +2320,78 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
   document.onmousemove = function (ev) {
     var state = store.getState();
     if (state.game == null) return;
-    var gridPos = getClickedPos(ev);
+    var gridPos = getClickedPos(state.game, ev);
+    var canvasPos = getMousePixel(ev);
     if (gridPos == null) return;
-    dispatch({ type: 'SET_MOUSE_POS', curPos: gridPos });
-    if (state.game.mouse.isLeftDown && state.game.userMode === 'MARK_TRAIL') {
-      var prevPheromone = state.game.entities[state.game.prevPheromone];
-      if (prevPheromone == null) {
-        dispatch({
-          type: 'CREATE_ENTITY',
-          entity: makePheromone(gridPos, theta, 1)
-        });
-        return;
-      }
-      if (equals(gridPos, prevPheromone.position)) {
-        return; // don't make another at its current spot
-      }
-      var theta = vectorTheta(subtract(gridPos, prevPheromone.position));
-      var xDiff = Math.abs(gridPos.x - prevPheromone.position.x);
-      var yDiff = Math.abs(gridPos.y - prevPheromone.position.y);
-      if (xDiff > 1 || yDiff > 1 || xDiff == 1 && yDiff == 1) {
-        theta = 0; // no theta update if they aren't neighbors
-      } else {
-        dispatch({ type: 'UPDATE_THETA', id: prevPheromone.id, theta: theta });
-      }
-      var pheromone = lookupInGrid(state.game.grid, gridPos).filter(function (id) {
-        return state.game.entities[id].type === 'PHEROMONE';
-      }).map(function (id) {
-        return state.game.entities[id];
-      })[0];
-      if (pheromone != null) {
-        if (pheromone.theta != theta) {
-          dispatch({ type: 'UPDATE_THETA', id: pheromone.id, theta: theta });
-          dispatch({ type: 'SET_PREV_PHEROMONE', id: pheromone.id });
-        }
-      } else {
-        dispatch({
-          type: 'CREATE_ENTITY',
-          entity: makePheromone(gridPos, theta, 1)
-        });
-      }
-    }
+    handleMouseMove(state, dispatch, gridPos, canvasPos);
   };
 };
 
-var canvas = null;
-var getClickedPos = function getClickedPos(ev) {
-  if (!canvas) {
-    canvas = document.getElementById('canvas');
-    // don't open the normal right-click menu
-    canvas.addEventListener('contextmenu', function (ev) {
-      return ev.preventDefault();
-    });
-    if (!canvas) {
-      return null;
-    }
-  }
-  var rect = canvas.getBoundingClientRect();
+////////////////////////////////////////////////////////////////////////////
+// Mouse move
+////////////////////////////////////////////////////////////////////////////
 
-  var canvasPos = {
-    x: ev.clientX - rect.left,
-    y: ev.clientY - rect.top
-  };
-  // return null if clicked outside the canvas:
-  if (canvasPos.x < 0 || canvasPos.y < 0 || canvasPos.x > config.canvasWidth || canvasPos.y > config.canvasHeight) {
-    return null;
+var handleMouseMove = function handleMouseMove(state, dispatch, gridPos, canvasPos) {
+  if (state.game.mouse.isLeftDown && state.game.userMode === 'MARK_TRAIL') {
+    dispatch({ type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos });
+    var prevPheromone = state.game.entities[state.game.prevPheromone];
+    if (prevPheromone == null) {
+      dispatch({
+        type: 'CREATE_ENTITY',
+        entity: makePheromone(gridPos, theta, 1)
+      });
+      return;
+    }
+    if (equals(gridPos, prevPheromone.position)) {
+      return; // don't make another at its current spot
+    }
+    var theta = vectorTheta(subtract(gridPos, prevPheromone.position));
+    var xDiff = Math.abs(gridPos.x - prevPheromone.position.x);
+    var yDiff = Math.abs(gridPos.y - prevPheromone.position.y);
+    if (xDiff > 1 || yDiff > 1 || xDiff == 1 && yDiff == 1) {
+      theta = 0; // no theta update if they aren't neighbors
+    } else {
+      dispatch({ type: 'UPDATE_THETA', id: prevPheromone.id, theta: theta });
+    }
+    var pheromone = lookupInGrid(state.game.grid, gridPos).filter(function (id) {
+      return state.game.entities[id].type === 'PHEROMONE';
+    }).map(function (id) {
+      return state.game.entities[id];
+    })[0];
+    if (pheromone != null) {
+      if (pheromone.theta != theta) {
+        dispatch({ type: 'UPDATE_THETA', id: pheromone.id, theta: theta });
+        dispatch({ type: 'SET_PREV_PHEROMONE', id: pheromone.id });
+      }
+    } else {
+      dispatch({
+        type: 'CREATE_ENTITY',
+        entity: makePheromone(gridPos, theta, 1)
+      });
+    }
+  } else if (state.game.mouse.isLeftDown && state.game.userMode === 'PAN') {
+    var dragDiffPixel = subtract(canvasPos, state.game.mouse.curPixel);
+    if (equals(dragDiffPixel, { x: 0, y: 0 })) {
+      dispatch({ type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos });
+      return;
+    }
+    // const nextViewPosPixel = subtract(gridToCanvas(state.game, state.game.viewPos), dragDiff);
+    // const nextViewPos = canvasToGrid(state.game, nextViewPosPixel);
+    var dragDiff = multiply(dragDiffPixel, { x: config.width / config.canvasWidth, y: -1 * config.height / config.canvasHeight });
+    var nextViewPos = subtract(state.game.viewPos, dragDiff);
+    if (nextViewPos.x < 0 || nextViewPos.y < 0 || nextViewPos.x + config.width > state.game.worldWidth || nextViewPos.y + config.height > state.game.worldHeight) {
+      dispatch({ type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos });
+      return;
+    }
+    dispatch({ type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos });
+    dispatch({ type: 'SET_VIEW_POS', viewPos: nextViewPos });
+  } else {
+    dispatch({ type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos });
   }
-  return canvasToGrid(canvasPos);
 };
+////////////////////////////////////////////////////////////////////////////
+// Left click
+////////////////////////////////////////////////////////////////////////////
 
 var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
   // handle creating locations
@@ -2421,6 +2434,10 @@ var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
     }
   }
 };
+
+////////////////////////////////////////////////////////////////////////////
+// Right click
+////////////////////////////////////////////////////////////////////////////
 
 var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
   var selectedAntIDs = getSelectedAntIDs(state.game);
@@ -2489,6 +2506,40 @@ var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
   }
 };
 
+////////////////////////////////////////////////////////////////////////////
+// click -> position helpers
+////////////////////////////////////////////////////////////////////////////
+
+var canvas = null;
+var getClickedPos = function getClickedPos(game, ev, noFloor) {
+  var pixel = getMousePixel(ev);
+  if (pixel == null) return null;
+  return canvasToGrid(game, pixel, noFloor);
+};
+var getMousePixel = function getMousePixel(ev) {
+  if (!canvas) {
+    canvas = document.getElementById('canvas');
+    // don't open the normal right-click menu
+    canvas.addEventListener('contextmenu', function (ev) {
+      return ev.preventDefault();
+    });
+    if (!canvas) {
+      return null;
+    }
+  }
+  var rect = canvas.getBoundingClientRect();
+
+  var canvasPos = {
+    x: ev.clientX - rect.left,
+    y: ev.clientY - rect.top
+  };
+  // return null if clicked outside the canvas:
+  if (canvasPos.x < 0 || canvasPos.y < 0 || canvasPos.x > config.canvasWidth || canvasPos.y > config.canvasHeight) {
+    return null;
+  }
+  return canvasPos;
+};
+
 module.exports = { initMouseControlsSystem: initMouseControlsSystem };
 },{"../config":1,"../entities/location":8,"../entities/pheromone":9,"../selectors/selectors":16,"../state/tasks":19,"../utils/canvasHelpers":36,"../utils/stateHelpers":39,"../utils/vectors":40}],23:[function(require,module,exports){
 'use strict';
@@ -2539,6 +2590,9 @@ var initRenderSystem = function initRenderSystem(store) {
 var render = function render(state, ctx) {
   var game = state.game;
 
+  ////////////////////////////////////////////
+  // canvas scaling
+  ////////////////////////////////////////////
   // scale world to the canvas
 
   ctx.save();
@@ -2546,6 +2600,9 @@ var render = function render(state, ctx) {
   ctx.translate(0, config.canvasHeight);
   ctx.scale(1, -1);
   ctx.scale(config.canvasWidth / config.width, config.canvasHeight / config.height);
+  // translate to view port
+  ctx.translate(-1 * game.viewPos.x, -1 * game.viewPos.y);
+  ////////////////////////////////////////////
 
   // render non-location entities
   for (var id in game.entities) {
@@ -2620,7 +2677,7 @@ var render = function render(state, ctx) {
 
   var mouse = game.mouse;
 
-  if (mouse.isLeftDown && game.userMode !== 'MARK_TRAIL') {
+  if (mouse.isLeftDown && (game.userMode === 'SELECT' || game.userMode === 'CREATE_LOCATION')) {
     if (game.userMode === 'CREATE_LOCATION') {
       ctx.fillStyle = 'rgba(100, 100, 100, 0.25)';
     } else if (game.userMode === 'SELECT') {
@@ -2637,6 +2694,9 @@ var render = function render(state, ctx) {
   }
 
   ctx.restore();
+
+  // render cursor
+  // TODO
 };
 
 var renderEntity = function renderEntity(state, ctx, entity) {
@@ -3148,7 +3208,10 @@ function Canvas(props) {
       }
     },
     React.createElement('canvas', {
-      id: 'canvas', style: { backgroundColor: 'white' },
+      id: 'canvas', style: {
+        backgroundColor: 'white',
+        cursor: 'pointer'
+      },
       width: props.width, height: props.height
     })
   );
@@ -3363,7 +3426,7 @@ function Sidebar(props) {
       'Left-click and drag will:',
       React.createElement(Dropdown, {
         noNoneOption: true,
-        options: ['SELECT', 'MARK_TRAIL', 'CREATE_LOCATION'],
+        options: ['SELECT', 'PAN', 'MARK_TRAIL', 'CREATE_LOCATION'],
         selected: game.userMode,
         onChange: function onChange(userMode) {
           return dispatch({ type: 'SET_USER_MODE', userMode: userMode });
@@ -4130,23 +4193,34 @@ var _require2 = require('../utils/vectors'),
     subtract = _require2.subtract,
     multiply = _require2.multiply,
     add = _require2.add,
-    floor = _require2.floor;
+    floor = _require2.floor,
+    round = _require2.round;
 
-// TODO this won't support pan/zoom without additional knowledge of camera position
-var canvasToGrid = function canvasToGrid(canvasPos) {
+var canvasToGrid = function canvasToGrid(game, canvasPos, noFloor) {
   var scaleVec = {
     x: config.width / config.canvasWidth,
     y: -1 * config.height / config.canvasHeight
   };
-  return floor(add({ x: 0, y: config.height }, multiply(canvasPos, scaleVec)));
+
+  if (noFloor) {
+    var gridCoord = add({ x: 0, y: config.height }, multiply(canvasPos, scaleVec));
+    return add(gridCoord, game.viewPos);
+  } else {
+    var _gridCoord = floor(add({ x: 0, y: config.height }, multiply(canvasPos, scaleVec)));
+    return floor(add(_gridCoord, game.viewPos));
+  }
 };
 
-var gridToCanvas = function gridToCanvas(gridPos) {
+var gridToCanvas = function gridToCanvas(game, gridPos) {
+  console.log("test gridToCanvas!!!");
   var scaleVec = {
     x: config.canvasWidth / config.width,
     y: -1 * config.canvasHeight / config.height
   };
-  return multiply(gridPos, scaleVec);
+  // TODO this might not work...
+  var screenCoord = subtract(gridPos, game.viewPos);
+  console.log(screenCoord, multiply(screenCoord, scaleVec));
+  return multiply(screenCoord, scaleVec);
 };
 
 module.exports = {
@@ -4489,6 +4563,13 @@ var floor = function floor(vector) {
   };
 };
 
+var round = function round(vector) {
+  return {
+    x: Math.round(vector.x),
+    y: Math.round(vector.y)
+  };
+};
+
 var ceil = function ceil(vector) {
   return {
     x: Math.ceil(vector.x),
@@ -4505,6 +4586,7 @@ module.exports = {
   vectorTheta: vectorTheta,
   multiply: multiply,
   floor: floor,
+  round: round,
   ceil: ceil
 };
 },{}],41:[function(require,module,exports){

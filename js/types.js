@@ -37,13 +37,16 @@ export type State = {
 // Game State
 // -------------------------------------------------------------------------------
 
-export type UserMode = 'MARK_TRAIL' | 'CREATE_LOCATION' | 'SELECT';
+export type UserMode = 'MARK_TRAIL' | 'CREATE_LOCATION' | 'SELECT' | 'PAN';
 export type AntMode = 'PICKUP' | 'FEED' | 'EAT';
 export type Mouse = {
   isLeftDown: boolean,
   isRightDown: boolean,
-  downPos: Vector, // where the mouse down was pressed
-  curPos: Vector,
+  downPos: Vector, // where the mouse down was pressed (in grid-space)
+  curPos: Vector, // grid position of mouse
+  prevPos: Vector, // previous grid position of the mouse
+  curPixel: Vector, // pixel position of mouse
+  prevPixel: Vector,
 };
 
 export type GameState = {
@@ -58,6 +61,11 @@ export type GameState = {
   // UI-based partial state
   nextLocationName: string,
   prevPheromone: EntityID,
+
+  // world info in grid coords
+  worldWidth: number,
+  worldHeight: number,
+  viewPos: Vector, // where in the world we're looking
 
   selectedEntities: Array<EntityID>,
   // ALL entities (including ants) here:
@@ -246,5 +254,6 @@ export type Action =
   {type: 'SET_MOUSE_DOWN', isLeft: boolean, isDown: boolean, downPos: Vector} |
   {type: 'UPDATE_THETA', id: EntityID, theta: Radian} |
   {type: 'SET_PREV_PHEROMONE', id: EntityID} |
-  {type: 'SET_MOUSE_POS', curPos: Vector};
+  {type: 'SET_VIEW_POS', viewPos: Vector} |
+  {type: 'SET_MOUSE_POS', curPos: Vector, curPixel: Vector};
 

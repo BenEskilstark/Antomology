@@ -52,6 +52,7 @@ var rootReducer = function rootReducer(state, action) {
     case 'SET_MOUSE_POS':
     case 'UPDATE_THETA':
     case 'SET_PREV_PHEROMONE':
+    case 'SET_VIEW_POS':
       if (!state.game) return state;
       return _extends({}, state, {
         game: gameReducer(state.game, action)

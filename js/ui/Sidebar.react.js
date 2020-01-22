@@ -43,7 +43,7 @@ function Sidebar(props: Props): React.Node {
         Left-click and drag will:
         <Dropdown
           noNoneOption={true}
-          options={['SELECT', 'MARK_TRAIL', 'CREATE_LOCATION']}
+          options={['SELECT', 'PAN', 'MARK_TRAIL', 'CREATE_LOCATION']}
           selected={game.userMode}
           onChange={(userMode) => dispatch({type: 'SET_USER_MODE', userMode})}
         />

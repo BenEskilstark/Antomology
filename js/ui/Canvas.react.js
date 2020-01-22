@@ -18,7 +18,10 @@ function Canvas(props: Props): React.Node {
       }}
     >
       <canvas
-        id="canvas" style={{backgroundColor: 'white'}}
+        id="canvas" style={{
+          backgroundColor: 'white',
+          cursor: 'pointer',
+        }}
         width={props.width} height={props.height}
       />
     </div>

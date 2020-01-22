@@ -26,92 +26,39 @@ const initGameState = (level: number): GameState => {
   }
 }
 
+////////////////////////////////////////////////////////////////////////////
+// Levels
+////////////////////////////////////////////////////////////////////////////
+
 const level1 = (): GameState => {
-  const gameState = {
-    time: 0,
-    tickInterval: null,
-    antMode: 'PICKUP',
-    userMode: 'SELECT',
-    nextLocationName: 'Give Locations Unique Names',
-    prevPheromone: null,
-    mouse: {
-      isLeftDown: false,
-      isRightDown: false,
-      downPos: {x: 0, y: 0},
-      curPos: {x: 0, y: 0},
-    },
+  const game = baseState(100, 100);
+  addEntity(game, makeAnt({x: 25, y: 30}, 'QUEEN'));
+  addEntity(game, makeAnt({x: 20, y: 30}, 'WORKER'));
+  addEntity(game, makeAnt({x: 30, y: 30}, 'WORKER'));
 
-    entities: {},
-    selectedEntities: [],
-    ANT: [],
-    DIRT: [],
-    FOOD: [],
-    EGG: [],
-    LARVA: [],
-    PUPA: [],
-    DEAD_ANT: [], // TODO: not actually implemented
-    LOCATION: [],
-    PHEROMONE: [],
-
-    tasks: [],
-    grid: [],
-  };
-  addEntity(gameState, makeAnt({x: 25, y: 30}, 'QUEEN'));
-  addEntity(gameState, makeAnt({x: 20, y: 30}, 'WORKER'));
-  addEntity(gameState, makeAnt({x: 30, y: 30}, 'WORKER'));
-
-  return gameState;
+  return game;
 }
 
 const level0 = (): GameState => {
-  const gameState = {
-    time: 0,
-    tickInterval: null,
-    antMode: 'PICKUP',
-    userMode: 'SELECT',
-    nextLocationName: 'Give Locations Unique Names',
-    prevPheromone: null,
-    mouse: {
-      isLeftDown: false,
-      isRightDown: false,
-      downPos: {x: 0, y: 0},
-      curPos: {x: 0, y: 0},
-    },
-
-    entities: {},
-    selectedEntities: [],
-    ANT: [],
-    DIRT: [],
-    FOOD: [],
-    EGG: [],
-    LARVA: [],
-    PUPA: [],
-    DEAD_ANT: [], // TODO: not actually implemented
-    LOCATION: [],
-    PHEROMONE: [],
-
-    tasks: [],
-    grid: [],
-  };
-
+  const game = baseState(100, 100);
   // seed start location
   const clickedLocation = {
     ...makeLocation('Clicked Position', 1, 1, {x:0, y:0}), id: config.clickedPosition,
   }
-  addEntity(gameState, clickedLocation);
+  addEntity(game, clickedLocation);
   const colonyEntrance = {
     ...makeLocation('Colony Entrance', 1, 1, {x: 25, y: 29}), id: config.colonyEntrance,
   };
-  addEntity(gameState, colonyEntrance);
+  addEntity(game, colonyEntrance);
 
   // initial tasks
-  gameState.tasks = [
+  game.tasks = [
     tasks.createIdleTask(),
     {...tasks.createGoToLocationTask(colonyEntrance), name: 'Go To Colony Entrance'},
     tasks.createRandomMoveTask(),
-    tasks.createDigBlueprintTask(gameState),
+    tasks.createDigBlueprintTask(game),
     tasks.createMoveBlockerTask(),
-    tasks.createGoToColonyEntranceWithBlockerTask(gameState),
+    tasks.createGoToColonyEntranceWithBlockerTask(game),
     tasks.createLayEggTask(),
     tasks.createFollowTrailTask(),
     {
@@ -147,17 +94,17 @@ const level0 = (): GameState => {
     },
   ];
 
-  // seed bottom 3/4's with dirt
-  for (let x = 0; x < config.width; x++) {
-    for (let y = 0; y < config.height; y++) {
-      if (y < config.height * 0.6) {
+  // seed bottom 1/4's with dirt
+  for (let x = 0; x < game.worldWidth; x++) {
+    for (let y = 0; y < game.worldHeight; y++) {
+      if (y < game.worldHeight * 0.3) {
         if (x == colonyEntrance.position.x && y == colonyEntrance.position.y) {
           continue;
         }
         if (x == colonyEntrance.position.x && y == colonyEntrance.position.y - 1) {
           continue;
         }
-        addEntity(gameState, makeDirt({x, y}));
+        addEntity(game, makeDirt({x, y}));
       }
     }
   }
@@ -165,27 +112,71 @@ const level0 = (): GameState => {
   // seed ants
   // for (let i = 0; i < 10; i++) {
   //   const position = {
-  //     x: randomIn(0, config.width - 1),
-  //     y: randomIn(Math.ceil(config.height * 0.6), config.height - 1),
+  //     x: randomIn(0, game.worldWidth - 1),
+  //     y: randomIn(Math.ceil(game.worldHeight * 0.6), game.worldHeight - 1),
   //   };
   //   const ant = makeAnt(position, 'WORKER');
-  //   addEntity(gameState, ant);
+  //   addEntity(game, ant);
   // }
-  addEntity(gameState, makeAnt({x: 25, y: 30}, 'QUEEN'));
-  addEntity(gameState, makeAnt({x: 20, y: 30}, 'WORKER'));
-  addEntity(gameState, makeAnt({x: 30, y: 30}, 'WORKER'));
+  addEntity(game, makeAnt({x: 25, y: 30}, 'QUEEN'));
+  addEntity(game, makeAnt({x: 20, y: 30}, 'WORKER'));
+  addEntity(game, makeAnt({x: 30, y: 30}, 'WORKER'));
 
   // seed food
   for (let i = 0; i < 15; i++) {
     const position = {
-      x: randomIn(0, config.width - 1),
-      y: randomIn(Math.ceil(config.height * 0.6) + 1, config.height - 1),
+      x: randomIn(0, game.worldWidth - 1),
+      y: randomIn(Math.ceil(game.worldHeight * 0.6) + 1, game.worldHeight - 1),
     };
     const food = makeFood(position, 1000, 'Crumb');
-    addEntity(gameState, food);
+    addEntity(game, food);
   }
 
-  return gameState;
+  return game;
+}
+
+////////////////////////////////////////////////////////////////////////////
+// Helpers
+////////////////////////////////////////////////////////////////////////////
+
+const baseState = (worldWidth: number, worldHeight: number): GameState => {
+  const game = {
+    time: 0,
+    tickInterval: null,
+    antMode: 'PICKUP',
+    userMode: 'SELECT',
+    nextLocationName: 'Give Locations Unique Names',
+    prevPheromone: null,
+    mouse: {
+      isLeftDown: false,
+      isRightDown: false,
+      downPos: {x: 0, y: 0},
+      curPos: {x: 0, y: 0},
+      curPixel: {x: 0, y: 0},
+      prevPixel: {x: 0, y: 0},
+    },
+
+    worldWidth,
+    worldHeight,
+    viewPos: {x: 0, y: 0},
+
+    entities: {},
+    selectedEntities: [],
+    ANT: [],
+    DIRT: [],
+    FOOD: [],
+    EGG: [],
+    LARVA: [],
+    PUPA: [],
+    DEAD_ANT: [], // TODO: not actually implemented
+    LOCATION: [],
+    PHEROMONE: [],
+
+    tasks: [],
+    grid: [],
+  };
+
+  return game;
 }
 
 module.exports = {initGameState};

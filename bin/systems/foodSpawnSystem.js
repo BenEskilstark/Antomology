@@ -28,8 +28,8 @@ var initFoodSpawnSystem = function initFoodSpawnSystem(store) {
     time = state.game.time;
 
     if (Math.random() < config.foodSpawnRate) {
-      var x = randomIn(0, config.width - 1);
-      var y = randomIn(0, config.height - 1);
+      var x = randomIn(0, state.game.worldWidth - 1);
+      var y = randomIn(0, state.game.worldHeight - 1);
       if (fastCollidesWith(state.game, { position: { x: x, y: y } }).filter(function (e) {
         return config.antBlockingEntities.includes(e.type);
       }).length == 0) {

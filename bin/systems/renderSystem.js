@@ -46,6 +46,9 @@ var initRenderSystem = function initRenderSystem(store) {
 var render = function render(state, ctx) {
   var game = state.game;
 
+  ////////////////////////////////////////////
+  // canvas scaling
+  ////////////////////////////////////////////
   // scale world to the canvas
 
   ctx.save();
@@ -53,6 +56,9 @@ var render = function render(state, ctx) {
   ctx.translate(0, config.canvasHeight);
   ctx.scale(1, -1);
   ctx.scale(config.canvasWidth / config.width, config.canvasHeight / config.height);
+  // translate to view port
+  ctx.translate(-1 * game.viewPos.x, -1 * game.viewPos.y);
+  ////////////////////////////////////////////
 
   // render non-location entities
   for (var id in game.entities) {
@@ -127,7 +133,7 @@ var render = function render(state, ctx) {
 
   var mouse = game.mouse;
 
-  if (mouse.isLeftDown && game.userMode !== 'MARK_TRAIL') {
+  if (mouse.isLeftDown && (game.userMode === 'SELECT' || game.userMode === 'CREATE_LOCATION')) {
     if (game.userMode === 'CREATE_LOCATION') {
       ctx.fillStyle = 'rgba(100, 100, 100, 0.25)';
     } else if (game.userMode === 'SELECT') {
@@ -144,6 +150,9 @@ var render = function render(state, ctx) {
   }
 
   ctx.restore();
+
+  // render cursor
+  // TODO
 };
 
 var renderEntity = function renderEntity(state, ctx, entity) {

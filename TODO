@@ -1,53 +1,70 @@
 
- - - - - - - TODO - - - - - -
- - behaviors should support lists of child behaviors
- - Task Stack
-    - explicitly return to parent behavior as a setting in the SWITCH_TASK behavior
- - Add a bunch of tasks to default tasks
- - pheromone trails
-    - tool for clearing pheromone
-    - behavior setting to follow trail backwards
-    - support categories of pheromone you can select and have different colors
-    - allow ants to lay trail fowards/backwards
- - implement pan/zoom with grid-to-canvas size conversion
-    - how to handle at controls level with click-and-drag already used for marquee?
+ - - - - - - WORLD - - - - - -
+ - panning
+    - don't render items not on screen
+ - zooming
+    - screen size in grid cells should be on the state, not the config
  - add background layer
  - add gravity
- - add pause functionality/button
- - add "levels" that can be selected in lobby
-    - world size should be on the state, not the config
-    - tasks etc. should be initialized in all levels
-    - init systems should be inside level creation
-    - specific level with some story component
-
- - - - - - - NEXT - - - - - -
- - change cursor based on userMode
- - add other entities: beetles, worms, spiders, aphids
- - make food size scale by calorie amount with better thresholds
- - compute old-age death for ants
- - Call out ants near death of old age
- - option for deleting behaviors in Task Editor
- - better anti-aliasing for dirt
- - switch dead ants/larva to their own entity type
- - make location position in center instead of top left for moving towards
- - use sprites for entities
- - test on firefox
-   - fix dropdowns
-   - fix selection weirdness
-
- - - - - -  LATER - - - - - -
  - big entities:
     - simpler collision function based on grid lookup
+    - fix lookupInGrid uses that should just be collidesWith
     - support rotated big-entities
     - picking up big entities
     - subdividing bigger entities on pickup
     - collision detection when bigger entities move around
- - make UI elements screen-size responsive
+ - add other entities: beetles, worms, spiders, aphids
+ - make food size scale by calorie amount with better thresholds
  - food that ants can coordinate to lift
+
+
+ - - - - - - ANTS - - - - - -
+ - compute old-age death for ants
+ - make location position in center instead of top left for moving towards
  - A*-like for ants moving towards location?
- - implement MARK action
+
+
+ - - - - - - TASK EDITOR - - - - - -
+ - behaviors should support lists of child behaviors
+ - explicitly return to parent behavior as a setting in the SWITCH_TASK behavior
+ - option for deleting behaviors in Task Editor
  - conditionals with OR/AND
+
+
+ - - - - - - LEVELS - - - - - -
+ - tasks etc. should be initialized in all levels
+ - init systems should be inside level creation
+ - specific level with some story component
+
+
+ - - - - - - UI / UX - - - - - -
+ - Add a bunch of tasks to default tasks
+ - left-click-and-drag seems overloaded with functionality
+ - add pause functionality/button
+ - change cursor based on userMode
+ - Call out ants near death of old age
  - saving with local storage
+
+
+ - - - - - - PHEROMONE TRAILS - - - - - -
+ - tool for clearing pheromone
+ - behavior setting to follow trail backwards
+ - support categories of pheromone you can select and have different colors
+ - allow ants to lay trail fowards/backwards
+
+
+ - - - - - - RENDERING - - - - - -
+ - better anti-aliasing for dirt
+ - use sprites for entities
+ - animations, marquees, etc. should be rendered >10fps
+
+
+ - - - - - - ACCESSIBILITY - - - - - -
+ - test on firefox
+   - fix dropdowns
+   - fix selection weirdness
+ - make UI elements screen-size responsive
+
 
  - - - - - REFACTOR - - - - -
  - essentially need a "stack" for nested behavior execution or else e.g. a
@@ -58,166 +75,9 @@
  - MOVE action implementation sucks
  - get optional chaining working
  - state/tasks is disorganized
+ - switch dead ants/larva to their own entity type
 
 
  - - - - - - BUGS - - - - - -
  - picked-up pupa never hatch and then die on putdown. Should probably just wait to hatch
 
- - - - - - - DONE - - - - - -
- - clicking to select ants
-
- - remove concept of caste
- - fix rendering of entity radius vs size
- - implement entities with varying sizes
- - collides selector should detect collisions with arbitrary sized entities
- - implement interpreter for tasks/behaviors
- - add controls for ants
- - support holding various types of entities
-
- - object should be a typed payload
- - press enter to start game
-
- - put down in a neighbor position, not your own
- - implement mark mode and click-and-drag to mark dirt
- - create UI for adding new locations
- - settle on location vs entity structures
-
- - use entities for all entities, Arrays of ids for the rest, selectors to get entityByType
- - ants shouldn't collide with locations
- - track entityIDs instead of entities themselves
-
- - don't allow putting down held entity into dirt
- - console commands for quickly assigning tasks
-
- - conditional for neighboring blueprinted dirt
- - Automate digging out blueprints
-    - task for moving randomly (in colony) until blueprint found
-    - that then switches to a task that takes the dirt out of the colony
-    - switch to task that finds drop-off locations and moves until free spot to place it
-    - then switch back to finding colony entrance
-    - ants move dirt out of their way if they are blocked
-
- - behaviors shouldn't have a "done" flag or by mutable at all
- - ants should track their task index, not the task itself
- - make random move not cross colony entrance boundary
- - make git repo
- - convert hunger to calories
- - implement food items that can be consumed
- - ants die when they reach 0 calories
- - color ants differently when they are close to starving
- - dead ants remain but are indicated differently somehow
- - ants can only consume a food once before mouse system fails
-
- - helper for abstracting away constructing/composing common conditions/locations
- - config for pickup-able entities
- - getEntitiesByType should optionally take in array of multiple types
- - make renderEntity recursive for rendering picked-up entities
- - handle food items in collisions and picking up
- - distinguish between ants picking up food and ants eating food via UI
- - preview for location creation while you drag
- - implement marquee selection
- - add sidebar card for selected ant statuses
- - allow assigning tasks to selected ants via UI
- - have ants un-stack in a sensible way
- - visually distinguish queen from workers
- - Add a X to the AntCard to deselect it
- - AntCard should call out when ants are hungry
-
- - UI for editing behaviors/tasks
-    - remove function inside SWITCH_TASK behavior
-    - implement Add Behavior button in TaskCard
- - Ant egg/larva/pupa life-cycles
-
- - test every interaction
- - make food spawn at random
- - visually distinguish starving/fed larva
- - prevent ants from moving off-screen
- - only lay eggs on top of dirt
- - UI for naming locations, name of location floating in space
- - making another location with same name replaces it
- - better init for systems
-
- - button for exporting tasks as json
- - fixed bugs
-   - two ants can eat the same food at the same time
-   - ants consume entire food on click and not just their configured amount
-   - blueprint doesn't allow simple click, only drag
-   - multiple ants can pick up the same entity
-   - ants can detect and pickup marked dirt diagonally away from them
-   - getNeighborhoodLocation fails every once in a while (I believe on PICKUP)
-   - update Go To Clicked Location to always point at last location instead of first
-   - selection marquee doesn't work 100% from every angle
-   - ants won't move to a square one off from them and always pick up diagonally
-   - updateTask doesn't always actually update
- - implement PICKUP for FOOD, DIRT, EGG, etc.
- - implement EAT for behavior checking neighbor
- - Make larva, eggs, pupa, selectable
- - egg,larva, pupa UI cards
- - prioritize feeding larva
- - make pickup/feed/eat more intuitive
-   - PUTDOWN on ant/larva feeds
-   - FEED on food picks it up
-
- - button for importing task jsons
- - implement maxAntCalories
- - On create task, switch dropdown to editing that one
- - importing tasks with NOT in the while
- - conditions UI makes them LESS_THAN always
-
- - cached entityID arrays in state should be the same as the entityType
- - remove SWITCHES over entityTypes
- - helper for adding entities to keep them working across type/grid caches
- - helper for moving entities to a new position
-
- - update mouseSystem for faster collision detection
- - switch to fast collisions everywhere
- - put initGameState back together, make ants idle on creation
- - fix go to clicked location glitching side-to-side
- - fix create location for making location with same name
- - fix right click to pick up
- - fix neighboring tasks
- - fix picking up entity that has been put down somewhere else already
- - fix digging out blueprint always leaving colony
- - fix ants passing through blocking entities
- - fix aliased-looking blocks
- - tasks need a "parent" task or else switching tasks within a repeating task won't repeat
- - support canvas resize
- - as long as we're treating locations/tasks uniquely by name, store only those names
- - implement holding for each type
- - implement neighboring for each type
- - implement BLOCKED in condition UI
-
- - handle grid stuff with entities with larger size (locations)
- - some eggs get stuck and never hatch
- - string tasks together (?) appears to make many ticks or jumps of some sort
-   ants jump around and go down and up in calories simultaneously
- - make dead ants more obvious looking
- - mention ants are dead in the UI
- - RANDOM move behavior for staying inside a location
-
- - pheromone trails
-    - mark should be its own entity instead of applying just to dirt
-    - it should be a vector that an ant can follow
-    - tool for laying pheromone trail
-    - rename MARK to TRAIL or something
-    - last pheromone always has theta = 0
-    - pheromone trails only 90 degree angles
-    - only rotate prevPheromone if it is a neighbor
-    - fixed one ant being colored green
-    - when putting pheromone somewhere there already is, update its theta
-    - behavior for ant following trail
-    - fix/delete the digging out blueprint behavior
-    - update MARKED condition
- - assigning a task should clear the stack
- - don't allow creating a task called "New Task"
- - clicking go to position unwinds up the parent stack after getting there
-
- - checkboxes in task editor complain about control
- - number input (in e.g. RANDOM condition) doesn't like being cleared out temporarily
- - pheromone trails
-    - potentially have pheromone fade over time
-    - test ants re-inforcing trails
-    - color trail alpha based on strength
- - ant calories only go down when they do something
-
- - add "levels" that can be selected in lobby

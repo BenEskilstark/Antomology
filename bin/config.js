@@ -3,12 +3,10 @@
 var config = {
   msPerTick: 100,
 
+  // screen sizes in grid cells and in pixels:
   // grid size
   width: 50,
   height: 50,
-
-  // TODO: grid-to-canvas conversion for pan/zoom
-
   // canvas size
   canvasWidth: 800,
   canvasHeight: 800,
@@ -42,8 +40,8 @@ var config = {
   pupaHatchAge: 200,
 
   // pheromones
-  pheromoneStartingQuantity: 120,
-  pheromoneMaxQuantity: 120
+  pheromoneStartingQuantity: 600,
+  pheromoneMaxQuantity: 1200
 };
 
 module.exports = { config: config };

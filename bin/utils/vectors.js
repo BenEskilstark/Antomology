@@ -100,6 +100,13 @@ var floor = function floor(vector) {
   };
 };
 
+var round = function round(vector) {
+  return {
+    x: Math.round(vector.x),
+    y: Math.round(vector.y)
+  };
+};
+
 var ceil = function ceil(vector) {
   return {
     x: Math.ceil(vector.x),
@@ -116,5 +123,6 @@ module.exports = {
   vectorTheta: vectorTheta,
   multiply: multiply,
   floor: floor,
+  round: round,
   ceil: ceil
 };

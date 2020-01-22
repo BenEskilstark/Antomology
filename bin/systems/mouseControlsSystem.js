@@ -20,7 +20,9 @@ var _require4 = require('../utils/vectors'),
     subtract = _require4.subtract,
     equals = _require4.equals,
     makeVector = _require4.makeVector,
-    vectorTheta = _require4.vectorTheta;
+    vectorTheta = _require4.vectorTheta,
+    multiply = _require4.multiply,
+    floor = _require4.floor;
 
 var _require5 = require('../entities/location'),
     makeLocation = _require5.makeLocation;
@@ -43,16 +45,18 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
   document.onmouseup = function (ev) {
     var state = store.getState();
     if (state.game == null) return;
-    var gridPos = getClickedPos(ev);
-    if (gridPos == null) return;
+    var gridPos = getClickedPos(state.game, ev);
 
     if (ev.button == 0) {
       // left click
       dispatch({ type: 'SET_MOUSE_DOWN', isLeft: true, isDown: false });
+      dispatch({ type: 'SET_VIEW_POS', viewPos: floor(state.game.viewPos) });
+      if (gridPos == null) return;
       handleLeftClick(state, dispatch, gridPos);
     } else if (ev.button == 2) {
       // right click
       dispatch({ type: 'SET_MOUSE_DOWN', isLeft: false, isDown: false });
+      if (gridPos == null) return;
       handleRightClick(state, dispatch, gridPos);
     }
   };
@@ -60,7 +64,7 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
   document.onmousedown = function (ev) {
     var state = store.getState();
     if (state.game == null) return;
-    var gridPos = getClickedPos(ev);
+    var gridPos = getClickedPos(state.game, ev);
     if (gridPos == null) return;
 
     if (ev.button == 0) {
@@ -75,73 +79,78 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
   document.onmousemove = function (ev) {
     var state = store.getState();
     if (state.game == null) return;
-    var gridPos = getClickedPos(ev);
+    var gridPos = getClickedPos(state.game, ev);
+    var canvasPos = getMousePixel(ev);
     if (gridPos == null) return;
-    dispatch({ type: 'SET_MOUSE_POS', curPos: gridPos });
-    if (state.game.mouse.isLeftDown && state.game.userMode === 'MARK_TRAIL') {
-      var prevPheromone = state.game.entities[state.game.prevPheromone];
-      if (prevPheromone == null) {
-        dispatch({
-          type: 'CREATE_ENTITY',
-          entity: makePheromone(gridPos, theta, 1)
-        });
-        return;
-      }
-      if (equals(gridPos, prevPheromone.position)) {
-        return; // don't make another at its current spot
-      }
-      var theta = vectorTheta(subtract(gridPos, prevPheromone.position));
-      var xDiff = Math.abs(gridPos.x - prevPheromone.position.x);
-      var yDiff = Math.abs(gridPos.y - prevPheromone.position.y);
-      if (xDiff > 1 || yDiff > 1 || xDiff == 1 && yDiff == 1) {
-        theta = 0; // no theta update if they aren't neighbors
-      } else {
-        dispatch({ type: 'UPDATE_THETA', id: prevPheromone.id, theta: theta });
-      }
-      var pheromone = lookupInGrid(state.game.grid, gridPos).filter(function (id) {
-        return state.game.entities[id].type === 'PHEROMONE';
-      }).map(function (id) {
-        return state.game.entities[id];
-      })[0];
-      if (pheromone != null) {
-        if (pheromone.theta != theta) {
-          dispatch({ type: 'UPDATE_THETA', id: pheromone.id, theta: theta });
-          dispatch({ type: 'SET_PREV_PHEROMONE', id: pheromone.id });
-        }
-      } else {
-        dispatch({
-          type: 'CREATE_ENTITY',
-          entity: makePheromone(gridPos, theta, 1)
-        });
-      }
-    }
+    handleMouseMove(state, dispatch, gridPos, canvasPos);
   };
 };
 
-var canvas = null;
-var getClickedPos = function getClickedPos(ev) {
-  if (!canvas) {
-    canvas = document.getElementById('canvas');
-    // don't open the normal right-click menu
-    canvas.addEventListener('contextmenu', function (ev) {
-      return ev.preventDefault();
-    });
-    if (!canvas) {
-      return null;
-    }
-  }
-  var rect = canvas.getBoundingClientRect();
+////////////////////////////////////////////////////////////////////////////
+// Mouse move
+////////////////////////////////////////////////////////////////////////////
 
-  var canvasPos = {
-    x: ev.clientX - rect.left,
-    y: ev.clientY - rect.top
-  };
-  // return null if clicked outside the canvas:
-  if (canvasPos.x < 0 || canvasPos.y < 0 || canvasPos.x > config.canvasWidth || canvasPos.y > config.canvasHeight) {
-    return null;
+var handleMouseMove = function handleMouseMove(state, dispatch, gridPos, canvasPos) {
+  if (state.game.mouse.isLeftDown && state.game.userMode === 'MARK_TRAIL') {
+    dispatch({ type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos });
+    var prevPheromone = state.game.entities[state.game.prevPheromone];
+    if (prevPheromone == null) {
+      dispatch({
+        type: 'CREATE_ENTITY',
+        entity: makePheromone(gridPos, theta, 1)
+      });
+      return;
+    }
+    if (equals(gridPos, prevPheromone.position)) {
+      return; // don't make another at its current spot
+    }
+    var theta = vectorTheta(subtract(gridPos, prevPheromone.position));
+    var xDiff = Math.abs(gridPos.x - prevPheromone.position.x);
+    var yDiff = Math.abs(gridPos.y - prevPheromone.position.y);
+    if (xDiff > 1 || yDiff > 1 || xDiff == 1 && yDiff == 1) {
+      theta = 0; // no theta update if they aren't neighbors
+    } else {
+      dispatch({ type: 'UPDATE_THETA', id: prevPheromone.id, theta: theta });
+    }
+    var pheromone = lookupInGrid(state.game.grid, gridPos).filter(function (id) {
+      return state.game.entities[id].type === 'PHEROMONE';
+    }).map(function (id) {
+      return state.game.entities[id];
+    })[0];
+    if (pheromone != null) {
+      if (pheromone.theta != theta) {
+        dispatch({ type: 'UPDATE_THETA', id: pheromone.id, theta: theta });
+        dispatch({ type: 'SET_PREV_PHEROMONE', id: pheromone.id });
+      }
+    } else {
+      dispatch({
+        type: 'CREATE_ENTITY',
+        entity: makePheromone(gridPos, theta, 1)
+      });
+    }
+  } else if (state.game.mouse.isLeftDown && state.game.userMode === 'PAN') {
+    var dragDiffPixel = subtract(canvasPos, state.game.mouse.curPixel);
+    if (equals(dragDiffPixel, { x: 0, y: 0 })) {
+      dispatch({ type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos });
+      return;
+    }
+    // const nextViewPosPixel = subtract(gridToCanvas(state.game, state.game.viewPos), dragDiff);
+    // const nextViewPos = canvasToGrid(state.game, nextViewPosPixel);
+    var dragDiff = multiply(dragDiffPixel, { x: config.width / config.canvasWidth, y: -1 * config.height / config.canvasHeight });
+    var nextViewPos = subtract(state.game.viewPos, dragDiff);
+    if (nextViewPos.x < 0 || nextViewPos.y < 0 || nextViewPos.x + config.width > state.game.worldWidth || nextViewPos.y + config.height > state.game.worldHeight) {
+      dispatch({ type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos });
+      return;
+    }
+    dispatch({ type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos });
+    dispatch({ type: 'SET_VIEW_POS', viewPos: nextViewPos });
+  } else {
+    dispatch({ type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos });
   }
-  return canvasToGrid(canvasPos);
 };
+////////////////////////////////////////////////////////////////////////////
+// Left click
+////////////////////////////////////////////////////////////////////////////
 
 var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
   // handle creating locations
@@ -184,6 +193,10 @@ var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
     }
   }
 };
+
+////////////////////////////////////////////////////////////////////////////
+// Right click
+////////////////////////////////////////////////////////////////////////////
 
 var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
   var selectedAntIDs = getSelectedAntIDs(state.game);
@@ -250,6 +263,40 @@ var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
     // make this task always refer to most recently clicked location
     dispatch({ type: 'UPDATE_TASK', task: task });
   }
+};
+
+////////////////////////////////////////////////////////////////////////////
+// click -> position helpers
+////////////////////////////////////////////////////////////////////////////
+
+var canvas = null;
+var getClickedPos = function getClickedPos(game, ev, noFloor) {
+  var pixel = getMousePixel(ev);
+  if (pixel == null) return null;
+  return canvasToGrid(game, pixel, noFloor);
+};
+var getMousePixel = function getMousePixel(ev) {
+  if (!canvas) {
+    canvas = document.getElementById('canvas');
+    // don't open the normal right-click menu
+    canvas.addEventListener('contextmenu', function (ev) {
+      return ev.preventDefault();
+    });
+    if (!canvas) {
+      return null;
+    }
+  }
+  var rect = canvas.getBoundingClientRect();
+
+  var canvasPos = {
+    x: ev.clientX - rect.left,
+    y: ev.clientY - rect.top
+  };
+  // return null if clicked outside the canvas:
+  if (canvasPos.x < 0 || canvasPos.y < 0 || canvasPos.x > config.canvasWidth || canvasPos.y > config.canvasHeight) {
+    return null;
+  }
+  return canvasPos;
 };
 
 module.exports = { initMouseControlsSystem: initMouseControlsSystem };

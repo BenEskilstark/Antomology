@@ -14,7 +14,10 @@ function Canvas(props) {
       }
     },
     React.createElement('canvas', {
-      id: 'canvas', style: { backgroundColor: 'white' },
+      id: 'canvas', style: {
+        backgroundColor: 'white',
+        cursor: 'pointer'
+      },
       width: props.width, height: props.height
     })
   );

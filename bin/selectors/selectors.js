@@ -168,8 +168,8 @@ var fastGetNeighbors = function fastGetNeighbors(game, entity) {
   });
 };
 
-var insideWorld = function insideWorld(pos) {
-  return pos.x >= 0 && pos.x < config.width && pos.y >= 0 && pos.y < config.height;
+var insideWorld = function insideWorld(game, pos) {
+  return pos.x >= 0 && pos.x < game.worldWidth && pos.y >= 0 && pos.y < game.worldHeight;
 };
 
 /////////////////////////////////////////////////////////////////

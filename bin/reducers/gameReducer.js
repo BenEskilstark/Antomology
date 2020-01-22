@@ -167,12 +167,24 @@ var gameReducer = function gameReducer(game, action) {
       }
     case 'SET_MOUSE_POS':
       {
-        var curPos = action.curPos;
+        var curPos = action.curPos,
+            curPixel = action.curPixel;
 
         return _extends({}, game, {
           mouse: _extends({}, game.mouse, {
-            curPos: curPos
+            prevPos: _extends({}, game.mouse.curPos),
+            curPos: curPos,
+            prevPixel: _extends({}, game.mouse.curPixel),
+            curPixel: curPixel
           })
+        });
+      }
+    case 'SET_VIEW_POS':
+      {
+        var viewPos = action.viewPos;
+
+        return _extends({}, game, {
+          viewPos: viewPos
         });
       }
   }
