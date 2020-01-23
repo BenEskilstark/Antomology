@@ -16,7 +16,7 @@ const makeAnt = (position: Vector, subType: AntSubType): Ant => {
     holding: null,
     calories: config.antStartingCalories,
     caste: null,
-    // task: createRandomMoveTask(),
+    //task: createRandomMoveTask(),
     task: createIdleTask(),
     taskIndex: 0,
     taskStack: [{

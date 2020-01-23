@@ -80,7 +80,8 @@ export type GameState = {
   PUPA: Array<EntityID>,
   DEAD_ANT: Array<EntityID>, // TODO: not actually implemented
   PHEROMONE: Array<EntityID>,
-  SKY: Array<EntityID>,
+  STONE: Array<EntityID>,
+  BACKGROUND: Array<EntityID>,
 
   // for faster collision detection
   grid: Array<Array<Array<EntityID>>>,
@@ -95,7 +96,7 @@ export type GameState = {
 export type EntityID = number;
 export type EntityType =
   'ANT' | 'DIRT' | 'FOOD' | 'EGG' | 'LARVA' | 'PUPA' | 'LOCATION' | 'DEAD_ANT' |
-  'PHEROMONE' | 'SKY';
+  'PHEROMONE' | 'BACKGROUND' | 'STONE';
 
 export type Entity = {
   id: EntityID,
@@ -144,6 +145,9 @@ export type Food = Entity & {
 export type Pheromone = Entity & {
   category: number, // so there can be different kinds of trails
   quantity: number,
+};
+export type Background = Entity & {
+  subType: 'SKY' | 'DIRT'
 };
 
 // -------------------------------------------------------------------------------

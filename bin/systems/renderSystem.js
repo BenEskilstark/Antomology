@@ -13,6 +13,9 @@ var _require2 = require('../utils/vectors'),
 var _require3 = require('../selectors/selectors'),
     onScreen = _require3.onScreen;
 
+var _require4 = require('../utils/stateHelpers'),
+    lookupInGrid = _require4.lookupInGrid;
+
 /**
  * Render things into the canvas
  */
@@ -39,8 +42,7 @@ var initRenderSystem = function initRenderSystem(store) {
     }
 
     // clear
-    // ctx.fillStyle = '#CD853F';
-    ctx.fillStyle = 'steelblue';
+    ctx.fillStyle = '#101010';
     ctx.fillRect(0, 0, config.canvasWidth, config.canvasHeight);
 
     render(state, ctx);
@@ -70,7 +72,7 @@ var render = function render(state, ctx) {
   var _iteratorError = undefined;
 
   try {
-    for (var _iterator = game.SKY[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+    for (var _iterator = game.BACKGROUND[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
       var _id = _step.value;
 
       var _entity = game.entities[_id];
@@ -98,7 +100,8 @@ var render = function render(state, ctx) {
   for (var id in game.entities) {
     var entity = game.entities[id];
     if (entity.position == null) continue;
-    if (entity.type == 'LOCATION' || entity.type === 'ANT' || entity.type == 'SKY') continue;
+    if (entity.type == 'BACKGROUND') continue;
+    if (entity.type == 'LOCATION' || entity.type === 'ANT') continue;
     if (!onScreen(game, entity.position)) continue;
     var toRender = entity;
     if (!entity.visible && entity.lastSeenPos != null) {
@@ -196,6 +199,8 @@ var render = function render(state, ctx) {
 
 // NOTE when rendering underneath FoW, use noRecursion = true to not render infinitely
 var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
+  var game = state.game;
+
   ctx.save();
   // render relative to top left of grid square, but first translate for rotation
   // around the center
@@ -208,7 +213,19 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
     var width = entity.width + 0.04;
     var height = entity.height + 0.04;
     if (entity.lastSeenPos == null) {
-      ctx.fillStyle = '#101010';
+      var aboveSeenBefore = lookupInGrid(game.grid, entity.position).map(function (i) {
+        return game.entities[i];
+      }).filter(function (e) {
+        return config.entitiesInFog.includes(e.type);
+      }).filter(function (e) {
+        return !e.visible && e.lastSeenPos != null;
+      }).length > 0;
+      if (!aboveSeenBefore) {
+        ctx.fillStyle = '#101010';
+      } else {
+        ctx.restore();
+        return; // don't render unseen entities above unseen, seen-before entities
+      }
     } else {
       renderEntity(state, ctx, _extends({}, entity, { position: { x: 0, y: 0 } }), true);
       ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
@@ -271,20 +288,32 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
         ctx.closePath();
         break;
       }
-    case 'SKY':
+    case 'BACKGROUND':
       {
-        ctx.fillStyle = 'steelblue';
         var _width = entity.width + 0.02;
         var _height = entity.height + 0.02;
+        if (entity.subType === 'SKY') {
+          ctx.fillStyle = 'steelblue';
+        } else if (entity.subType === 'DIRT') {
+          ctx.fillStyle = '#CD853F';
+        }
         ctx.fillRect(0, 0, _width, _height);
+        break;
+      }
+    case 'STONE':
+      {
+        ctx.fillStyle = '#555555';
+        var _width2 = entity.width + 0.02;
+        var _height2 = entity.height + 0.02;
+        ctx.fillRect(0, 0, _width2, _height2);
         break;
       }
     case 'DIRT':
       {
         ctx.fillStyle = '#8B4513';
-        var _width2 = entity.width + 0.02;
-        var _height2 = entity.height + 0.02;
-        ctx.fillRect(0, 0, _width2, _height2);
+        var _width3 = entity.width + 0.02;
+        var _height3 = entity.height + 0.02;
+        ctx.fillRect(0, 0, _width3, _height3);
         break;
       }
     case 'LOCATION':

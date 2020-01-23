@@ -1,6 +1,7 @@
 const {config} = require('../config');
 const {subtract, add, makeVector} = require('../utils/vectors');
 const {onScreen} = require('../selectors/selectors');
+const {lookupInGrid} = require('../utils/stateHelpers');
 
 import type {Store, Game} from '../types';
 
@@ -30,8 +31,7 @@ const initRenderSystem = (store: Store): void => {
     }
 
     // clear
-    // ctx.fillStyle = '#CD853F';
-    ctx.fillStyle = 'steelblue';
+    ctx.fillStyle = '#101010';
     ctx.fillRect(0, 0, config.canvasWidth, config.canvasHeight);
 
     render(state, ctx);
@@ -59,7 +59,7 @@ const render = (state: State, ctx: any): void => {
   ////////////////////////////////////////////
 
   // sky first
-  for (const id of game.SKY) {
+  for (const id of game.BACKGROUND) {
     const entity = game.entities[id];
     if (!onScreen(game, entity.position)) continue;
 
@@ -70,7 +70,8 @@ const render = (state: State, ctx: any): void => {
   for (const id in game.entities) {
     const entity = game.entities[id];
     if (entity.position == null) continue;
-    if (entity.type == 'LOCATION' || entity.type === 'ANT' || entity.type == 'SKY') continue;
+    if (entity.type == 'BACKGROUND') continue;
+    if (entity.type == 'LOCATION' || entity.type === 'ANT') continue;
     if (!onScreen(game, entity.position)) continue;
     let toRender = entity;
     if (!entity.visible && entity.lastSeenPos != null) {
@@ -128,6 +129,7 @@ const render = (state: State, ctx: any): void => {
 const renderEntity = (
   state: State, ctx: any, entity: Entity, noRecursion: boolean,
 ): void => {
+  const {game} = state;
   ctx.save();
   // render relative to top left of grid square, but first translate for rotation
   // around the center
@@ -143,7 +145,17 @@ const renderEntity = (
     const width = entity.width + 0.04;
     const height = entity.height + 0.04;
     if (entity.lastSeenPos == null) {
-      ctx.fillStyle = '#101010';
+      const aboveSeenBefore = lookupInGrid(game.grid, entity.position)
+        .map(i => game.entities[i])
+        .filter(e => config.entitiesInFog.includes(e.type))
+        .filter(e => !e.visible && e.lastSeenPos != null)
+        .length > 0;
+      if (!aboveSeenBefore) {
+        ctx.fillStyle = '#101010';
+      } else {
+        ctx.restore();
+        return; // don't render unseen entities above unseen, seen-before entities
+      }
     } else {
       renderEntity(state, ctx, {...entity, position: {x: 0, y: 0}}, true);
       ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
@@ -209,8 +221,19 @@ const renderEntity = (
       ctx.closePath();
       break;
     }
-    case 'SKY': {
-      ctx.fillStyle = 'steelblue';
+    case 'BACKGROUND': {
+      const width = entity.width + 0.02;
+      const height = entity.height + 0.02;
+      if (entity.subType === 'SKY') {
+        ctx.fillStyle = 'steelblue';
+      } else if (entity.subType === 'DIRT') {
+        ctx.fillStyle = '#CD853F';
+      }
+      ctx.fillRect(0, 0, width, height);
+      break;
+    }
+    case 'STONE': {
+      ctx.fillStyle = '#555555';
       const width = entity.width + 0.02;
       const height = entity.height + 0.02;
       ctx.fillRect(0, 0, width, height);

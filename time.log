@@ -86,5 +86,6 @@ Date  Time Started  Time Spent  Work Completed
 
 1/21      8:20am    3hr         Get panning/zooming working
 
-1/22      9:20am
+1/22      9:20am    3hr         Get fog of war set up
+          2:00pm    2hr         Implement gravity, fix some FoW bugs
 

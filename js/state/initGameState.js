@@ -3,7 +3,8 @@
 const {makeEntity} = require('../entities/entity');
 const {makeAnt} = require('../entities/ant');
 const {makeDirt} = require('../entities/dirt');
-const {makeSky} = require('../entities/sky');
+const {makeStone} = require('../entities/stone');
+const {makeBackground} = require('../entities/background');
 const {makeFood} = require('../entities/food');
 const {makeLocation} = require('../entities/location');
 const {config} = require('../config');
@@ -41,7 +42,7 @@ const level1 = (): GameState => {
 }
 
 const level0 = (): GameState => {
-  const game = baseState(1000, 100);
+  const game = baseState(500, 100);
   // seed start location
   const clickedLocation = {
     ...makeLocation('Clicked Position', 1, 1, {x:0, y:0}), id: config.clickedPosition,
@@ -95,10 +96,15 @@ const level0 = (): GameState => {
     },
   ];
 
-  // seed sky
+  // seed background
   for (let x = 0; x < game.worldWidth; x++) {
     for (let y = 0; y < game.worldHeight; y++) {
-      addEntity(game, makeSky({x, y}));
+      if (y >= game.worldHeight * 0.3) {
+        addEntity(game, makeBackground({x, y}, 'SKY'));
+      }
+      if (y < game.worldHeight * 0.5) {
+        addEntity(game, makeBackground({x, y}, 'DIRT'));
+      }
     }
   }
 
@@ -118,7 +124,7 @@ const level0 = (): GameState => {
   }
 
   // seed ants
-  // for (let i = 0; i < 10; i++) {
+  // for (let i = 0; i < 1000; i++) {
   //   const position = {
   //     x: randomIn(0, game.worldWidth - 1),
   //     y: randomIn(Math.ceil(game.worldHeight * 0.6), game.worldHeight - 1),
@@ -129,6 +135,9 @@ const level0 = (): GameState => {
   addEntity(game, makeAnt({x: 25, y: 30}, 'QUEEN'));
   addEntity(game, makeAnt({x: 20, y: 30}, 'WORKER'));
   addEntity(game, makeAnt({x: 30, y: 30}, 'WORKER'));
+
+  // add stone
+  addEntity(game, makeStone({x: 35, y: 35}));
 
   // seed food
   for (let i = 0; i < 15; i++) {
@@ -179,7 +188,8 @@ const baseState = (worldWidth: number, worldHeight: number): GameState => {
     DEAD_ANT: [], // TODO: not actually implemented
     LOCATION: [],
     PHEROMONE: [],
-    SKY: [],
+    STONE: [],
+    BACKGROUND: [],
 
     tasks: [],
     grid: [],

@@ -112,6 +112,37 @@ const handleTick = (game: GameState): GameState => {
     }
   }
 
+  // manage gravity
+  for (const entityType of config.fallingEntities) {
+    for (const id of game[entityType]) {
+      const entity = game.entities[id];
+      if (!entity.position) continue;
+      // TODO can't handle big entities
+      const positionBeneath = subtract(entity.position, {x: 0, y: 1});
+      const entitiesBeneath = lookupInGrid(game.grid, positionBeneath)
+        .map(i => game.entities[i])
+        .filter(e => config.antBlockingEntities.includes(e.type))
+        .length > 0;
+      if (!entitiesBeneath) {
+        moveEntity(game, entity, positionBeneath);
+      }
+    }
+  }
+  for (const entityType of config.supportedEntities) {
+    for (const id of game[entityType]) {
+      const entity = game.entities[id];
+      if (!entity.position) continue;
+      const entitiesSupporting = lookupInGrid(game.grid, entity.position)
+        .map(i => game.entities[i])
+        .filter(e => config.supportingBackgroundTypes.includes(e.subType))
+        .length > 0;
+      if (!entitiesSupporting) {
+        const positionBeneath = subtract(entity.position, {x: 0, y: 1});
+        moveEntity(game, entity, positionBeneath);
+      }
+    }
+  }
+
   // update FoW vision
   const previouslyVisible = [];
   for (const entityType of config.entitiesInFog) {

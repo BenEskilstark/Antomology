@@ -11,24 +11,27 @@ var _require2 = require('../entities/ant'),
 var _require3 = require('../entities/dirt'),
     makeDirt = _require3.makeDirt;
 
-var _require4 = require('../entities/sky'),
-    makeSky = _require4.makeSky;
+var _require4 = require('../entities/stone'),
+    makeStone = _require4.makeStone;
 
-var _require5 = require('../entities/food'),
-    makeFood = _require5.makeFood;
+var _require5 = require('../entities/background'),
+    makeBackground = _require5.makeBackground;
 
-var _require6 = require('../entities/location'),
-    makeLocation = _require6.makeLocation;
+var _require6 = require('../entities/food'),
+    makeFood = _require6.makeFood;
 
-var _require7 = require('../config'),
-    config = _require7.config;
+var _require7 = require('../entities/location'),
+    makeLocation = _require7.makeLocation;
 
-var _require8 = require('../utils/helpers'),
-    randomIn = _require8.randomIn;
+var _require8 = require('../config'),
+    config = _require8.config;
 
-var _require9 = require('../utils/stateHelpers'),
-    addEntity = _require9.addEntity,
-    insertInGrid = _require9.insertInGrid;
+var _require9 = require('../utils/helpers'),
+    randomIn = _require9.randomIn;
+
+var _require10 = require('../utils/stateHelpers'),
+    addEntity = _require10.addEntity,
+    insertInGrid = _require10.insertInGrid;
 
 var tasks = require('../state/tasks');
 
@@ -55,7 +58,7 @@ var level1 = function level1() {
 };
 
 var level0 = function level0() {
-  var game = baseState(1000, 100);
+  var game = baseState(500, 100);
   // seed start location
   var clickedLocation = _extends({}, makeLocation('Clicked Position', 1, 1, { x: 0, y: 0 }), { id: config.clickedPosition
   });
@@ -94,10 +97,15 @@ var level0 = function level0() {
     }]
   }];
 
-  // seed sky
+  // seed background
   for (var x = 0; x < game.worldWidth; x++) {
     for (var y = 0; y < game.worldHeight; y++) {
-      addEntity(game, makeSky({ x: x, y: y }));
+      if (y >= game.worldHeight * 0.3) {
+        addEntity(game, makeBackground({ x: x, y: y }, 'SKY'));
+      }
+      if (y < game.worldHeight * 0.5) {
+        addEntity(game, makeBackground({ x: x, y: y }, 'DIRT'));
+      }
     }
   }
 
@@ -117,25 +125,28 @@ var level0 = function level0() {
   }
 
   // seed ants
-  // for (let i = 0; i < 10; i++) {
-  //   const position = {
-  //     x: randomIn(0, game.worldWidth - 1),
-  //     y: randomIn(Math.ceil(game.worldHeight * 0.6), game.worldHeight - 1),
-  //   };
-  //   const ant = makeAnt(position, 'WORKER');
-  //   addEntity(game, ant);
-  // }
+  for (var i = 0; i < 1000; i++) {
+    var position = {
+      x: randomIn(0, game.worldWidth - 1),
+      y: randomIn(Math.ceil(game.worldHeight * 0.6), game.worldHeight - 1)
+    };
+    var ant = makeAnt(position, 'WORKER');
+    addEntity(game, ant);
+  }
   addEntity(game, makeAnt({ x: 25, y: 30 }, 'QUEEN'));
   addEntity(game, makeAnt({ x: 20, y: 30 }, 'WORKER'));
   addEntity(game, makeAnt({ x: 30, y: 30 }, 'WORKER'));
 
+  // add stone
+  addEntity(game, makeStone({ x: 35, y: 35 }));
+
   // seed food
-  for (var i = 0; i < 15; i++) {
-    var position = {
+  for (var _i = 0; _i < 15; _i++) {
+    var _position = {
       x: randomIn(0, game.worldWidth - 1),
       y: randomIn(Math.ceil(game.worldHeight * 0.6) + 1, game.worldHeight - 1)
     };
-    var food = makeFood(position, 1000, 'Crumb');
+    var food = makeFood(_position, 1000, 'Crumb');
     addEntity(game, food);
   }
 
@@ -178,7 +189,8 @@ var baseState = function baseState(worldWidth, worldHeight) {
     DEAD_ANT: [], // TODO: not actually implemented
     LOCATION: [],
     PHEROMONE: [],
-    SKY: [],
+    STONE: [],
+    BACKGROUND: [],
 
     tasks: [],
     grid: []

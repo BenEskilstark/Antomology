@@ -16,8 +16,13 @@ var config = {
   colonyEntrance: 0,
 
   // fog-of-war
-  entitiesInFog: ['DIRT', 'FOOD', 'DEAD_ANT', 'SKY'],
+  entitiesInFog: ['DIRT', 'FOOD', 'DEAD_ANT', 'BACKGROUND', 'STONE'],
   antVisionRadius: 7,
+
+  // gravity
+  supportingBackgroundTypes: ['DIRT'],
+  supportedEntities: ['ANT', 'DIRT'], // fall unless there is supporting background beneath
+  fallingEntities: ['EGG', 'LARVA', 'FOOD', 'STONE'], // fall until above blocker
 
   // food
   foodSpawnRate: 0.02, // ~once per 5 seconds
@@ -29,7 +34,7 @@ var config = {
 
   // ant-specific values
   antPickupEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'DEAD_ANT'],
-  antBlockingEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA'],
+  antBlockingEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'STONE'],
   antEatEntities: ['FOOD', 'DEAD_ANT'],
   antStartingCalories: 4000,
   antCaloriesPerEat: 1000,
