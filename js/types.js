@@ -82,6 +82,7 @@ export type GameState = {
   PHEROMONE: Array<EntityID>,
   STONE: Array<EntityID>,
   BACKGROUND: Array<EntityID>,
+  OBELISK: Array<EntityID>,
 
   // for faster collision detection
   grid: Array<Array<Array<EntityID>>>,
@@ -96,7 +97,7 @@ export type GameState = {
 export type EntityID = number;
 export type EntityType =
   'ANT' | 'DIRT' | 'FOOD' | 'EGG' | 'LARVA' | 'PUPA' | 'LOCATION' | 'DEAD_ANT' |
-  'PHEROMONE' | 'BACKGROUND' | 'STONE';
+  'PHEROMONE' | 'BACKGROUND' | 'STONE' | 'OBELISK';
 
 export type Entity = {
   id: EntityID,

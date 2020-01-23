@@ -3,6 +3,7 @@
 const {makeEntity} = require('../entities/entity');
 const {makeAnt} = require('../entities/ant');
 const {makeDirt} = require('../entities/dirt');
+const {makeObelisk} = require('../entities/obelisk');
 const {makeStone} = require('../entities/stone');
 const {makeBackground} = require('../entities/background');
 const {makeFood} = require('../entities/food');
@@ -102,7 +103,7 @@ const level0 = (): GameState => {
       if (y >= game.worldHeight * 0.3) {
         addEntity(game, makeBackground({x, y}, 'SKY'));
       }
-      if (y < game.worldHeight * 0.5) {
+      if (y < game.worldHeight * 0.4) {
         addEntity(game, makeBackground({x, y}, 'DIRT'));
       }
     }
@@ -135,6 +136,9 @@ const level0 = (): GameState => {
   addEntity(game, makeAnt({x: 25, y: 30}, 'QUEEN'));
   addEntity(game, makeAnt({x: 20, y: 30}, 'WORKER'));
   addEntity(game, makeAnt({x: 30, y: 30}, 'WORKER'));
+
+  // add obelisk
+  addEntity(game, makeObelisk({x: 20, y: 40}, 4, 8));
 
   // add stone
   addEntity(game, makeStone({x: 35, y: 35}));
@@ -189,6 +193,7 @@ const baseState = (worldWidth: number, worldHeight: number): GameState => {
     LOCATION: [],
     PHEROMONE: [],
     STONE: [],
+    OBELISK: [],
     BACKGROUND: [],
 
     tasks: [],

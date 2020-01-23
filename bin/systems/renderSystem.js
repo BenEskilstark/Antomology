@@ -316,6 +316,14 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
         ctx.fillRect(0, 0, _width3, _height3);
         break;
       }
+    case 'OBELISK':
+      {
+        ctx.fillStyle = 'black';
+        var _width4 = entity.width;
+        var _height4 = entity.height;
+        ctx.fillRect(0, 0, _width4, _height4);
+        break;
+      }
     case 'LOCATION':
       {
         ctx.fillStyle = 'rgba(50, 50, 50, 0.2)';

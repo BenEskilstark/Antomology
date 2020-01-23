@@ -110,11 +110,18 @@ const fastGetEmptyNeighborPositions = (
   return emptyPositions;
 }
 
-const fastGetNeighbors = (game: GameState, entity: Entity): Array<Entity> => {
+const fastGetNeighbors = (
+  game: GameState, entity: Entity, includeDiagonal: boolean,
+): Array<Entity> => {
   if (entity.position == null) return [];
   const neighborEntities = [];
   const neighborPositions =
     [{x: 0, y: 1}, {x: -1, y: 0}, {x: 1, y: 0}, {x: 0, y: -1}];
+  if (includeDiagonal) {
+    neighborPositions.push(...[
+      {x: 1, y: 1}, {x: -1, y: -1}, {x: 1, y: -1}, {x: -1, y: 1},
+    ]);
+  }
   for (const neighborVec of neighborPositions) {
     neighborEntities.push(
       ...lookupInGrid(game.grid, add(entity.position, neighborVec))

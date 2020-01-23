@@ -13,9 +13,13 @@
     - picking up big entities
     - subdividing bigger entities on pickup
     - collision detection when bigger entities move around
+    - gravity for bigger entities -- namely detecting support
+ - black monolith
+    - clicking it opens the task editor
  - add other entities: beetles, worms, spiders, aphids
  - make food size scale by calorie amount with better thresholds
- - food that ants can coordinate to lift
+ - entities that ants can coordinate to lift
+    - big entities show fraction showing number of ants needed to carry
  - zooming:
     - configure min and max zoom
     - screen size in grid cells should be on the state, not the config
@@ -84,6 +88,7 @@
  - get optional chaining working
  - state/tasks is disorganized
  - switch dead ants/larva to their own entity type
+ - split out tickReducer
 
 
  - - - - - - BUGS - - - - - -

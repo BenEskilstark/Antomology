@@ -123,8 +123,8 @@ const handleTick = (game: GameState): GameState => {
         .map(i => game.entities[i])
         .filter(e => config.antBlockingEntities.includes(e.type))
         .length > 0;
-      if (!entitiesBeneath) {
-        moveEntity(game, entity, positionBeneath);
+      if (!entitiesBeneath && insideWorld(game, positionBeneath)) {
+          moveEntity(game, entity, positionBeneath);
       }
     }
   }
@@ -132,13 +132,26 @@ const handleTick = (game: GameState): GameState => {
     for (const id of game[entityType]) {
       const entity = game.entities[id];
       if (!entity.position) continue;
-      const entitiesSupporting = lookupInGrid(game.grid, entity.position)
+      let entitiesSupporting = lookupInGrid(game.grid, entity.position)
         .map(i => game.entities[i])
         .filter(e => config.supportingBackgroundTypes.includes(e.subType))
+      if (config.climbingEntities.includes(entity.type)) {
+        entitiesSupporting = entitiesSupporting
+          .concat(
+            fastGetNeighbors(game, entity, true /* diagonal */)
+            .filter(e => config.antBlockingEntities.includes(e.type))
+          );
+      }
+      const positionBeneath = subtract(entity.position, {x: 0, y: 1});
+      const entitiesBeneath = lookupInGrid(game.grid, positionBeneath)
+        .map(i => game.entities[i])
+        .filter(e => config.antBlockingEntities.includes(e.type))
         .length > 0;
-      if (!entitiesSupporting) {
-        const positionBeneath = subtract(entity.position, {x: 0, y: 1});
-        moveEntity(game, entity, positionBeneath);
+      if (
+        (!entitiesSupporting.length > 0 && !entitiesBeneath)
+        && insideWorld(game, positionBeneath)
+      ) {
+          moveEntity(game, entity, positionBeneath);
       }
     }
   }

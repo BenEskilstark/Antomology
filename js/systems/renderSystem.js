@@ -246,6 +246,13 @@ const renderEntity = (
       ctx.fillRect(0, 0, width, height);
       break;
     }
+    case 'OBELISK': {
+      ctx.fillStyle = 'black';
+      const width = entity.width;
+      const height = entity.height;
+      ctx.fillRect(0, 0, width, height);
+      break;
+    }
     case 'LOCATION': {
       ctx.fillStyle = 'rgba(50, 50, 50, 0.2)';
       ctx.fillRect(0, 0, entity.width, entity.height);

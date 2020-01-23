@@ -23,7 +23,8 @@ var config = {
   // gravity
   supportingBackgroundTypes: ['DIRT'],
   supportedEntities: ['ANT', 'DIRT'], // fall unless there is supporting background beneath
-  fallingEntities: ['EGG', 'LARVA', 'FOOD', 'STONE'], // fall until above blocker
+  climbingEntities: ['ANT'], // must be subset of supportedEntities
+  fallingEntities: ['EGG', 'LARVA', 'FOOD', 'STONE', 'OBELISK'], // fall until above blocker
 
   // food
   foodSpawnRate: 0.02, // ~once per 5 seconds
@@ -35,7 +36,7 @@ var config = {
 
   // ant-specific values
   antPickupEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'DEAD_ANT'],
-  antBlockingEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'STONE'],
+  antBlockingEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'STONE', 'OBELISK'],
   antEatEntities: ['FOOD', 'DEAD_ANT'],
   antStartingCalories: 4000,
   antCaloriesPerEat: 1000,
@@ -76,8 +77,8 @@ var makeAnt = function makeAnt(position, subType) {
     holding: null,
     calories: config.antStartingCalories,
     caste: null,
-    task: createRandomMoveTask(),
-    //task: createIdleTask(),
+    //task: createRandomMoveTask(),
+    task: createIdleTask(),
     taskIndex: 0,
     taskStack: [{
       name: 'Idle',
@@ -91,7 +92,7 @@ var makeAnt = function makeAnt(position, subType) {
 };
 
 module.exports = { makeAnt: makeAnt };
-},{"../config":1,"../state/tasks":21,"./entity":6}],3:[function(require,module,exports){
+},{"../config":1,"../state/tasks":22,"./entity":6}],3:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -228,6 +229,21 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 var _require = require('./entity'),
     makeEntity = _require.makeEntity;
 
+var makeObelisk = function makeObelisk(position, width, height) {
+  return _extends({}, makeEntity('OBELISK', width, height, position), {
+    theta: 0
+  });
+};
+
+module.exports = { makeObelisk: makeObelisk };
+},{"./entity":6}],11:[function(require,module,exports){
+'use strict';
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _require = require('./entity'),
+    makeEntity = _require.makeEntity;
+
 var _require2 = require('../config'),
     config = _require2.config;
 
@@ -242,7 +258,7 @@ var makePheromone = function makePheromone(position, theta, category, quantity) 
 };
 
 module.exports = { makePheromone: makePheromone };
-},{"../config":1,"./entity":6}],11:[function(require,module,exports){
+},{"../config":1,"./entity":6}],12:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -261,7 +277,7 @@ var makePupa = function makePupa(position, subType) {
 };
 
 module.exports = { makePupa: makePupa };
-},{"../config":1,"./entity":6}],12:[function(require,module,exports){
+},{"../config":1,"./entity":6}],13:[function(require,module,exports){
 'use strict';
 
 var _require = require('./entity'),
@@ -272,7 +288,7 @@ var makeStone = function makeStone(position, size) {
 };
 
 module.exports = { makeStone: makeStone };
-},{"./entity":6}],13:[function(require,module,exports){
+},{"./entity":6}],14:[function(require,module,exports){
 'use strict';
 
 var _require = require('redux'),
@@ -303,7 +319,7 @@ store.subscribe(function () {
 function renderGame(store) {
   ReactDOM.render(React.createElement(Main, { state: store.getState(), dispatch: store.dispatch }), document.getElementById('container'));
 }
-},{"./reducers/rootReducer":16,"./systems/initSystems":23,"./ui/Main.react":30,"react":54,"react-dom":51,"redux":55}],14:[function(require,module,exports){
+},{"./reducers/rootReducer":17,"./systems/initSystems":24,"./ui/Main.react":31,"react":55,"react-dom":52,"redux":56}],15:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -529,7 +545,7 @@ var gameReducer = function gameReducer(game, action) {
 };
 
 module.exports = { gameReducer: gameReducer };
-},{"../config":1,"../utils/helpers":40,"../utils/stateHelpers":41}],15:[function(require,module,exports){
+},{"../config":1,"../utils/helpers":41,"../utils/stateHelpers":42}],16:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -559,7 +575,7 @@ var modalReducer = function modalReducer(state, action) {
 };
 
 module.exports = { modalReducer: modalReducer };
-},{"../selectors/selectors":18}],16:[function(require,module,exports){
+},{"../selectors/selectors":19}],17:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -625,7 +641,7 @@ var rootReducer = function rootReducer(state, action) {
 };
 
 module.exports = { rootReducer: rootReducer };
-},{"../state/initGameState":19,"../state/initState":20,"./gameReducer":14,"./modalReducer":15,"./tickReducer":17}],17:[function(require,module,exports){
+},{"../state/initGameState":20,"../state/initState":21,"./gameReducer":15,"./modalReducer":16,"./tickReducer":18}],18:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -823,7 +839,7 @@ var handleTick = function handleTick(game) {
           }).filter(function (e) {
             return config.antBlockingEntities.includes(e.type);
           }).length > 0;
-          if (!entitiesBeneath) {
+          if (!entitiesBeneath && insideWorld(game, positionBeneath)) {
             moveEntity(game, entity, positionBeneath);
           }
         }
@@ -878,9 +894,19 @@ var handleTick = function handleTick(game) {
             return game.entities[i];
           }).filter(function (e) {
             return config.supportingBackgroundTypes.includes(e.subType);
+          });
+          if (config.climbingEntities.includes(_entity.type)) {
+            entitiesSupporting = entitiesSupporting.concat(fastGetNeighbors(game, _entity, true /* diagonal */).filter(function (e) {
+              return config.antBlockingEntities.includes(e.type);
+            }));
+          }
+          var _positionBeneath = subtract(_entity.position, { x: 0, y: 1 });
+          var _entitiesBeneath = lookupInGrid(game.grid, _positionBeneath).map(function (i) {
+            return game.entities[i];
+          }).filter(function (e) {
+            return config.antBlockingEntities.includes(e.type);
           }).length > 0;
-          if (!entitiesSupporting) {
-            var _positionBeneath = subtract(_entity.position, { x: 0, y: 1 });
+          if (!entitiesSupporting.length > 0 && !_entitiesBeneath && insideWorld(game, _positionBeneath)) {
             moveEntity(game, _entity, _positionBeneath);
           }
         }
@@ -1743,7 +1769,7 @@ var performAction = function performAction(game, ant, action) {
 };
 
 module.exports = { tickReducer: tickReducer };
-},{"../config":1,"../entities/ant":2,"../entities/egg":5,"../entities/larva":8,"../entities/pupa":11,"../selectors/selectors":18,"../state/tasks":21,"../utils/errors":39,"../utils/helpers":40,"../utils/stateHelpers":41,"../utils/vectors":42,"./gameReducer":14}],18:[function(require,module,exports){
+},{"../config":1,"../entities/ant":2,"../entities/egg":5,"../entities/larva":8,"../entities/pupa":12,"../selectors/selectors":19,"../state/tasks":22,"../utils/errors":40,"../utils/helpers":41,"../utils/stateHelpers":42,"../utils/vectors":43,"./gameReducer":15}],19:[function(require,module,exports){
 'use strict';
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
@@ -1880,10 +1906,13 @@ var fastGetEmptyNeighborPositions = function fastGetEmptyNeighborPositions(game,
   return emptyPositions;
 };
 
-var fastGetNeighbors = function fastGetNeighbors(game, entity) {
+var fastGetNeighbors = function fastGetNeighbors(game, entity, includeDiagonal) {
   if (entity.position == null) return [];
   var neighborEntities = [];
   var neighborPositions = [{ x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: -1 }];
+  if (includeDiagonal) {
+    neighborPositions.push.apply(neighborPositions, [{ x: 1, y: 1 }, { x: -1, y: -1 }, { x: 1, y: -1 }, { x: -1, y: 1 }]);
+  }
   var _iteratorNormalCompletion2 = true;
   var _didIteratorError2 = false;
   var _iteratorError2 = undefined;
@@ -2003,7 +2032,7 @@ var selectors = {
 window.selectors = selectors; // for testing
 
 module.exports = selectors;
-},{"../config":1,"../utils/errors":39,"../utils/stateHelpers":41,"../utils/vectors":42}],19:[function(require,module,exports){
+},{"../config":1,"../utils/errors":40,"../utils/stateHelpers":42,"../utils/vectors":43}],20:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -2017,27 +2046,30 @@ var _require2 = require('../entities/ant'),
 var _require3 = require('../entities/dirt'),
     makeDirt = _require3.makeDirt;
 
-var _require4 = require('../entities/stone'),
-    makeStone = _require4.makeStone;
+var _require4 = require('../entities/obelisk'),
+    makeObelisk = _require4.makeObelisk;
 
-var _require5 = require('../entities/background'),
-    makeBackground = _require5.makeBackground;
+var _require5 = require('../entities/stone'),
+    makeStone = _require5.makeStone;
 
-var _require6 = require('../entities/food'),
-    makeFood = _require6.makeFood;
+var _require6 = require('../entities/background'),
+    makeBackground = _require6.makeBackground;
 
-var _require7 = require('../entities/location'),
-    makeLocation = _require7.makeLocation;
+var _require7 = require('../entities/food'),
+    makeFood = _require7.makeFood;
 
-var _require8 = require('../config'),
-    config = _require8.config;
+var _require8 = require('../entities/location'),
+    makeLocation = _require8.makeLocation;
 
-var _require9 = require('../utils/helpers'),
-    randomIn = _require9.randomIn;
+var _require9 = require('../config'),
+    config = _require9.config;
 
-var _require10 = require('../utils/stateHelpers'),
-    addEntity = _require10.addEntity,
-    insertInGrid = _require10.insertInGrid;
+var _require10 = require('../utils/helpers'),
+    randomIn = _require10.randomIn;
+
+var _require11 = require('../utils/stateHelpers'),
+    addEntity = _require11.addEntity,
+    insertInGrid = _require11.insertInGrid;
 
 var tasks = require('../state/tasks');
 
@@ -2109,7 +2141,7 @@ var level0 = function level0() {
       if (y >= game.worldHeight * 0.3) {
         addEntity(game, makeBackground({ x: x, y: y }, 'SKY'));
       }
-      if (y < game.worldHeight * 0.5) {
+      if (y < game.worldHeight * 0.4) {
         addEntity(game, makeBackground({ x: x, y: y }, 'DIRT'));
       }
     }
@@ -2131,28 +2163,31 @@ var level0 = function level0() {
   }
 
   // seed ants
-  for (var i = 0; i < 1000; i++) {
-    var position = {
-      x: randomIn(0, game.worldWidth - 1),
-      y: randomIn(Math.ceil(game.worldHeight * 0.6), game.worldHeight - 1)
-    };
-    var ant = makeAnt(position, 'WORKER');
-    addEntity(game, ant);
-  }
+  // for (let i = 0; i < 1000; i++) {
+  //   const position = {
+  //     x: randomIn(0, game.worldWidth - 1),
+  //     y: randomIn(Math.ceil(game.worldHeight * 0.6), game.worldHeight - 1),
+  //   };
+  //   const ant = makeAnt(position, 'WORKER');
+  //   addEntity(game, ant);
+  // }
   addEntity(game, makeAnt({ x: 25, y: 30 }, 'QUEEN'));
   addEntity(game, makeAnt({ x: 20, y: 30 }, 'WORKER'));
   addEntity(game, makeAnt({ x: 30, y: 30 }, 'WORKER'));
+
+  // add obelisk
+  addEntity(game, makeObelisk({ x: 20, y: 40 }, 4, 8));
 
   // add stone
   addEntity(game, makeStone({ x: 35, y: 35 }));
 
   // seed food
-  for (var _i = 0; _i < 15; _i++) {
-    var _position = {
+  for (var i = 0; i < 15; i++) {
+    var position = {
       x: randomIn(0, game.worldWidth - 1),
       y: randomIn(Math.ceil(game.worldHeight * 0.6) + 1, game.worldHeight - 1)
     };
-    var food = makeFood(_position, 1000, 'Crumb');
+    var food = makeFood(position, 1000, 'Crumb');
     addEntity(game, food);
   }
 
@@ -2196,6 +2231,7 @@ var baseState = function baseState(worldWidth, worldHeight) {
     LOCATION: [],
     PHEROMONE: [],
     STONE: [],
+    OBELISK: [],
     BACKGROUND: [],
 
     tasks: [],
@@ -2206,7 +2242,7 @@ var baseState = function baseState(worldWidth, worldHeight) {
 };
 
 module.exports = { initGameState: initGameState };
-},{"../config":1,"../entities/ant":2,"../entities/background":3,"../entities/dirt":4,"../entities/entity":6,"../entities/food":7,"../entities/location":9,"../entities/stone":12,"../state/tasks":21,"../utils/helpers":40,"../utils/stateHelpers":41}],20:[function(require,module,exports){
+},{"../config":1,"../entities/ant":2,"../entities/background":3,"../entities/dirt":4,"../entities/entity":6,"../entities/food":7,"../entities/location":9,"../entities/obelisk":10,"../entities/stone":13,"../state/tasks":22,"../utils/helpers":41,"../utils/stateHelpers":42}],21:[function(require,module,exports){
 'use strict';
 
 var initState = function initState() {
@@ -2217,7 +2253,7 @@ var initState = function initState() {
 };
 
 module.exports = { initState: initState };
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 'use strict';
 
 ///////////////////////////////////////////////////////////////
@@ -2525,7 +2561,7 @@ var tasks = {
 window.tasks = tasks;
 
 module.exports = tasks;
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 'use strict';
 
 // no flow checking cuz it's annoying
@@ -2569,7 +2605,7 @@ var initFoodSpawnSystem = function initFoodSpawnSystem(store) {
 };
 
 module.exports = { initFoodSpawnSystem: initFoodSpawnSystem };
-},{"../config":1,"../entities/food":7,"../selectors/selectors":18,"../utils/helpers":40}],23:[function(require,module,exports){
+},{"../config":1,"../entities/food":7,"../selectors/selectors":19,"../utils/helpers":41}],24:[function(require,module,exports){
 'use strict';
 
 // a system for starting up the other systems
@@ -2590,7 +2626,7 @@ var initSystems = function initSystems(store) {
 };
 
 module.exports = { initSystems: initSystems };
-},{"./foodSpawnSystem":22,"./mouseControlsSystem":24,"./renderSystem":25}],24:[function(require,module,exports){
+},{"./foodSpawnSystem":23,"./mouseControlsSystem":25,"./renderSystem":26}],25:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -2901,7 +2937,7 @@ var getMousePixel = function getMousePixel(ev) {
 };
 
 module.exports = { initMouseControlsSystem: initMouseControlsSystem };
-},{"../config":1,"../entities/location":9,"../entities/pheromone":10,"../selectors/selectors":18,"../state/tasks":21,"../utils/canvasHelpers":38,"../utils/stateHelpers":41,"../utils/vectors":42}],25:[function(require,module,exports){
+},{"../config":1,"../entities/location":9,"../entities/pheromone":11,"../selectors/selectors":19,"../state/tasks":22,"../utils/canvasHelpers":39,"../utils/stateHelpers":42,"../utils/vectors":43}],26:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -3220,6 +3256,14 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
         ctx.fillRect(0, 0, _width3, _height3);
         break;
       }
+    case 'OBELISK':
+      {
+        ctx.fillStyle = 'black';
+        var _width4 = entity.width;
+        var _height4 = entity.height;
+        ctx.fillRect(0, 0, _width4, _height4);
+        break;
+      }
     case 'LOCATION':
       {
         ctx.fillStyle = 'rgba(50, 50, 50, 0.2)';
@@ -3315,7 +3359,7 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
 };
 
 module.exports = { initRenderSystem: initRenderSystem };
-},{"../config":1,"../selectors/selectors":18,"../utils/stateHelpers":41,"../utils/vectors":42}],26:[function(require,module,exports){
+},{"../config":1,"../selectors/selectors":19,"../utils/stateHelpers":42,"../utils/vectors":43}],27:[function(require,module,exports){
 'use strict';
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
@@ -3642,7 +3686,7 @@ function DoActionCard(props) {
 }
 
 module.exports = BehaviorCard;
-},{"../config":1,"../selectors/selectors":18,"./components/Button.react":34,"./components/Checkbox.react":35,"./components/Dropdown.react":36,"react":54}],27:[function(require,module,exports){
+},{"../config":1,"../selectors/selectors":19,"./components/Button.react":35,"./components/Checkbox.react":36,"./components/Dropdown.react":37,"react":55}],28:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -3669,7 +3713,7 @@ function Canvas(props) {
 }
 
 module.exports = Canvas;
-},{"react":54}],28:[function(require,module,exports){
+},{"react":55}],29:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -3689,7 +3733,7 @@ function Game(props) {
 }
 
 module.exports = Game;
-},{"./Canvas.react":27,"./Sidebar.react":31,"react":54}],29:[function(require,module,exports){
+},{"./Canvas.react":28,"./Sidebar.react":32,"react":55}],30:[function(require,module,exports){
 'use strict';
 
 function _objectDestructuringEmpty(obj) { if (obj == null) throw new TypeError("Cannot destructure undefined"); }
@@ -3727,7 +3771,7 @@ function Lobby(props) {
 }
 
 module.exports = Lobby;
-},{"../selectors/selectors":18,"./components/Button.react":34,"react":54}],30:[function(require,module,exports){
+},{"../selectors/selectors":19,"./components/Button.react":35,"react":55}],31:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -3812,7 +3856,7 @@ function getModal(props) {
 }
 
 module.exports = Main;
-},{"../config":1,"./Game.react":28,"./Lobby.react":29,"./components/Button.react":34,"react":54}],31:[function(require,module,exports){
+},{"../config":1,"./Game.react":29,"./Lobby.react":30,"./components/Button.react":35,"react":55}],32:[function(require,module,exports){
 'use strict';
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
@@ -3989,7 +4033,7 @@ function TaskEditor(props) {
 }
 
 module.exports = Sidebar;
-},{"../config":1,"../selectors/selectors":18,"./StatusCard.react":32,"./TaskCard.react":33,"./components/Button.react":34,"./components/Dropdown.react":36,"./components/RadioPicker.react":37,"react":54}],32:[function(require,module,exports){
+},{"../config":1,"../selectors/selectors":19,"./StatusCard.react":33,"./TaskCard.react":34,"./components/Button.react":35,"./components/Dropdown.react":37,"./components/RadioPicker.react":38,"react":55}],33:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -4255,7 +4299,7 @@ function PupaCard(props) {
 }
 
 module.exports = StatusCard;
-},{"../config":1,"./components/Button.react":34,"./components/Dropdown.react":36,"react":54}],33:[function(require,module,exports){
+},{"../config":1,"./components/Button.react":35,"./components/Dropdown.react":37,"react":55}],34:[function(require,module,exports){
 'use strict';
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
@@ -4405,7 +4449,7 @@ function TaskCard(props) {
 }
 
 module.exports = TaskCard;
-},{"../config":1,"./BehaviorCard.react":26,"./components/Button.react":34,"./components/Checkbox.react":35,"./components/Dropdown.react":36,"react":54}],34:[function(require,module,exports){
+},{"../config":1,"./BehaviorCard.react":27,"./components/Button.react":35,"./components/Checkbox.react":36,"./components/Dropdown.react":37,"react":55}],35:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -4472,7 +4516,7 @@ var Button = function (_React$Component) {
 }(React.Component);
 
 module.exports = Button;
-},{"React":45}],35:[function(require,module,exports){
+},{"React":46}],36:[function(require,module,exports){
 'use strict';
 
 var React = require('React');
@@ -4496,7 +4540,7 @@ function Checkbox(props) {
 }
 
 module.exports = Checkbox;
-},{"React":45}],36:[function(require,module,exports){
+},{"React":46}],37:[function(require,module,exports){
 'use strict';
 
 var React = require('React');
@@ -4545,7 +4589,7 @@ var Dropdown = function Dropdown(props) {
 };
 
 module.exports = Dropdown;
-},{"React":45}],37:[function(require,module,exports){
+},{"React":46}],38:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -4634,7 +4678,7 @@ var RadioPicker = function (_React$Component) {
 }(React.Component);
 
 module.exports = RadioPicker;
-},{"React":45}],38:[function(require,module,exports){
+},{"React":46}],39:[function(require,module,exports){
 'use strict';
 
 var _require = require('../config'),
@@ -4678,7 +4722,7 @@ module.exports = {
   canvasToGrid: canvasToGrid,
   gridToCanvas: gridToCanvas
 };
-},{"../config":1,"../utils/vectors":42}],39:[function(require,module,exports){
+},{"../config":1,"../utils/vectors":43}],40:[function(require,module,exports){
 "use strict";
 
 var invariant = function invariant(condition, message) {
@@ -4688,7 +4732,7 @@ var invariant = function invariant(condition, message) {
 };
 
 module.exports = { invariant: invariant };
-},{}],40:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 "use strict";
 
 var floor = Math.floor,
@@ -4779,7 +4823,7 @@ module.exports = {
   deleteFromGrid: deleteFromGrid,
   clamp: clamp
 };
-},{}],41:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 'use strict';
 
 var _require = require('../utils/vectors'),
@@ -4895,7 +4939,10 @@ function moveEntity(game, entity, nextPos) {
   }
   entity.prevPosition = entity.position;
   entity.position = nextPos;
-  entity.theta = vectorTheta(subtract(entity.prevPosition, entity.position));
+  if (entity.type === 'ANT') {
+    // TODO this rotation is weird for the falling obelisk
+    entity.theta = vectorTheta(subtract(entity.prevPosition, entity.position));
+  }
 }
 
 function changeEntityType(game, entity, oldType, nextType) {
@@ -4916,7 +4963,7 @@ module.exports = {
   moveEntity: moveEntity,
   changeEntityType: changeEntityType
 };
-},{"../utils/vectors":42}],42:[function(require,module,exports){
+},{"../utils/vectors":43}],43:[function(require,module,exports){
 "use strict";
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -5045,7 +5092,7 @@ module.exports = {
   round: round,
   ceil: ceil
 };
-},{}],43:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 (function (process){
 /** @license React v16.12.0
  * react.development.js
@@ -7369,7 +7416,7 @@ module.exports = react;
 }
 
 }).call(this,require('_process'))
-},{"_process":64,"object-assign":46,"prop-types/checkPropTypes":47}],44:[function(require,module,exports){
+},{"_process":65,"object-assign":47,"prop-types/checkPropTypes":48}],45:[function(require,module,exports){
 /** @license React v16.12.0
  * react.production.min.js
  *
@@ -7396,7 +7443,7 @@ b,c){return W().useImperativeHandle(a,b,c)},useDebugValue:function(){},useLayout
 if(null!=b){void 0!==b.ref&&(g=b.ref,l=J.current);void 0!==b.key&&(d=""+b.key);if(a.type&&a.type.defaultProps)var f=a.type.defaultProps;for(k in b)K.call(b,k)&&!L.hasOwnProperty(k)&&(e[k]=void 0===b[k]&&void 0!==f?f[k]:b[k])}var k=arguments.length-2;if(1===k)e.children=c;else if(1<k){f=Array(k);for(var m=0;m<k;m++)f[m]=arguments[m+2];e.children=f}return{$$typeof:p,type:a.type,key:d,ref:g,props:e,_owner:l}},createFactory:function(a){var b=M.bind(null,a);b.type=a;return b},isValidElement:N,version:"16.12.0",
 __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED:{ReactCurrentDispatcher:I,ReactCurrentBatchConfig:{suspense:null},ReactCurrentOwner:J,IsSomeRendererActing:{current:!1},assign:h}},Y={default:X},Z=Y&&X||Y;module.exports=Z.default||Z;
 
-},{"object-assign":46}],45:[function(require,module,exports){
+},{"object-assign":47}],46:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -7407,7 +7454,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 }).call(this,require('_process'))
-},{"./cjs/react.development.js":43,"./cjs/react.production.min.js":44,"_process":64}],46:[function(require,module,exports){
+},{"./cjs/react.development.js":44,"./cjs/react.production.min.js":45,"_process":65}],47:[function(require,module,exports){
 /*
 object-assign
 (c) Sindre Sorhus
@@ -7499,7 +7546,7 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 	return to;
 };
 
-},{}],47:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -7605,7 +7652,7 @@ checkPropTypes.resetWarningCache = function() {
 module.exports = checkPropTypes;
 
 }).call(this,require('_process'))
-},{"./lib/ReactPropTypesSecret":48,"_process":64}],48:[function(require,module,exports){
+},{"./lib/ReactPropTypesSecret":49,"_process":65}],49:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -7619,7 +7666,7 @@ var ReactPropTypesSecret = 'SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED';
 
 module.exports = ReactPropTypesSecret;
 
-},{}],49:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 (function (process){
 /** @license React v16.12.0
  * react-dom.development.js
@@ -35418,7 +35465,7 @@ module.exports = reactDom;
 }
 
 }).call(this,require('_process'))
-},{"_process":64,"object-assign":46,"prop-types/checkPropTypes":47,"react":54,"scheduler":60,"scheduler/tracing":61}],50:[function(require,module,exports){
+},{"_process":65,"object-assign":47,"prop-types/checkPropTypes":48,"react":55,"scheduler":61,"scheduler/tracing":62}],51:[function(require,module,exports){
 /** @license React v16.12.0
  * react-dom.production.min.js
  *
@@ -35710,7 +35757,7 @@ xe,ye,Ca.injectEventPluginsByName,fa,Sc,function(a){ya(a,Rc)},cb,db,Pd,Ba,Sj,{cu
 (function(a){var b=a.findFiberByHostInstance;return ok(n({},a,{overrideHookState:null,overrideProps:null,setSuspenseHandler:null,scheduleUpdate:null,currentDispatcherRef:Ea.ReactCurrentDispatcher,findHostInstanceByFiber:function(a){a=ic(a);return null===a?null:a.stateNode},findFiberByHostInstance:function(a){return b?b(a):null},findHostInstancesForRefresh:null,scheduleRefresh:null,scheduleRoot:null,setRefreshHandler:null,getCurrentFiber:null}))})({findFiberByHostInstance:Fc,bundleType:0,version:"16.12.0",
 rendererPackageName:"react-dom"});var Dk={default:Ck},Ek=Dk&&Ck||Dk;module.exports=Ek.default||Ek;
 
-},{"object-assign":46,"react":54,"scheduler":60}],51:[function(require,module,exports){
+},{"object-assign":47,"react":55,"scheduler":61}],52:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -35752,13 +35799,13 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 }).call(this,require('_process'))
-},{"./cjs/react-dom.development.js":49,"./cjs/react-dom.production.min.js":50,"_process":64}],52:[function(require,module,exports){
-arguments[4][43][0].apply(exports,arguments)
-},{"_process":64,"dup":43,"object-assign":46,"prop-types/checkPropTypes":47}],53:[function(require,module,exports){
+},{"./cjs/react-dom.development.js":50,"./cjs/react-dom.production.min.js":51,"_process":65}],53:[function(require,module,exports){
 arguments[4][44][0].apply(exports,arguments)
-},{"dup":44,"object-assign":46}],54:[function(require,module,exports){
+},{"_process":65,"dup":44,"object-assign":47,"prop-types/checkPropTypes":48}],54:[function(require,module,exports){
 arguments[4][45][0].apply(exports,arguments)
-},{"./cjs/react.development.js":52,"./cjs/react.production.min.js":53,"_process":64,"dup":45}],55:[function(require,module,exports){
+},{"dup":45,"object-assign":47}],55:[function(require,module,exports){
+arguments[4][46][0].apply(exports,arguments)
+},{"./cjs/react.development.js":53,"./cjs/react.production.min.js":54,"_process":65,"dup":46}],56:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -36434,7 +36481,7 @@ exports.compose = compose;
 exports.createStore = createStore;
 
 }).call(this,require('_process'))
-},{"_process":64,"symbol-observable":62}],56:[function(require,module,exports){
+},{"_process":65,"symbol-observable":63}],57:[function(require,module,exports){
 (function (process){
 /** @license React v0.18.0
  * scheduler-tracing.development.js
@@ -36861,7 +36908,7 @@ exports.unstable_unsubscribe = unstable_unsubscribe;
 }
 
 }).call(this,require('_process'))
-},{"_process":64}],57:[function(require,module,exports){
+},{"_process":65}],58:[function(require,module,exports){
 /** @license React v0.18.0
  * scheduler-tracing.production.min.js
  *
@@ -36873,7 +36920,7 @@ exports.unstable_unsubscribe = unstable_unsubscribe;
 
 'use strict';Object.defineProperty(exports,"__esModule",{value:!0});var b=0;exports.__interactionsRef=null;exports.__subscriberRef=null;exports.unstable_clear=function(a){return a()};exports.unstable_getCurrent=function(){return null};exports.unstable_getThreadID=function(){return++b};exports.unstable_trace=function(a,d,c){return c()};exports.unstable_wrap=function(a){return a};exports.unstable_subscribe=function(){};exports.unstable_unsubscribe=function(){};
 
-},{}],58:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 (function (process){
 /** @license React v0.18.0
  * scheduler.development.js
@@ -37781,7 +37828,7 @@ exports.unstable_Profiling = unstable_Profiling;
 }
 
 }).call(this,require('_process'))
-},{"_process":64}],59:[function(require,module,exports){
+},{"_process":65}],60:[function(require,module,exports){
 /** @license React v0.18.0
  * scheduler.production.min.js
  *
@@ -37805,7 +37852,7 @@ exports.unstable_scheduleCallback=function(a,b,c){var d=exports.unstable_now();i
 exports.unstable_wrapCallback=function(a){var b=R;return function(){var c=R;R=b;try{return a.apply(this,arguments)}finally{R=c}}};exports.unstable_getCurrentPriorityLevel=function(){return R};exports.unstable_shouldYield=function(){var a=exports.unstable_now();V(a);var b=L(N);return b!==Q&&null!==Q&&null!==b&&null!==b.callback&&b.startTime<=a&&b.expirationTime<Q.expirationTime||k()};exports.unstable_requestPaint=Z;exports.unstable_continueExecution=function(){T||S||(T=!0,f(X))};
 exports.unstable_pauseExecution=function(){};exports.unstable_getFirstCallbackNode=function(){return L(N)};exports.unstable_Profiling=null;
 
-},{}],60:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -37816,7 +37863,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 }).call(this,require('_process'))
-},{"./cjs/scheduler.development.js":58,"./cjs/scheduler.production.min.js":59,"_process":64}],61:[function(require,module,exports){
+},{"./cjs/scheduler.development.js":59,"./cjs/scheduler.production.min.js":60,"_process":65}],62:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -37827,7 +37874,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 }).call(this,require('_process'))
-},{"./cjs/scheduler-tracing.development.js":56,"./cjs/scheduler-tracing.production.min.js":57,"_process":64}],62:[function(require,module,exports){
+},{"./cjs/scheduler-tracing.development.js":57,"./cjs/scheduler-tracing.production.min.js":58,"_process":65}],63:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -37859,7 +37906,7 @@ if (typeof self !== 'undefined') {
 var result = (0, _ponyfill2['default'])(root);
 exports['default'] = result;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./ponyfill.js":63}],63:[function(require,module,exports){
+},{"./ponyfill.js":64}],64:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -37883,7 +37930,7 @@ function symbolObservablePonyfill(root) {
 
 	return result;
 };
-},{}],64:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -38069,4 +38116,4 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}]},{},[13]);
+},{}]},{},[14]);

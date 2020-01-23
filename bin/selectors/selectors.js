@@ -134,10 +134,13 @@ var fastGetEmptyNeighborPositions = function fastGetEmptyNeighborPositions(game,
   return emptyPositions;
 };
 
-var fastGetNeighbors = function fastGetNeighbors(game, entity) {
+var fastGetNeighbors = function fastGetNeighbors(game, entity, includeDiagonal) {
   if (entity.position == null) return [];
   var neighborEntities = [];
   var neighborPositions = [{ x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: -1 }];
+  if (includeDiagonal) {
+    neighborPositions.push.apply(neighborPositions, [{ x: 1, y: 1 }, { x: -1, y: -1 }, { x: 1, y: -1 }, { x: -1, y: 1 }]);
+  }
   var _iteratorNormalCompletion2 = true;
   var _didIteratorError2 = false;
   var _iteratorError2 = undefined;

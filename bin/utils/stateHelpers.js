@@ -113,7 +113,10 @@ function moveEntity(game, entity, nextPos) {
   }
   entity.prevPosition = entity.position;
   entity.position = nextPos;
-  entity.theta = vectorTheta(subtract(entity.prevPosition, entity.position));
+  if (entity.type === 'ANT') {
+    // TODO this rotation is weird for the falling obelisk
+    entity.theta = vectorTheta(subtract(entity.prevPosition, entity.position));
+  }
 }
 
 function changeEntityType(game, entity, oldType, nextType) {

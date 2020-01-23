@@ -195,7 +195,7 @@ var handleTick = function handleTick(game) {
           }).filter(function (e) {
             return config.antBlockingEntities.includes(e.type);
           }).length > 0;
-          if (!entitiesBeneath) {
+          if (!entitiesBeneath && insideWorld(game, positionBeneath)) {
             moveEntity(game, entity, positionBeneath);
           }
         }
@@ -250,9 +250,19 @@ var handleTick = function handleTick(game) {
             return game.entities[i];
           }).filter(function (e) {
             return config.supportingBackgroundTypes.includes(e.subType);
+          });
+          if (config.climbingEntities.includes(_entity.type)) {
+            entitiesSupporting = entitiesSupporting.concat(fastGetNeighbors(game, _entity, true /* diagonal */).filter(function (e) {
+              return config.antBlockingEntities.includes(e.type);
+            }));
+          }
+          var _positionBeneath = subtract(_entity.position, { x: 0, y: 1 });
+          var _entitiesBeneath = lookupInGrid(game.grid, _positionBeneath).map(function (i) {
+            return game.entities[i];
+          }).filter(function (e) {
+            return config.antBlockingEntities.includes(e.type);
           }).length > 0;
-          if (!entitiesSupporting) {
-            var _positionBeneath = subtract(_entity.position, { x: 0, y: 1 });
+          if (!entitiesSupporting.length > 0 && !_entitiesBeneath && insideWorld(game, _positionBeneath)) {
             moveEntity(game, _entity, _positionBeneath);
           }
         }
