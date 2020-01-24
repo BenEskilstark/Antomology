@@ -4,6 +4,9 @@ const React = require('react');
 const {config} = require('../config');
 const Dropdown = require('./components/Dropdown.react');
 const Button = require('./components/Button.react');
+const TaskCard = require('./TaskCard.react');
+
+const {useState, useMemo, useEffect} = React;
 
 import type {Ant, Entity, State, Action} from '../types';
 
@@ -28,6 +31,9 @@ function StatusCard(props: Props): React.Node {
       break;
     case 'PUPA':
       card = <PupaCard {...props} />;
+      break;
+    case 'OBELISK':
+      card = <TaskEditor {...props} />;
       break;
   }
 
@@ -148,6 +154,43 @@ function PupaCard(props: Props): React.Node {
       <div>HP: 10/10</div>
       <div>Will become: {pupa.subType} ANT</div>
       <DeselectButton {...props} />
+    </div>
+  );
+}
+
+function TaskEditor(props: Props): React.Node {
+  const {state, dispatch} = props;
+  const {game} = state;
+
+  const [taskName, setTaskName] = useState('New Task');
+  const editingTask = useMemo(() => {
+    return taskName === 'New Task'
+      ? {name: 'New Task', repeating: false, behaviorQueue: []}
+      : game.tasks.filter(t => t.name === taskName)[0];
+    }, [taskName]
+  );
+  return (
+    <div
+      className="taskEditor"
+      style={{
+        border: '1px solid black',
+      }}
+    >
+      <div><b>THE OBELISK</b></div>
+      Edit Task: <Dropdown
+        noNoneOption={true}
+        options={['New Task'].concat(game.tasks.map(t => t.name))}
+        selected={taskName}
+        onChange={setTaskName}
+      />
+
+      <TaskCard
+        state={state}
+        dispatch={dispatch}
+        setTaskName={setTaskName}
+        newTask={taskName === 'New Task'}
+        task={editingTask}
+      />
     </div>
   );
 }

@@ -6,7 +6,6 @@ const Button = require('./components/Button.react');
 const RadioPicker = require('./components/RadioPicker.react');
 const Dropdown = require('./components/Dropdown.react');
 const StatusCard = require('./StatusCard.react');
-const TaskCard = require('./TaskCard.react');
 const {getSelectedAntIDs} = require('../selectors/selectors');
 const {useState, useMemo, useEffect} = React;
 
@@ -82,45 +81,7 @@ function Sidebar(props: Props): React.Node {
           }}
         />
         {antCards}
-        <TaskEditor {...props} />
       </div>
-    </div>
-  );
-}
-
-function TaskEditor(props: Props): React.Node {
-  const {state, dispatch} = props;
-  const {game} = state;
-
-  const [taskName, setTaskName] = useState('New Task');
-  const editingTask = useMemo(() => {
-    return taskName === 'New Task'
-      ? {name: 'New Task', repeating: false, behaviorQueue: []}
-      : game.tasks.filter(t => t.name === taskName)[0];
-    }, [taskName]
-  );
-  return (
-    <div
-      className="taskEditor"
-      style={{
-        border: '1px solid black',
-      }}
-    >
-      <div><b>Task Editor</b></div>
-      Edit Task: <Dropdown
-        noNoneOption={true}
-        options={['New Task'].concat(game.tasks.map(t => t.name))}
-        selected={taskName}
-        onChange={setTaskName}
-      />
-
-      <TaskCard
-        state={state}
-        dispatch={dispatch}
-        setTaskName={setTaskName}
-        newTask={taskName === 'New Task'}
-        task={editingTask}
-      />
     </div>
   );
 }

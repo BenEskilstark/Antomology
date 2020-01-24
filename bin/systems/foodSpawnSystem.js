@@ -30,7 +30,7 @@ var initFoodSpawnSystem = function initFoodSpawnSystem(store) {
     if (Math.random() < config.foodSpawnRate) {
       var x = randomIn(0, state.game.worldWidth - 1);
       var y = randomIn(0, state.game.worldHeight - 1);
-      if (fastCollidesWith(state.game, { position: { x: x, y: y } }).filter(function (e) {
+      if (fastCollidesWith(state.game, { position: { x: x, y: y }, width: 1, height: 1 }).filter(function (e) {
         return config.antBlockingEntities.includes(e.type);
       }).length == 0) {
         var food = makeFood({ x: x, y: y }, config.foodSpawnCalories, 'Crumb');

@@ -1,21 +1,17 @@
 
  - - - - - - WORLD - - - - - -
+ - big entities:
+    - support rotated big-entities
+    - picking up big entities
+    - subdividing bigger entities on pickup
  - fix food system to spawn larger food less frequently
  - fog of war:
     - easy config option to turn fog off
     - dropped (seen-before) entities don't re-render correct location until
       their new location is seen
     - support partial rendering of big entities that are partially visible
- - big entities:
-    - simpler collision function based on grid lookup
-    - fix lookupInGrid uses that should just be collidesWith
-    - support rotated big-entities
-    - picking up big entities
-    - subdividing bigger entities on pickup
-    - collision detection when bigger entities move around
-    - gravity for bigger entities -- namely detecting support
  - black monolith
-    - clicking it opens the task editor
+    - gate other UI features behind having monolith selected
  - add other entities: beetles, worms, spiders, aphids
  - make food size scale by calorie amount with better thresholds
  - entities that ants can coordinate to lift
@@ -51,6 +47,7 @@
  - change cursor based on userMode
  - Call out ants near death of old age
  - saving with local storage
+ - prevent accidental click-and-drag text selection
 
 
  - - - - - - PHEROMONE TRAILS - - - - - -
@@ -89,6 +86,7 @@
  - state/tasks is disorganized
  - switch dead ants/larva to their own entity type
  - split out tickReducer
+ - replace collides function with fastCollidesWith in tickReducer
 
 
  - - - - - - BUGS - - - - - -

@@ -26,7 +26,7 @@ const initFoodSpawnSystem = (store: Store): void => {
       let x = randomIn(0, state.game.worldWidth - 1);
       let y = randomIn(0, state.game.worldHeight - 1);
       if (
-        fastCollidesWith(state.game, {position: {x, y}})
+        fastCollidesWith(state.game, {position: {x, y}, width: 1, height: 1})
           .filter(e => config.antBlockingEntities.includes(e.type))
           .length == 0
       ) {

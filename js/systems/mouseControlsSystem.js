@@ -178,12 +178,17 @@ const handleLeftClick = (
     const y = dims.y > 0 ? mouse.downPos.y : mouse.curPos.y;
     const marqueeLocation =
       {position: {x, y}, width: Math.abs(dims.x) + 1, height: Math.abs(dims.y) + 1};
-    const clickedAnts = entitiesInMarquee(state.game, marqueeLocation)
-      .filter(e => config.selectableEntities.includes(e.type));
-    if (clickedAnts.length > 0) {
+    let clickedEntities = entitiesInMarquee(state.game, marqueeLocation)
+      .filter(e => config.selectableEntities.includes(e.type))
+      .map(e => e.id);
+    const obeliskID = state.game.OBELISK[0];
+    if (clickedEntities.includes(obeliskID)) {
+      clickedEntities = [obeliskID];
+    }
+    if (clickedEntities.length > 0) {
       dispatch({
         type: 'SET_SELECTED_ENTITIES',
-        entityIDs: clickedAnts.slice(0, config.maxSelectableAnts).map(e => e.id),
+        entityIDs: clickedEntities.slice(0, config.maxSelectableAnts),
       });
     } else if (state.game.selectedEntities.length > 0) {
       dispatch({
@@ -220,7 +225,7 @@ const handleRightClick = (state: State, dispatch: Dispatch, gridPos: Vector): vo
     task.name = 'Go To Clicked Location';
     const eatClicked = createDoAction('EAT', clickedFood);
     const pickupClicked = createDoAction('PICKUP', clickedEntity);
-    const putdownClicked = createDoAction('PUTDOWN', {position: gridPos});
+    const putdownClicked = createDoAction('PUTDOWN', {position: gridPos, width: 1, height: 1});
     if (state.game.antMode === 'EAT') {
       task.behaviorQueue.push(eatClicked);
     } else if (state.game.antMode === 'PICKUP') {

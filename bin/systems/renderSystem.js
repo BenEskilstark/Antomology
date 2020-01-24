@@ -321,6 +321,11 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
         ctx.fillStyle = 'black';
         var _width4 = entity.width;
         var _height4 = entity.height;
+        if (state.game.selectedEntities.includes(entity.id)) {
+          ctx.strokeStyle = 'red';
+          ctx.lineWidth = 2 / (config.canvasWidth / config.width);
+          ctx.strokeRect(0, 0, _width4, _height4);
+        }
         ctx.fillRect(0, 0, _width4, _height4);
         break;
       }

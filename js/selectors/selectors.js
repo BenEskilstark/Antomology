@@ -70,11 +70,16 @@ const entitiesInMarquee = (
   const entities = [];
   for (let x = position.x; x < position.x + width; x++) {
     for (let y = position.y; y < position.y + height; y++) {
-      entities.push(...lookupInGrid(game.grid, {x, y}).map(id => game.entities[id]));
+      const entitiesInSquare = lookupInGrid(game.grid, {x, y});
+      for (const id of entitiesInSquare) {
+        if (!entities.includes(id)){
+          entities.push(id);
+        }
+      }
     }
   }
 
-  return entities;
+  return entities.map(id => game.entities[id]);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -83,28 +88,64 @@ const entitiesInMarquee = (
 
 const fastCollidesWith = (game: GameState, entity: Entity): Array<Entity> => {
   if (entity.position == null) return [];
-  const {x, y} = entity.position;
-  return lookupInGrid(game.grid, entity.position)
-    .filter(id => id != entity.id)
-    .map(id => game.entities[id]);
+  let {position, width, height} = entity;
+  if (width == null) {
+    console.error("checking collision on non-entity");
+    width = 1;
+  }
+  if (height == null) {
+    console.error("checking collision on non-entity");
+    height = 1;
+  }
+  const collisions = [];
+  for (let x = 0; x < width; x++) {
+    for (let y = 0; y < height; y++) {
+      const thisSquare = lookupInGrid(game.grid, add(entity.position, {x, y}));
+      for (const id of thisSquare) {
+        if (!collisions.includes(id) && id != entity.id) {
+          collisions.push(id);
+        }
+      }
+    }
+  }
+  return collisions.map(i => game.entities[i]);
 };
 
 /////////////////////////////////////////////////////////////////
 // Neighbors
 /////////////////////////////////////////////////////////////////
 
+const getNeighborPositions = (entity: Entity, includeDiagonal: boolean): Array<Vector> => {
+  const {position, width, height} = entity;
+  const neighbors = [];
+  for (let x = position.x; x < position.x + width; x++) {
+    neighbors.push({x, y: position.y - 1});
+    neighbors.push({x, y: position.y + height});
+  }
+  for (let y = position.y; y < position.y + width; y++) {
+    neighbors.push({x: position.x - 1, y});
+    neighbors.push({x: position.x + width, y});
+  }
+  if (includeDiagonal) {
+    neighbors.push({x: position.x - 1, y: position.y - 1});
+    neighbors.push({x: position.x - 1, y: position.y + height});
+    neighbors.push({x: position.x + width, y: position.y - 1});
+    neighbors.push({x: position.x + width, y: position.y + height});
+  }
+  return neighbors;
+}
+
 const fastGetEmptyNeighborPositions = (
   game: GameState, entity: Entity, blockingEntityTypes: Array<EntityType>,
 ): Array<Vector> => {
   if (entity.position == null) return [];
   const emptyPositions = [];
-  const neighborPositions =
-    [{x: 0, y: 1}, {x: -1, y: 0}, {x: 1, y: 0}, {x: 0, y: -1}];
-  for (const neighborVec of neighborPositions) {
-    const neighbors = lookupInGrid(game.grid, add(entity.position, neighborVec))
+  const neighborPositions = getNeighborPositions(entity);
+  for (const neighborPos of neighborPositions) {
+    const neighbors = lookupInGrid(game.grid, neighborPos)
       .filter(id => blockingEntityTypes.includes(game.entities[id].type));
     if (neighbors.length == 0) {
-      emptyPositions.push(add(entity.position, neighborVec));
+      emptyPositions.push(neighborPos);
     }
   }
   return emptyPositions;
@@ -115,16 +156,10 @@ const fastGetNeighbors = (
 ): Array<Entity> => {
   if (entity.position == null) return [];
   const neighborEntities = [];
-  const neighborPositions =
-    [{x: 0, y: 1}, {x: -1, y: 0}, {x: 1, y: 0}, {x: 0, y: -1}];
-  if (includeDiagonal) {
-    neighborPositions.push(...[
-      {x: 1, y: 1}, {x: -1, y: -1}, {x: 1, y: -1}, {x: -1, y: 1},
-    ]);
-  }
-  for (const neighborVec of neighborPositions) {
+  const neighborPositions = getNeighborPositions(entity, includeDiagonal);
+  for (const neighborPos of neighborPositions) {
     neighborEntities.push(
-      ...lookupInGrid(game.grid, add(entity.position, neighborVec))
+      ...lookupInGrid(game.grid, neighborPos)
     );
   }
   return neighborEntities.map(id => game.entities[id]);

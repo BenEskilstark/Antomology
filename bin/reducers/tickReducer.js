@@ -190,9 +190,7 @@ var handleTick = function handleTick(game) {
           if (!entity.position) continue;
           // TODO can't handle big entities
           var positionBeneath = subtract(entity.position, { x: 0, y: 1 });
-          var entitiesBeneath = lookupInGrid(game.grid, positionBeneath).map(function (i) {
-            return game.entities[i];
-          }).filter(function (e) {
+          var entitiesBeneath = fastCollidesWith(game, _extends({}, entity, { position: positionBeneath })).filter(function (e) {
             return config.antBlockingEntities.includes(e.type);
           }).length > 0;
           if (!entitiesBeneath && insideWorld(game, positionBeneath)) {
@@ -246,9 +244,7 @@ var handleTick = function handleTick(game) {
 
           var _entity = game.entities[_id3];
           if (!_entity.position) continue;
-          var entitiesSupporting = lookupInGrid(game.grid, _entity.position).map(function (i) {
-            return game.entities[i];
-          }).filter(function (e) {
+          var entitiesSupporting = fastCollidesWith(game, _entity).filter(function (e) {
             return config.supportingBackgroundTypes.includes(e.subType);
           });
           if (config.climbingEntities.includes(_entity.type)) {
@@ -257,9 +253,7 @@ var handleTick = function handleTick(game) {
             }));
           }
           var _positionBeneath = subtract(_entity.position, { x: 0, y: 1 });
-          var _entitiesBeneath = lookupInGrid(game.grid, _positionBeneath).map(function (i) {
-            return game.entities[i];
-          }).filter(function (e) {
+          var _entitiesBeneath = fastCollidesWith(game, _extends({}, _entity, { position: _positionBeneath })).filter(function (e) {
             return config.antBlockingEntities.includes(e.type);
           }).length > 0;
           if (!entitiesSupporting.length > 0 && !_entitiesBeneath && insideWorld(game, _positionBeneath)) {
@@ -879,7 +873,7 @@ var performAction = function performAction(game, ant, action) {
         }
         moveVec[moveAxis] += distVec[moveAxis] > 0 ? 1 : -1;
         var nextPos = add(moveVec, ant.position);
-        var occupied = fastCollidesWith(game, { position: nextPos }).filter(function (e) {
+        var occupied = fastCollidesWith(game, _extends({}, ant, { position: nextPos })).filter(function (e) {
           return config.antBlockingEntities.includes(e.type);
         });
         if (occupied.length == 0 && insideWorld(game, nextPos)) {
@@ -901,7 +895,7 @@ var performAction = function performAction(game, ant, action) {
             break;
           }
           nextPos = add(moveVec, ant.position);
-          occupied = fastCollidesWith(game, { position: nextPos }).filter(function (e) {
+          occupied = fastCollidesWith(game, _extends({}, ant, { position: nextPos })).filter(function (e) {
             return config.antBlockingEntities.includes(e.type);
           });
           if (occupied.length == 0 && insideWorld(game, nextPos)) {
@@ -1006,7 +1000,7 @@ var performAction = function performAction(game, ant, action) {
       {
         var locationToPutdown = object;
         if (locationToPutdown == null) {
-          locationToPutdown = { position: ant.position };
+          locationToPutdown = { position: ant.position, width: 1, height: 1 };
         }
         var putDownFree = fastCollidesWith(game, locationToPutdown).filter(function (e) {
           return config.antBlockingEntities.includes(e.type);

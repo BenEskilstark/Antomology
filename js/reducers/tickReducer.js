@@ -119,8 +119,7 @@ const handleTick = (game: GameState): GameState => {
       if (!entity.position) continue;
       // TODO can't handle big entities
       const positionBeneath = subtract(entity.position, {x: 0, y: 1});
-      const entitiesBeneath = lookupInGrid(game.grid, positionBeneath)
-        .map(i => game.entities[i])
+      const entitiesBeneath = fastCollidesWith(game, {...entity, position: positionBeneath})
         .filter(e => config.antBlockingEntities.includes(e.type))
         .length > 0;
       if (!entitiesBeneath && insideWorld(game, positionBeneath)) {
@@ -132,8 +131,7 @@ const handleTick = (game: GameState): GameState => {
     for (const id of game[entityType]) {
       const entity = game.entities[id];
       if (!entity.position) continue;
-      let entitiesSupporting = lookupInGrid(game.grid, entity.position)
-        .map(i => game.entities[i])
+      let entitiesSupporting = fastCollidesWith(game, entity)
         .filter(e => config.supportingBackgroundTypes.includes(e.subType))
       if (config.climbingEntities.includes(entity.type)) {
         entitiesSupporting = entitiesSupporting
@@ -143,8 +141,7 @@ const handleTick = (game: GameState): GameState => {
           );
       }
       const positionBeneath = subtract(entity.position, {x: 0, y: 1});
-      const entitiesBeneath = lookupInGrid(game.grid, positionBeneath)
-        .map(i => game.entities[i])
+      const entitiesBeneath = fastCollidesWith(game, {...entity, position: positionBeneath})
         .filter(e => config.antBlockingEntities.includes(e.type))
         .length > 0;
       if (
@@ -522,7 +519,7 @@ const performAction = (
       }
       moveVec[moveAxis] += distVec[moveAxis] > 0 ? 1 : -1;
       let nextPos = add(moveVec, ant.position);
-      let occupied = fastCollidesWith(game, {position: nextPos})
+      let occupied = fastCollidesWith(game, {...ant, position: nextPos})
         .filter(e => config.antBlockingEntities.includes(e.type));
       if (occupied.length == 0 && insideWorld(game, nextPos)) {
         moveEntity(game, ant, nextPos);
@@ -542,7 +539,7 @@ const performAction = (
           break;
         }
         nextPos = add(moveVec, ant.position);
-        occupied = fastCollidesWith(game, {position: nextPos})
+        occupied = fastCollidesWith(game, {...ant, position: nextPos})
           .filter(e => config.antBlockingEntities.includes(e.type));
         if (occupied.length == 0 && insideWorld(game, nextPos)) {
           moveEntity(game, ant, nextPos);
@@ -603,7 +600,7 @@ const performAction = (
     case 'PUTDOWN': {
       let locationToPutdown = object;
       if (locationToPutdown == null) {
-        locationToPutdown = {position: ant.position};
+        locationToPutdown = {position: ant.position, width: 1, height: 1};
       }
       const putDownFree = fastCollidesWith(game, locationToPutdown)
         .filter(e => config.antBlockingEntities.includes(e.type))

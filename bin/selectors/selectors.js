@@ -67,13 +67,39 @@ var entitiesInMarquee = function entitiesInMarquee(game, marquee) {
   var entities = [];
   for (var _x = position.x; _x < position.x + width; _x++) {
     for (var _y = position.y; _y < position.y + height; _y++) {
-      entities.push.apply(entities, _toConsumableArray(lookupInGrid(game.grid, { x: _x, y: _y }).map(function (id) {
-        return game.entities[id];
-      })));
+      var entitiesInSquare = lookupInGrid(game.grid, { x: _x, y: _y });
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = entitiesInSquare[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var id = _step.value;
+
+          if (!entities.includes(id)) {
+            entities.push(id);
+          }
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
     }
   }
 
-  return entities;
+  return entities.map(function (id) {
+    return game.entities[id];
+  });
 };
 
 /////////////////////////////////////////////////////////////////
@@ -82,14 +108,52 @@ var entitiesInMarquee = function entitiesInMarquee(game, marquee) {
 
 var fastCollidesWith = function fastCollidesWith(game, entity) {
   if (entity.position == null) return [];
-  var _entity$position = entity.position,
-      x = _entity$position.x,
-      y = _entity$position.y;
+  var position = entity.position,
+      width = entity.width,
+      height = entity.height;
 
-  return lookupInGrid(game.grid, entity.position).filter(function (id) {
-    return id != entity.id;
-  }).map(function (id) {
-    return game.entities[id];
+  if (width == null) {
+    console.error("checking collision on non-entity");
+    width = 1;
+  }
+  if (height == null) {
+    console.error("checking collision on non-entity");
+    height = 1;
+  }
+  var collisions = [];
+  for (var _x2 = 0; _x2 < width; _x2++) {
+    for (var _y2 = 0; _y2 < height; _y2++) {
+      var thisSquare = lookupInGrid(game.grid, add(entity.position, { x: _x2, y: _y2 }));
+      var _iteratorNormalCompletion2 = true;
+      var _didIteratorError2 = false;
+      var _iteratorError2 = undefined;
+
+      try {
+        for (var _iterator2 = thisSquare[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+          var id = _step2.value;
+
+          if (!collisions.includes(id) && id != entity.id) {
+            collisions.push(id);
+          }
+        }
+      } catch (err) {
+        _didIteratorError2 = true;
+        _iteratorError2 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion2 && _iterator2.return) {
+            _iterator2.return();
+          }
+        } finally {
+          if (_didIteratorError2) {
+            throw _iteratorError2;
+          }
+        }
+      }
+    }
+  }
+  return collisions.map(function (i) {
+    return game.entities[i];
   });
 };
 
@@ -97,36 +161,59 @@ var fastCollidesWith = function fastCollidesWith(game, entity) {
 // Neighbors
 /////////////////////////////////////////////////////////////////
 
+var getNeighborPositions = function getNeighborPositions(entity, includeDiagonal) {
+  var position = entity.position,
+      width = entity.width,
+      height = entity.height;
+
+  var neighbors = [];
+  for (var _x3 = position.x; _x3 < position.x + width; _x3++) {
+    neighbors.push({ x: _x3, y: position.y - 1 });
+    neighbors.push({ x: _x3, y: position.y + height });
+  }
+  for (var _y3 = position.y; _y3 < position.y + width; _y3++) {
+    neighbors.push({ x: position.x - 1, y: _y3 });
+    neighbors.push({ x: position.x + width, y: _y3 });
+  }
+  if (includeDiagonal) {
+    neighbors.push({ x: position.x - 1, y: position.y - 1 });
+    neighbors.push({ x: position.x - 1, y: position.y + height });
+    neighbors.push({ x: position.x + width, y: position.y - 1 });
+    neighbors.push({ x: position.x + width, y: position.y + height });
+  }
+  return neighbors;
+};
+
 var fastGetEmptyNeighborPositions = function fastGetEmptyNeighborPositions(game, entity, blockingEntityTypes) {
   if (entity.position == null) return [];
   var emptyPositions = [];
-  var neighborPositions = [{ x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: -1 }];
-  var _iteratorNormalCompletion = true;
-  var _didIteratorError = false;
-  var _iteratorError = undefined;
+  var neighborPositions = getNeighborPositions(entity);
+  var _iteratorNormalCompletion3 = true;
+  var _didIteratorError3 = false;
+  var _iteratorError3 = undefined;
 
   try {
-    for (var _iterator = neighborPositions[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-      var neighborVec = _step.value;
+    for (var _iterator3 = neighborPositions[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+      var neighborPos = _step3.value;
 
-      var neighbors = lookupInGrid(game.grid, add(entity.position, neighborVec)).filter(function (id) {
+      var neighbors = lookupInGrid(game.grid, neighborPos).filter(function (id) {
         return blockingEntityTypes.includes(game.entities[id].type);
       });
       if (neighbors.length == 0) {
-        emptyPositions.push(add(entity.position, neighborVec));
+        emptyPositions.push(neighborPos);
       }
     }
   } catch (err) {
-    _didIteratorError = true;
-    _iteratorError = err;
+    _didIteratorError3 = true;
+    _iteratorError3 = err;
   } finally {
     try {
-      if (!_iteratorNormalCompletion && _iterator.return) {
-        _iterator.return();
+      if (!_iteratorNormalCompletion3 && _iterator3.return) {
+        _iterator3.return();
       }
     } finally {
-      if (_didIteratorError) {
-        throw _iteratorError;
+      if (_didIteratorError3) {
+        throw _iteratorError3;
       }
     }
   }
@@ -137,31 +224,28 @@ var fastGetEmptyNeighborPositions = function fastGetEmptyNeighborPositions(game,
 var fastGetNeighbors = function fastGetNeighbors(game, entity, includeDiagonal) {
   if (entity.position == null) return [];
   var neighborEntities = [];
-  var neighborPositions = [{ x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: -1 }];
-  if (includeDiagonal) {
-    neighborPositions.push.apply(neighborPositions, [{ x: 1, y: 1 }, { x: -1, y: -1 }, { x: 1, y: -1 }, { x: -1, y: 1 }]);
-  }
-  var _iteratorNormalCompletion2 = true;
-  var _didIteratorError2 = false;
-  var _iteratorError2 = undefined;
+  var neighborPositions = getNeighborPositions(entity, includeDiagonal);
+  var _iteratorNormalCompletion4 = true;
+  var _didIteratorError4 = false;
+  var _iteratorError4 = undefined;
 
   try {
-    for (var _iterator2 = neighborPositions[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-      var neighborVec = _step2.value;
+    for (var _iterator4 = neighborPositions[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+      var neighborPos = _step4.value;
 
-      neighborEntities.push.apply(neighborEntities, _toConsumableArray(lookupInGrid(game.grid, add(entity.position, neighborVec))));
+      neighborEntities.push.apply(neighborEntities, _toConsumableArray(lookupInGrid(game.grid, neighborPos)));
     }
   } catch (err) {
-    _didIteratorError2 = true;
-    _iteratorError2 = err;
+    _didIteratorError4 = true;
+    _iteratorError4 = err;
   } finally {
     try {
-      if (!_iteratorNormalCompletion2 && _iterator2.return) {
-        _iterator2.return();
+      if (!_iteratorNormalCompletion4 && _iterator4.return) {
+        _iterator4.return();
       }
     } finally {
-      if (_didIteratorError2) {
-        throw _iteratorError2;
+      if (_didIteratorError4) {
+        throw _iteratorError4;
       }
     }
   }
@@ -184,10 +268,10 @@ var onScreen = function onScreen(game, pos) {
 
 var getEntitiesInRadius = function getEntitiesInRadius(game, pos, radius) {
   var entities = [];
-  for (var _x2 = -radius; _x2 <= radius; _x2++) {
-    for (var _y2 = -radius; _y2 <= radius; _y2++) {
-      if (_x2 * _x2 + _y2 * _y2 < radius * radius) {
-        entities.push.apply(entities, _toConsumableArray(lookupInGrid(game.grid, { x: _x2 + pos.x, y: _y2 + pos.y })));
+  for (var _x4 = -radius; _x4 <= radius; _x4++) {
+    for (var _y4 = -radius; _y4 <= radius; _y4++) {
+      if (_x4 * _x4 + _y4 * _y4 < radius * radius) {
+        entities.push.apply(entities, _toConsumableArray(lookupInGrid(game.grid, { x: _x4 + pos.x, y: _y4 + pos.y })));
       }
     }
   }
@@ -208,29 +292,29 @@ var getSelectedAntIDs = function getSelectedAntIDs(game) {
 
 var getEntitiesByType = function getEntitiesByType(game, entityTypes) {
   var entities = [];
-  var _iteratorNormalCompletion3 = true;
-  var _didIteratorError3 = false;
-  var _iteratorError3 = undefined;
+  var _iteratorNormalCompletion5 = true;
+  var _didIteratorError5 = false;
+  var _iteratorError5 = undefined;
 
   try {
-    for (var _iterator3 = entityTypes[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-      var entityType = _step3.value;
+    for (var _iterator5 = entityTypes[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+      var entityType = _step5.value;
 
       entities = entities.concat(game[entityType].map(function (id) {
         return game.entities[id];
       }));
     }
   } catch (err) {
-    _didIteratorError3 = true;
-    _iteratorError3 = err;
+    _didIteratorError5 = true;
+    _iteratorError5 = err;
   } finally {
     try {
-      if (!_iteratorNormalCompletion3 && _iterator3.return) {
-        _iterator3.return();
+      if (!_iteratorNormalCompletion5 && _iterator5.return) {
+        _iterator5.return();
       }
     } finally {
-      if (_didIteratorError3) {
-        throw _iteratorError3;
+      if (_didIteratorError5) {
+        throw _iteratorError5;
       }
     }
   }

@@ -31,8 +31,8 @@ var config = {
   foodSpawnCalories: 1000,
 
   // selection
-  maxSelectableAnts: 3,
-  selectableEntities: ['ANT', 'EGG', 'LARVA', 'PUPA'],
+  maxSelectableAnts: 6,
+  selectableEntities: ['ANT', 'EGG', 'LARVA', 'PUPA', 'OBELISK'],
 
   // ant-specific values
   antPickupEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'DEAD_ANT'],
@@ -834,9 +834,7 @@ var handleTick = function handleTick(game) {
           if (!entity.position) continue;
           // TODO can't handle big entities
           var positionBeneath = subtract(entity.position, { x: 0, y: 1 });
-          var entitiesBeneath = lookupInGrid(game.grid, positionBeneath).map(function (i) {
-            return game.entities[i];
-          }).filter(function (e) {
+          var entitiesBeneath = fastCollidesWith(game, _extends({}, entity, { position: positionBeneath })).filter(function (e) {
             return config.antBlockingEntities.includes(e.type);
           }).length > 0;
           if (!entitiesBeneath && insideWorld(game, positionBeneath)) {
@@ -890,9 +888,7 @@ var handleTick = function handleTick(game) {
 
           var _entity = game.entities[_id3];
           if (!_entity.position) continue;
-          var entitiesSupporting = lookupInGrid(game.grid, _entity.position).map(function (i) {
-            return game.entities[i];
-          }).filter(function (e) {
+          var entitiesSupporting = fastCollidesWith(game, _entity).filter(function (e) {
             return config.supportingBackgroundTypes.includes(e.subType);
           });
           if (config.climbingEntities.includes(_entity.type)) {
@@ -901,9 +897,7 @@ var handleTick = function handleTick(game) {
             }));
           }
           var _positionBeneath = subtract(_entity.position, { x: 0, y: 1 });
-          var _entitiesBeneath = lookupInGrid(game.grid, _positionBeneath).map(function (i) {
-            return game.entities[i];
-          }).filter(function (e) {
+          var _entitiesBeneath = fastCollidesWith(game, _extends({}, _entity, { position: _positionBeneath })).filter(function (e) {
             return config.antBlockingEntities.includes(e.type);
           }).length > 0;
           if (!entitiesSupporting.length > 0 && !_entitiesBeneath && insideWorld(game, _positionBeneath)) {
@@ -1523,7 +1517,7 @@ var performAction = function performAction(game, ant, action) {
         }
         moveVec[moveAxis] += distVec[moveAxis] > 0 ? 1 : -1;
         var nextPos = add(moveVec, ant.position);
-        var occupied = fastCollidesWith(game, { position: nextPos }).filter(function (e) {
+        var occupied = fastCollidesWith(game, _extends({}, ant, { position: nextPos })).filter(function (e) {
           return config.antBlockingEntities.includes(e.type);
         });
         if (occupied.length == 0 && insideWorld(game, nextPos)) {
@@ -1545,7 +1539,7 @@ var performAction = function performAction(game, ant, action) {
             break;
           }
           nextPos = add(moveVec, ant.position);
-          occupied = fastCollidesWith(game, { position: nextPos }).filter(function (e) {
+          occupied = fastCollidesWith(game, _extends({}, ant, { position: nextPos })).filter(function (e) {
             return config.antBlockingEntities.includes(e.type);
           });
           if (occupied.length == 0 && insideWorld(game, nextPos)) {
@@ -1650,7 +1644,7 @@ var performAction = function performAction(game, ant, action) {
       {
         var locationToPutdown = object;
         if (locationToPutdown == null) {
-          locationToPutdown = { position: ant.position };
+          locationToPutdown = { position: ant.position, width: 1, height: 1 };
         }
         var putDownFree = fastCollidesWith(game, locationToPutdown).filter(function (e) {
           return config.antBlockingEntities.includes(e.type);
@@ -1839,13 +1833,39 @@ var entitiesInMarquee = function entitiesInMarquee(game, marquee) {
   var entities = [];
   for (var _x = position.x; _x < position.x + width; _x++) {
     for (var _y = position.y; _y < position.y + height; _y++) {
-      entities.push.apply(entities, _toConsumableArray(lookupInGrid(game.grid, { x: _x, y: _y }).map(function (id) {
-        return game.entities[id];
-      })));
+      var entitiesInSquare = lookupInGrid(game.grid, { x: _x, y: _y });
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = entitiesInSquare[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var id = _step.value;
+
+          if (!entities.includes(id)) {
+            entities.push(id);
+          }
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
     }
   }
 
-  return entities;
+  return entities.map(function (id) {
+    return game.entities[id];
+  });
 };
 
 /////////////////////////////////////////////////////////////////
@@ -1854,14 +1874,52 @@ var entitiesInMarquee = function entitiesInMarquee(game, marquee) {
 
 var fastCollidesWith = function fastCollidesWith(game, entity) {
   if (entity.position == null) return [];
-  var _entity$position = entity.position,
-      x = _entity$position.x,
-      y = _entity$position.y;
+  var position = entity.position,
+      width = entity.width,
+      height = entity.height;
 
-  return lookupInGrid(game.grid, entity.position).filter(function (id) {
-    return id != entity.id;
-  }).map(function (id) {
-    return game.entities[id];
+  if (width == null) {
+    console.error("checking collision on non-entity");
+    width = 1;
+  }
+  if (height == null) {
+    console.error("checking collision on non-entity");
+    height = 1;
+  }
+  var collisions = [];
+  for (var _x2 = 0; _x2 < width; _x2++) {
+    for (var _y2 = 0; _y2 < height; _y2++) {
+      var thisSquare = lookupInGrid(game.grid, add(entity.position, { x: _x2, y: _y2 }));
+      var _iteratorNormalCompletion2 = true;
+      var _didIteratorError2 = false;
+      var _iteratorError2 = undefined;
+
+      try {
+        for (var _iterator2 = thisSquare[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+          var id = _step2.value;
+
+          if (!collisions.includes(id) && id != entity.id) {
+            collisions.push(id);
+          }
+        }
+      } catch (err) {
+        _didIteratorError2 = true;
+        _iteratorError2 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion2 && _iterator2.return) {
+            _iterator2.return();
+          }
+        } finally {
+          if (_didIteratorError2) {
+            throw _iteratorError2;
+          }
+        }
+      }
+    }
+  }
+  return collisions.map(function (i) {
+    return game.entities[i];
   });
 };
 
@@ -1869,36 +1927,59 @@ var fastCollidesWith = function fastCollidesWith(game, entity) {
 // Neighbors
 /////////////////////////////////////////////////////////////////
 
+var getNeighborPositions = function getNeighborPositions(entity, includeDiagonal) {
+  var position = entity.position,
+      width = entity.width,
+      height = entity.height;
+
+  var neighbors = [];
+  for (var _x3 = position.x; _x3 < position.x + width; _x3++) {
+    neighbors.push({ x: _x3, y: position.y - 1 });
+    neighbors.push({ x: _x3, y: position.y + height });
+  }
+  for (var _y3 = position.y; _y3 < position.y + width; _y3++) {
+    neighbors.push({ x: position.x - 1, y: _y3 });
+    neighbors.push({ x: position.x + width, y: _y3 });
+  }
+  if (includeDiagonal) {
+    neighbors.push({ x: position.x - 1, y: position.y - 1 });
+    neighbors.push({ x: position.x - 1, y: position.y + height });
+    neighbors.push({ x: position.x + width, y: position.y - 1 });
+    neighbors.push({ x: position.x + width, y: position.y + height });
+  }
+  return neighbors;
+};
+
 var fastGetEmptyNeighborPositions = function fastGetEmptyNeighborPositions(game, entity, blockingEntityTypes) {
   if (entity.position == null) return [];
   var emptyPositions = [];
-  var neighborPositions = [{ x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: -1 }];
-  var _iteratorNormalCompletion = true;
-  var _didIteratorError = false;
-  var _iteratorError = undefined;
+  var neighborPositions = getNeighborPositions(entity);
+  var _iteratorNormalCompletion3 = true;
+  var _didIteratorError3 = false;
+  var _iteratorError3 = undefined;
 
   try {
-    for (var _iterator = neighborPositions[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-      var neighborVec = _step.value;
+    for (var _iterator3 = neighborPositions[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+      var neighborPos = _step3.value;
 
-      var neighbors = lookupInGrid(game.grid, add(entity.position, neighborVec)).filter(function (id) {
+      var neighbors = lookupInGrid(game.grid, neighborPos).filter(function (id) {
         return blockingEntityTypes.includes(game.entities[id].type);
       });
       if (neighbors.length == 0) {
-        emptyPositions.push(add(entity.position, neighborVec));
+        emptyPositions.push(neighborPos);
       }
     }
   } catch (err) {
-    _didIteratorError = true;
-    _iteratorError = err;
+    _didIteratorError3 = true;
+    _iteratorError3 = err;
   } finally {
     try {
-      if (!_iteratorNormalCompletion && _iterator.return) {
-        _iterator.return();
+      if (!_iteratorNormalCompletion3 && _iterator3.return) {
+        _iterator3.return();
       }
     } finally {
-      if (_didIteratorError) {
-        throw _iteratorError;
+      if (_didIteratorError3) {
+        throw _iteratorError3;
       }
     }
   }
@@ -1909,31 +1990,28 @@ var fastGetEmptyNeighborPositions = function fastGetEmptyNeighborPositions(game,
 var fastGetNeighbors = function fastGetNeighbors(game, entity, includeDiagonal) {
   if (entity.position == null) return [];
   var neighborEntities = [];
-  var neighborPositions = [{ x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: -1 }];
-  if (includeDiagonal) {
-    neighborPositions.push.apply(neighborPositions, [{ x: 1, y: 1 }, { x: -1, y: -1 }, { x: 1, y: -1 }, { x: -1, y: 1 }]);
-  }
-  var _iteratorNormalCompletion2 = true;
-  var _didIteratorError2 = false;
-  var _iteratorError2 = undefined;
+  var neighborPositions = getNeighborPositions(entity, includeDiagonal);
+  var _iteratorNormalCompletion4 = true;
+  var _didIteratorError4 = false;
+  var _iteratorError4 = undefined;
 
   try {
-    for (var _iterator2 = neighborPositions[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-      var neighborVec = _step2.value;
+    for (var _iterator4 = neighborPositions[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+      var neighborPos = _step4.value;
 
-      neighborEntities.push.apply(neighborEntities, _toConsumableArray(lookupInGrid(game.grid, add(entity.position, neighborVec))));
+      neighborEntities.push.apply(neighborEntities, _toConsumableArray(lookupInGrid(game.grid, neighborPos)));
     }
   } catch (err) {
-    _didIteratorError2 = true;
-    _iteratorError2 = err;
+    _didIteratorError4 = true;
+    _iteratorError4 = err;
   } finally {
     try {
-      if (!_iteratorNormalCompletion2 && _iterator2.return) {
-        _iterator2.return();
+      if (!_iteratorNormalCompletion4 && _iterator4.return) {
+        _iterator4.return();
       }
     } finally {
-      if (_didIteratorError2) {
-        throw _iteratorError2;
+      if (_didIteratorError4) {
+        throw _iteratorError4;
       }
     }
   }
@@ -1956,10 +2034,10 @@ var onScreen = function onScreen(game, pos) {
 
 var getEntitiesInRadius = function getEntitiesInRadius(game, pos, radius) {
   var entities = [];
-  for (var _x2 = -radius; _x2 <= radius; _x2++) {
-    for (var _y2 = -radius; _y2 <= radius; _y2++) {
-      if (_x2 * _x2 + _y2 * _y2 < radius * radius) {
-        entities.push.apply(entities, _toConsumableArray(lookupInGrid(game.grid, { x: _x2 + pos.x, y: _y2 + pos.y })));
+  for (var _x4 = -radius; _x4 <= radius; _x4++) {
+    for (var _y4 = -radius; _y4 <= radius; _y4++) {
+      if (_x4 * _x4 + _y4 * _y4 < radius * radius) {
+        entities.push.apply(entities, _toConsumableArray(lookupInGrid(game.grid, { x: _x4 + pos.x, y: _y4 + pos.y })));
       }
     }
   }
@@ -1980,29 +2058,29 @@ var getSelectedAntIDs = function getSelectedAntIDs(game) {
 
 var getEntitiesByType = function getEntitiesByType(game, entityTypes) {
   var entities = [];
-  var _iteratorNormalCompletion3 = true;
-  var _didIteratorError3 = false;
-  var _iteratorError3 = undefined;
+  var _iteratorNormalCompletion5 = true;
+  var _didIteratorError5 = false;
+  var _iteratorError5 = undefined;
 
   try {
-    for (var _iterator3 = entityTypes[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-      var entityType = _step3.value;
+    for (var _iterator5 = entityTypes[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+      var entityType = _step5.value;
 
       entities = entities.concat(game[entityType].map(function (id) {
         return game.entities[id];
       }));
     }
   } catch (err) {
-    _didIteratorError3 = true;
-    _iteratorError3 = err;
+    _didIteratorError5 = true;
+    _iteratorError5 = err;
   } finally {
     try {
-      if (!_iteratorNormalCompletion3 && _iterator3.return) {
-        _iterator3.return();
+      if (!_iteratorNormalCompletion5 && _iterator5.return) {
+        _iterator5.return();
       }
     } finally {
-      if (_didIteratorError3) {
-        throw _iteratorError3;
+      if (_didIteratorError5) {
+        throw _iteratorError5;
       }
     }
   }
@@ -2594,7 +2672,7 @@ var initFoodSpawnSystem = function initFoodSpawnSystem(store) {
     if (Math.random() < config.foodSpawnRate) {
       var x = randomIn(0, state.game.worldWidth - 1);
       var y = randomIn(0, state.game.worldHeight - 1);
-      if (fastCollidesWith(state.game, { position: { x: x, y: y } }).filter(function (e) {
+      if (fastCollidesWith(state.game, { position: { x: x, y: y }, width: 1, height: 1 }).filter(function (e) {
         return config.antBlockingEntities.includes(e.type);
       }).length == 0) {
         var food = makeFood({ x: x, y: y }, config.foodSpawnCalories, 'Crumb');
@@ -2812,15 +2890,19 @@ var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
     var x = dims.x > 0 ? mouse.downPos.x : mouse.curPos.x;
     var y = dims.y > 0 ? mouse.downPos.y : mouse.curPos.y;
     var marqueeLocation = { position: { x: x, y: y }, width: Math.abs(dims.x) + 1, height: Math.abs(dims.y) + 1 };
-    var clickedAnts = entitiesInMarquee(state.game, marqueeLocation).filter(function (e) {
+    var clickedEntities = entitiesInMarquee(state.game, marqueeLocation).filter(function (e) {
       return config.selectableEntities.includes(e.type);
+    }).map(function (e) {
+      return e.id;
     });
-    if (clickedAnts.length > 0) {
+    var obeliskID = state.game.OBELISK[0];
+    if (clickedEntities.includes(obeliskID)) {
+      clickedEntities = [obeliskID];
+    }
+    if (clickedEntities.length > 0) {
       dispatch({
         type: 'SET_SELECTED_ENTITIES',
-        entityIDs: clickedAnts.slice(0, config.maxSelectableAnts).map(function (e) {
-          return e.id;
-        })
+        entityIDs: clickedEntities.slice(0, config.maxSelectableAnts)
       });
     } else if (state.game.selectedEntities.length > 0) {
       dispatch({
@@ -2854,7 +2936,7 @@ var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
     task.name = 'Go To Clicked Location';
     var eatClicked = createDoAction('EAT', clickedFood);
     var pickupClicked = createDoAction('PICKUP', clickedEntity);
-    var putdownClicked = createDoAction('PUTDOWN', { position: gridPos });
+    var putdownClicked = createDoAction('PUTDOWN', { position: gridPos, width: 1, height: 1 });
     if (state.game.antMode === 'EAT') {
       task.behaviorQueue.push(eatClicked);
     } else if (state.game.antMode === 'PICKUP') {
@@ -3261,6 +3343,11 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
         ctx.fillStyle = 'black';
         var _width4 = entity.width;
         var _height4 = entity.height;
+        if (state.game.selectedEntities.includes(entity.id)) {
+          ctx.strokeStyle = 'red';
+          ctx.lineWidth = 2 / (config.canvasWidth / config.width);
+          ctx.strokeRect(0, 0, _width4, _height4);
+        }
         ctx.fillRect(0, 0, _width4, _height4);
         break;
       }
@@ -3859,8 +3946,6 @@ module.exports = Main;
 },{"../config":1,"./Game.react":29,"./Lobby.react":30,"./components/Button.react":35,"react":55}],32:[function(require,module,exports){
 'use strict';
 
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
 var React = require('react');
 
 var _require = require('../config'),
@@ -3870,7 +3955,6 @@ var Button = require('./components/Button.react');
 var RadioPicker = require('./components/RadioPicker.react');
 var Dropdown = require('./components/Dropdown.react');
 var StatusCard = require('./StatusCard.react');
-var TaskCard = require('./TaskCard.react');
 
 var _require2 = require('../selectors/selectors'),
     getSelectedAntIDs = _require2.getSelectedAntIDs;
@@ -3975,66 +4059,16 @@ function Sidebar(props) {
           dispatch({ type: 'ASSIGN_TASK', task: nextTask, ants: getSelectedAntIDs(game) });
         }
       }),
-      antCards,
-      React.createElement(TaskEditor, props)
+      antCards
     )
   );
 }
 
-function TaskEditor(props) {
-  var state = props.state,
-      dispatch = props.dispatch;
-  var game = state.game;
-
-  var _useState = useState('New Task'),
-      _useState2 = _slicedToArray(_useState, 2),
-      taskName = _useState2[0],
-      setTaskName = _useState2[1];
-
-  var editingTask = useMemo(function () {
-    return taskName === 'New Task' ? { name: 'New Task', repeating: false, behaviorQueue: [] } : game.tasks.filter(function (t) {
-      return t.name === taskName;
-    })[0];
-  }, [taskName]);
-  return React.createElement(
-    'div',
-    {
-      className: 'taskEditor',
-      style: {
-        border: '1px solid black'
-      }
-    },
-    React.createElement(
-      'div',
-      null,
-      React.createElement(
-        'b',
-        null,
-        'Task Editor'
-      )
-    ),
-    'Edit Task: ',
-    React.createElement(Dropdown, {
-      noNoneOption: true,
-      options: ['New Task'].concat(game.tasks.map(function (t) {
-        return t.name;
-      })),
-      selected: taskName,
-      onChange: setTaskName
-    }),
-    React.createElement(TaskCard, {
-      state: state,
-      dispatch: dispatch,
-      setTaskName: setTaskName,
-      newTask: taskName === 'New Task',
-      task: editingTask
-    })
-  );
-}
-
 module.exports = Sidebar;
-},{"../config":1,"../selectors/selectors":19,"./StatusCard.react":33,"./TaskCard.react":34,"./components/Button.react":35,"./components/Dropdown.react":37,"./components/RadioPicker.react":38,"react":55}],33:[function(require,module,exports){
+},{"../config":1,"../selectors/selectors":19,"./StatusCard.react":33,"./components/Button.react":35,"./components/Dropdown.react":37,"./components/RadioPicker.react":38,"react":55}],33:[function(require,module,exports){
 'use strict';
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var React = require('react');
 
@@ -4043,6 +4077,12 @@ var _require = require('../config'),
 
 var Dropdown = require('./components/Dropdown.react');
 var Button = require('./components/Button.react');
+var TaskCard = require('./TaskCard.react');
+
+var useState = React.useState,
+    useMemo = React.useMemo,
+    useEffect = React.useEffect;
+
 
 function StatusCard(props) {
   var state = props.state,
@@ -4062,6 +4102,9 @@ function StatusCard(props) {
       break;
     case 'PUPA':
       card = React.createElement(PupaCard, props);
+      break;
+    case 'OBELISK':
+      card = React.createElement(TaskEditor, props);
       break;
   }
 
@@ -4298,8 +4341,59 @@ function PupaCard(props) {
   );
 }
 
+function TaskEditor(props) {
+  var state = props.state,
+      dispatch = props.dispatch;
+  var game = state.game;
+
+  var _useState = useState('New Task'),
+      _useState2 = _slicedToArray(_useState, 2),
+      taskName = _useState2[0],
+      setTaskName = _useState2[1];
+
+  var editingTask = useMemo(function () {
+    return taskName === 'New Task' ? { name: 'New Task', repeating: false, behaviorQueue: [] } : game.tasks.filter(function (t) {
+      return t.name === taskName;
+    })[0];
+  }, [taskName]);
+  return React.createElement(
+    'div',
+    {
+      className: 'taskEditor',
+      style: {
+        border: '1px solid black'
+      }
+    },
+    React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'b',
+        null,
+        'THE OBELISK'
+      )
+    ),
+    'Edit Task: ',
+    React.createElement(Dropdown, {
+      noNoneOption: true,
+      options: ['New Task'].concat(game.tasks.map(function (t) {
+        return t.name;
+      })),
+      selected: taskName,
+      onChange: setTaskName
+    }),
+    React.createElement(TaskCard, {
+      state: state,
+      dispatch: dispatch,
+      setTaskName: setTaskName,
+      newTask: taskName === 'New Task',
+      task: editingTask
+    })
+  );
+}
+
 module.exports = StatusCard;
-},{"../config":1,"./components/Button.react":35,"./components/Dropdown.react":37,"react":55}],34:[function(require,module,exports){
+},{"../config":1,"./TaskCard.react":34,"./components/Button.react":35,"./components/Dropdown.react":37,"react":55}],34:[function(require,module,exports){
 'use strict';
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();

@@ -183,15 +183,19 @@ var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
     var x = dims.x > 0 ? mouse.downPos.x : mouse.curPos.x;
     var y = dims.y > 0 ? mouse.downPos.y : mouse.curPos.y;
     var marqueeLocation = { position: { x: x, y: y }, width: Math.abs(dims.x) + 1, height: Math.abs(dims.y) + 1 };
-    var clickedAnts = entitiesInMarquee(state.game, marqueeLocation).filter(function (e) {
+    var clickedEntities = entitiesInMarquee(state.game, marqueeLocation).filter(function (e) {
       return config.selectableEntities.includes(e.type);
+    }).map(function (e) {
+      return e.id;
     });
-    if (clickedAnts.length > 0) {
+    var obeliskID = state.game.OBELISK[0];
+    if (clickedEntities.includes(obeliskID)) {
+      clickedEntities = [obeliskID];
+    }
+    if (clickedEntities.length > 0) {
       dispatch({
         type: 'SET_SELECTED_ENTITIES',
-        entityIDs: clickedAnts.slice(0, config.maxSelectableAnts).map(function (e) {
-          return e.id;
-        })
+        entityIDs: clickedEntities.slice(0, config.maxSelectableAnts)
       });
     } else if (state.game.selectedEntities.length > 0) {
       dispatch({
@@ -225,7 +229,7 @@ var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
     task.name = 'Go To Clicked Location';
     var eatClicked = createDoAction('EAT', clickedFood);
     var pickupClicked = createDoAction('PICKUP', clickedEntity);
-    var putdownClicked = createDoAction('PUTDOWN', { position: gridPos });
+    var putdownClicked = createDoAction('PUTDOWN', { position: gridPos, width: 1, height: 1 });
     if (state.game.antMode === 'EAT') {
       task.behaviorQueue.push(eatClicked);
     } else if (state.game.antMode === 'PICKUP') {

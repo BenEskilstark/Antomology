@@ -250,6 +250,11 @@ const renderEntity = (
       ctx.fillStyle = 'black';
       const width = entity.width;
       const height = entity.height;
+      if (state.game.selectedEntities.includes(entity.id)) {
+        ctx.strokeStyle = 'red';
+        ctx.lineWidth = 2 / (config.canvasWidth / config.width);
+        ctx.strokeRect(0, 0, width, height);
+      }
       ctx.fillRect(0, 0, width, height);
       break;
     }
