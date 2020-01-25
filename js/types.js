@@ -111,6 +111,8 @@ export type Entity = {
   width: number,
   height: number,
 
+  toLift: number, // number of ants needed to lift it
+
   // for fog of war
   visible: boolean,
   lastSeenPos: Vector,

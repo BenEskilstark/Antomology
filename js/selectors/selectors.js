@@ -119,8 +119,8 @@ const getNeighborPositions = (entity: Entity, includeDiagonal: boolean): Array<V
   const {position, width, height} = entity;
   const neighbors = [];
   for (let x = position.x; x < position.x + width; x++) {
-    neighbors.push({x, y: position.y - 1});
     neighbors.push({x, y: position.y + height});
+    neighbors.push({x, y: position.y - 1});
   }
   for (let y = position.y; y < position.y + width; y++) {
     neighbors.push({x: position.x - 1, y});

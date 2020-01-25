@@ -39,6 +39,7 @@ var initRenderSystem = function initRenderSystem(store) {
       canvas = document.getElementById('canvas');
       if (!canvas) return; // don't break
       ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
     }
 
     // clear

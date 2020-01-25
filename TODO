@@ -4,6 +4,8 @@
     - support rotated big-entities
     - picking up big entities
     - subdividing bigger entities on pickup
+ - entities that ants can coordinate to lift
+    - big entities show fraction showing number of ants needed to carry
  - fix food system to spawn larger food less frequently
  - fog of war:
     - easy config option to turn fog off
@@ -14,8 +16,6 @@
     - gate other UI features behind having monolith selected
  - add other entities: beetles, worms, spiders, aphids
  - make food size scale by calorie amount with better thresholds
- - entities that ants can coordinate to lift
-    - big entities show fraction showing number of ants needed to carry
  - zooming:
     - configure min and max zoom
     - screen size in grid cells should be on the state, not the config

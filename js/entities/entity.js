@@ -9,7 +9,7 @@ const makeEntity = (
   width: number,
   height: number,
   position: Vector,
-  velocity?: Vector,
+  toLift?: number,
   theta?: Radians,
 
   spriteSet?: Array<any>,
@@ -23,14 +23,14 @@ const makeEntity = (
 
     position,
     prevPosition: {x: 0, y: 0},
-    velocity: velocity || {x: 0, y: 0},
-    accel: {x: 0, y: 0},
 
     theta: theta || 0,
     thetaSpeed: 0,
 
     visible: false,
     lastSeenPos: null,
+
+    toLift: toLift || 1,
 
     frameIndex: 0,
     maxFrames: spriteSet && spriteSet.length ? spriteSet.length : 1,

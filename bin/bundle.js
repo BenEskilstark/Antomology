@@ -1934,8 +1934,8 @@ var getNeighborPositions = function getNeighborPositions(entity, includeDiagonal
 
   var neighbors = [];
   for (var _x3 = position.x; _x3 < position.x + width; _x3++) {
-    neighbors.push({ x: _x3, y: position.y - 1 });
     neighbors.push({ x: _x3, y: position.y + height });
+    neighbors.push({ x: _x3, y: position.y - 1 });
   }
   for (var _y3 = position.y; _y3 < position.y + width; _y3++) {
     neighbors.push({ x: position.x - 1, y: _y3 });
@@ -3061,6 +3061,7 @@ var initRenderSystem = function initRenderSystem(store) {
       canvas = document.getElementById('canvas');
       if (!canvas) return; // don't break
       ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
     }
 
     // clear
