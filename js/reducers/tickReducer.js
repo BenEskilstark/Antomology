@@ -592,8 +592,11 @@ const performAction = (
         ant.holding = entityToPickup;
         ant.blocked = false;
         ant.blockedBy = null;
-        deleteFromGrid(game.grid, entityToPickup.position, entityToPickup.id);
-        entityToPickup.position = null;
+        if (entityToPickup.toLift == 1) {
+          deleteFromGrid(game.grid, entityToPickup.position, entityToPickup.id);
+          entityToPickup.position = null;
+        }
+        entityToPickup.heldBy.push(ant.id);
       }
       break;
     }

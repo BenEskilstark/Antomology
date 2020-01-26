@@ -31,6 +31,7 @@ const makeEntity = (
     lastSeenPos: null,
 
     toLift: toLift || 1,
+    heldBy: [],
 
     frameIndex: 0,
     maxFrames: spriteSet && spriteSet.length ? spriteSet.length : 1,

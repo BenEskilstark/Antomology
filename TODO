@@ -1,12 +1,16 @@
 
  - - - - - - WORLD - - - - - -
+ - entities that ants can coordinate to lift
+    - bigEntities have heldBy array of EntityIDs
+    - ants holding big entities that aren't held by enough can't do anything other than putdown
+    - all ants holding a held-enough bigEntity do the same thing via heldBy arraya
+    - ants holding big entities don't render it differently
+    - big entities show fraction showing number of ants needed to carry
+    - change putdown logic
+ - fix food system to spawn larger food less frequently
  - big entities:
     - support rotated big-entities
-    - picking up big entities
     - subdividing bigger entities on pickup
- - entities that ants can coordinate to lift
-    - big entities show fraction showing number of ants needed to carry
- - fix food system to spawn larger food less frequently
  - fog of war:
     - easy config option to turn fog off
     - dropped (seen-before) entities don't re-render correct location until
