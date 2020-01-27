@@ -100,10 +100,10 @@ const level0 = (): GameState => {
   // seed background
   for (let x = 0; x < game.worldWidth; x++) {
     for (let y = 0; y < game.worldHeight; y++) {
-      if (y >= game.worldHeight * 0.3) {
+      if (y >= game.worldHeight * 0.35) {
         addEntity(game, makeBackground({x, y}, 'SKY'));
       }
-      if (y < game.worldHeight * 0.4) {
+      if (y < game.worldHeight * 0.35) {
         addEntity(game, makeBackground({x, y}, 'DIRT'));
       }
     }
@@ -134,8 +134,12 @@ const level0 = (): GameState => {
   //   addEntity(game, ant);
   // }
   addEntity(game, makeAnt({x: 25, y: 30}, 'QUEEN'));
-  addEntity(game, makeAnt({x: 20, y: 30}, 'WORKER'));
+  addEntity(game, makeAnt({x: 18, y: 30}, 'WORKER'));
   addEntity(game, makeAnt({x: 30, y: 30}, 'WORKER'));
+  addEntity(game, makeAnt({x: 28, y: 30}, 'WORKER'));
+  addEntity(game, makeAnt({x: 32, y: 30}, 'WORKER'));
+  addEntity(game, makeAnt({x: 33, y: 30}, 'WORKER'));
+  addEntity(game, makeAnt({x: 35, y: 30}, 'WORKER'));
 
   // add obelisk
   addEntity(game, makeObelisk({x: 20, y: 40}, 4, 8));

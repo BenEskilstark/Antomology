@@ -7,7 +7,8 @@ var _require = require('./entity'),
 
 var makeObelisk = function makeObelisk(position, width, height) {
   return _extends({}, makeEntity('OBELISK', width, height, position), {
-    theta: 0
+    theta: 0,
+    toLift: 6
   });
 };
 

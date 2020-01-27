@@ -21,9 +21,11 @@ var config = {
 
   // gravity
   supportingBackgroundTypes: ['DIRT'],
-  supportedEntities: ['ANT', 'DIRT'], // fall unless there is supporting background beneath
+  // fall until above blocker
+  fallingEntities: ['EGG', 'ANT', 'DIRT', 'LARVA', 'FOOD', 'STONE', 'OBELISK'],
+  supportedEntities: ['ANT', 'DIRT'], // also stopped by supporting background behind
   climbingEntities: ['ANT'], // must be subset of supportedEntities
-  fallingEntities: ['EGG', 'LARVA', 'FOOD', 'STONE', 'OBELISK'], // fall until above blocker
+  stopFallingEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'STONE', 'ANT', 'OBELISK'],
 
   // food
   foodSpawnRate: 0.02, // ~once per 5 seconds
@@ -34,7 +36,7 @@ var config = {
   selectableEntities: ['ANT', 'EGG', 'LARVA', 'PUPA', 'OBELISK'],
 
   // ant-specific values
-  antPickupEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'DEAD_ANT'],
+  antPickupEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'DEAD_ANT', 'OBELISK'],
   antBlockingEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'STONE', 'OBELISK'],
   antEatEntities: ['FOOD', 'DEAD_ANT'],
   antStartingCalories: 4000,

@@ -113,6 +113,7 @@ export type Entity = {
 
   toLift: number, // number of ants needed to lift it
   heldBy: Array<EntityID>,
+  lifted: boolean,
 
   // for fog of war
   visible: boolean,

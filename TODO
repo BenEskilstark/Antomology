@@ -1,16 +1,22 @@
 
+ - - - - entities that ants can coordinate to lift - - - -
+ - picking up:
+    - once threshold is reached, lift the entity
+    - ants picking up big entities should be facing it
+    - dead ants shouldn't count towards held
+ - moving:
+    - all ants holding a held-enough bigEntity do the same thing via heldBy array
+    - how to render ants that are moving and holding
+    - how to compute ants falling off
+ - putting down:
+    - how to compute putting down big entities
+
  - - - - - - WORLD - - - - - -
- - entities that ants can coordinate to lift
-    - bigEntities have heldBy array of EntityIDs
-    - ants holding big entities that aren't held by enough can't do anything other than putdown
-    - all ants holding a held-enough bigEntity do the same thing via heldBy arraya
-    - ants holding big entities don't render it differently
-    - big entities show fraction showing number of ants needed to carry
-    - change putdown logic
  - fix food system to spawn larger food less frequently
  - big entities:
     - support rotated big-entities
     - subdividing bigger entities on pickup
+    - falling big entities should push down and/or crush solitary ants
  - fog of war:
     - easy config option to turn fog off
     - dropped (seen-before) entities don't re-render correct location until
@@ -19,13 +25,13 @@
  - black monolith
     - gate other UI features behind having monolith selected
  - add other entities: beetles, worms, spiders, aphids
- - make food size scale by calorie amount with better thresholds
  - zooming:
     - configure min and max zoom
     - screen size in grid cells should be on the state, not the config
 
 
  - - - - - - ANTS - - - - - -
+ - change ant color to not be too close to obelisk color
  - compute old-age death for ants
  - make location position in center instead of top left for moving towards
  - A*-like for ants moving towards location?
@@ -91,6 +97,8 @@
  - switch dead ants/larva to their own entity type
  - split out tickReducer
  - replace collides function with fastCollidesWith in tickReducer
+ - antBlockingEntities should be renamed to moveBlockingEntities
+ - fix or remove the concept of "blockers"
 
 
  - - - - - - BUGS - - - - - -

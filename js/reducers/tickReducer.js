@@ -27,6 +27,9 @@ const {
   removeEntity,
   moveEntity,
   changeEntityType,
+  pickUpEntity,
+  putDownEntity,
+  maybeMoveEntity,
 } = require('../utils/stateHelpers');
 const {
   fastCollidesWith,
@@ -112,38 +115,28 @@ const handleTick = (game: GameState): GameState => {
     }
   }
 
-  // manage gravity
+  // compute gravity
   for (const entityType of config.fallingEntities) {
     for (const id of game[entityType]) {
       const entity = game.entities[id];
       if (!entity.position) continue;
-      // TODO can't handle big entities
+      if (entity.lifted) continue; // TODO not affected by gravity for now
       const positionBeneath = subtract(entity.position, {x: 0, y: 1});
       const entitiesBeneath = fastCollidesWith(game, {...entity, position: positionBeneath})
-        .filter(e => config.antBlockingEntities.includes(e.type))
+        .filter(e => config.stopFallingEntities.includes(e.type))
         .length > 0;
-      if (!entitiesBeneath && insideWorld(game, positionBeneath)) {
-          moveEntity(game, entity, positionBeneath);
+      let entitiesSupporting = [];
+      if (config.supportedEntities.includes(entityType)) {
+        entitiesSupporting = fastCollidesWith(game, entity)
+          .filter(e => config.supportingBackgroundTypes.includes(e.subType))
+        if (config.climbingEntities.includes(entity.type)) {
+          entitiesSupporting = entitiesSupporting
+            .concat(
+              fastGetNeighbors(game, entity, true /* diagonal */)
+              .filter(e => config.stopFallingEntities.includes(e.type))
+            );
+        }
       }
-    }
-  }
-  for (const entityType of config.supportedEntities) {
-    for (const id of game[entityType]) {
-      const entity = game.entities[id];
-      if (!entity.position) continue;
-      let entitiesSupporting = fastCollidesWith(game, entity)
-        .filter(e => config.supportingBackgroundTypes.includes(e.subType))
-      if (config.climbingEntities.includes(entity.type)) {
-        entitiesSupporting = entitiesSupporting
-          .concat(
-            fastGetNeighbors(game, entity, true /* diagonal */)
-            .filter(e => config.antBlockingEntities.includes(e.type))
-          );
-      }
-      const positionBeneath = subtract(entity.position, {x: 0, y: 1});
-      const entitiesBeneath = fastCollidesWith(game, {...entity, position: positionBeneath})
-        .filter(e => config.antBlockingEntities.includes(e.type))
-        .length > 0;
       if (
         (!entitiesSupporting.length > 0 && !entitiesBeneath)
         && insideWorld(game, positionBeneath)
@@ -442,8 +435,46 @@ const performAction = (
   game: GameState, ant: Ant, action: AntAction,
 ): void => {
   const {payload} = action;
-  const {object} = payload;
-  switch (action.type) {
+  let {object} = payload;
+  let actionType = action.type;
+
+  // first handle ants that are holding a big entity
+  if (ant.holding != null && ant.holding.toLift > 1) {
+    const bigEntity = ant.holding;
+
+    // if the ant is assigned something else to do, drop it
+    if (bigEntity.toLift > bigEntity.heldBy.length) {
+      if (action.type !== 'PUTDOWN' && action.type !== 'IDLE') {
+        putDownEntity(game, ant, bigEntity.position);
+      }
+    } else { // picking up the bigEntity
+      const targetLoc = {
+        position: {
+          x: Math.round(bigEntity.position.x + bigEntity.width / 2),
+          y: bigEntity.lifted ? bigEntity.position.y - 1 : bigEntity.position.y,
+        },
+        width: 1,
+        height: 1,
+      };
+      if (!collides(ant, targetLoc)) {
+        actionType = 'MOVE';
+        object = targetLoc;
+      }
+      if (!bigEntity.lifted) {
+        const didMove = maybeMoveEntity(
+          game, bigEntity,
+          add(bigEntity.position, {x: 0, y: 1}),
+          true,
+        );
+        if (didMove) {
+          bigEntity.lifted = true;
+        }
+      }
+    }
+  }
+
+  // then handle the actually-assigned action
+  switch (actionType) {
     case 'IDLE': {
       // unstack, similar to moving out of the way of placed dirt
       const stackedAnts = fastCollidesWith(game, ant)
@@ -519,10 +550,8 @@ const performAction = (
       }
       moveVec[moveAxis] += distVec[moveAxis] > 0 ? 1 : -1;
       let nextPos = add(moveVec, ant.position);
-      let occupied = fastCollidesWith(game, {...ant, position: nextPos})
-        .filter(e => config.antBlockingEntities.includes(e.type));
-      if (occupied.length == 0 && insideWorld(game, nextPos)) {
-        moveEntity(game, ant, nextPos);
+      let didMove = maybeMoveEntity(game, ant, nextPos);
+      if (didMove) {
         ant.blocked = false;
         ant.blockedBy = null;
       } else { // else try moving along the other axis
@@ -534,22 +563,20 @@ const performAction = (
           moveVec[moveAxis] -= 1;
         } else {
           // already axis-aligned with destination, but blocked
+          // TODO block is broken now
           ant.blocked = true;
-          ant.blockedBy = occupied[0];
+          // ant.blockedBy = occupied[0];
           break;
         }
         nextPos = add(moveVec, ant.position);
-        occupied = fastCollidesWith(game, {...ant, position: nextPos})
-          .filter(e => config.antBlockingEntities.includes(e.type));
-        if (occupied.length == 0 && insideWorld(game, nextPos)) {
-          moveEntity(game, ant, nextPos);
+        didMove = maybeMoveEntity(game, ant, nextPos);
+        if (didMove) {
           ant.blocked = false;
           ant.blockedBy = null;
-        } else {
-          if (occupied.length > 0) {
-            ant.blocked = true;
-            ant.blockedBy = occupied[0];
-          }
+        } else { // TODO block is broken now
+        // } else if (occpied.length > 0) {
+          ant.blocked = true;
+          // ant.blockedBy = occupied[0];
         }
       }
       break;
@@ -589,14 +616,7 @@ const performAction = (
         break;
       }
       if (ant.holding == null) {
-        ant.holding = entityToPickup;
-        ant.blocked = false;
-        ant.blockedBy = null;
-        if (entityToPickup.toLift == 1) {
-          deleteFromGrid(game.grid, entityToPickup.position, entityToPickup.id);
-          entityToPickup.position = null;
-        }
-        entityToPickup.heldBy.push(ant.id);
+        pickUpEntity(game, ant, entityToPickup);
       }
       break;
     }
@@ -609,9 +629,7 @@ const performAction = (
         .filter(e => config.antBlockingEntities.includes(e.type))
         .length === 0;
       if (collides(ant, locationToPutdown) && ant.holding != null && putDownFree) {
-        ant.holding.position = locationToPutdown.position;
-        insertInGrid(game.grid, ant.holding.position, ant.holding.id);
-        ant.holding = null;
+        putDownEntity(game, ant, locationToPutdown.position);
         // move the ant out of the way
         const freePositions = fastGetEmptyNeighborPositions(
           game, ant, config.antBlockingEntities,

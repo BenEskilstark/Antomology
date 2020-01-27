@@ -3,7 +3,6 @@
 const {invariant} = require('../utils/errors');
 const {subtract, distance, add} = require('../utils/vectors');
 const {config} = require('../config');
-const {lookupInGrid} = require('../utils/stateHelpers');
 
 import type {GameID, State, Game, Entity} from '../types';
 
@@ -80,6 +79,18 @@ const entitiesInMarquee = (
   }
 
   return entities.map(id => game.entities[id]);
+}
+
+function lookupInGrid(grid: Grid, position: Vector): Array<EntityID> {
+  if (position == null) return [];
+  const {x, y} = position;
+  if (grid[x] == null) {
+    return [];
+  }
+  if (grid[x][y] == null) {
+    return [];
+  }
+  return grid[x][y];
 }
 
 /////////////////////////////////////////////////////////////////
@@ -222,6 +233,7 @@ const selectors = {
   fastCollidesWith,
   fastGetEmptyNeighborPositions,
   fastGetNeighbors,
+  lookupInGrid,
   insideWorld,
   onScreen,
   collides,

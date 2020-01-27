@@ -39,7 +39,7 @@ var initRenderSystem = function initRenderSystem(store) {
       canvas = document.getElementById('canvas');
       if (!canvas) return; // don't break
       ctx = canvas.getContext('2d');
-      ctx.imageSmoothingEnabled = false;
+      // ctx.imageSmoothingEnabled = false;
     }
 
     // clear
@@ -202,6 +202,7 @@ var render = function render(state, ctx) {
 var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
   var game = state.game;
 
+  var px = config.width / config.canvasWidth;
   ctx.save();
   // render relative to top left of grid square, but first translate for rotation
   // around the center
@@ -239,7 +240,8 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
   switch (entity.type) {
     case 'ANT':
       {
-        ctx.fillStyle = 'black';
+        ctx.fillStyle = '#0000CD';
+        ctx.strokeStyle = '#0000CD';
         ctx.beginPath();
         if (!entity.alive) {
           ctx.fillStyle = 'rgba(100, 100, 100, 0.5)';
@@ -247,7 +249,7 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
         } else if (entity.calories < config.antStartingCalories * config.antStarvationWarningThreshold) {
           ctx.fillStyle = 'rgba(250, 50, 0, 0.9)';
         }
-        ctx.lineWidth = 1 / (config.canvasWidth / config.width);
+        ctx.lineWidth = px;
         if (state.game.selectedEntities.includes(entity.id)) {
           ctx.strokeStyle = '#FF6347';
           ctx.fillStyle = '#FF6347';
@@ -278,7 +280,7 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
         }
         ctx.translate(-entity.width / 2, -entity.height / 2);
 
-        if (entity.holding != null) {
+        if (entity.holding != null && entity.holding.toLift == 1) {
           var heldEntity = entity.holding;
           ctx.save();
           ctx.scale(0.45, 0.45);
@@ -291,8 +293,8 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
       }
     case 'BACKGROUND':
       {
-        var _width = entity.width + 0.02;
-        var _height = entity.height + 0.02;
+        var _width = entity.width + px / 2;
+        var _height = entity.height + px / 2;
         if (entity.subType === 'SKY') {
           ctx.fillStyle = 'steelblue';
         } else if (entity.subType === 'DIRT') {
@@ -304,16 +306,16 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
     case 'STONE':
       {
         ctx.fillStyle = '#555555';
-        var _width2 = entity.width + 0.02;
-        var _height2 = entity.height + 0.02;
+        var _width2 = entity.width + px / 2;
+        var _height2 = entity.height + px / 2;
         ctx.fillRect(0, 0, _width2, _height2);
         break;
       }
     case 'DIRT':
       {
         ctx.fillStyle = '#8B4513';
-        var _width3 = entity.width + 0.02;
-        var _height3 = entity.height + 0.02;
+        var _width3 = entity.width + px / 2;
+        var _height3 = entity.height + px / 2;
         ctx.fillRect(0, 0, _width3, _height3);
         break;
       }
@@ -328,6 +330,16 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
           ctx.strokeRect(0, 0, _width4, _height4);
         }
         ctx.fillRect(0, 0, _width4, _height4);
+        if (entity.heldBy.length > 0) {
+          var numerator = entity.heldBy.length;
+          var denominator = entity.toLift;
+          ctx.save();
+          ctx.scale(1, -1);
+          ctx.fillStyle = 'red';
+          ctx.font = '1px Consolas';
+          ctx.fillText(numerator + '/' + denominator, entity.width * 0.25, -1 * entity.height / 2);
+          ctx.restore();
+        }
         break;
       }
     case 'LOCATION':
@@ -346,7 +358,7 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
     case 'FOOD':
       {
         ctx.fillStyle = 'green';
-        var sizeFactor = entity.calories / config.foodSpawnCalories;
+        var sizeFactor = 0.5 * entity.calories / config.foodSpawnCalories + 0.5;
         ctx.fillRect(0, 0, entity.width * sizeFactor, entity.height * sizeFactor);
         break;
       }

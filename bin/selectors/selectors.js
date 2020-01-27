@@ -13,9 +13,6 @@ var _require2 = require('../utils/vectors'),
 var _require3 = require('../config'),
     config = _require3.config;
 
-var _require4 = require('../utils/stateHelpers'),
-    lookupInGrid = _require4.lookupInGrid;
-
 /////////////////////////////////////////////////////////////////
 // Collisions
 /////////////////////////////////////////////////////////////////
@@ -101,6 +98,20 @@ var entitiesInMarquee = function entitiesInMarquee(game, marquee) {
     return game.entities[id];
   });
 };
+
+function lookupInGrid(grid, position) {
+  if (position == null) return [];
+  var x = position.x,
+      y = position.y;
+
+  if (grid[x] == null) {
+    return [];
+  }
+  if (grid[x][y] == null) {
+    return [];
+  }
+  return grid[x][y];
+}
 
 /////////////////////////////////////////////////////////////////
 // Fast functions
@@ -334,6 +345,7 @@ var selectors = {
   fastCollidesWith: fastCollidesWith,
   fastGetEmptyNeighborPositions: fastGetEmptyNeighborPositions,
   fastGetNeighbors: fastGetNeighbors,
+  lookupInGrid: lookupInGrid,
   insideWorld: insideWorld,
   onScreen: onScreen,
   collides: collides,

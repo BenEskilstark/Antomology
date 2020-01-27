@@ -2,7 +2,7 @@
 
 var nextID = 0;
 
-var makeEntity = function makeEntity(type, width, height, position, velocity, theta, spriteSet) {
+var makeEntity = function makeEntity(type, width, height, position, toLift, theta, spriteSet) {
   return {
     id: nextID++,
     type: type,
@@ -12,14 +12,16 @@ var makeEntity = function makeEntity(type, width, height, position, velocity, th
 
     position: position,
     prevPosition: { x: 0, y: 0 },
-    velocity: velocity || { x: 0, y: 0 },
-    accel: { x: 0, y: 0 },
 
     theta: theta || 0,
     thetaSpeed: 0,
 
     visible: false,
     lastSeenPos: null,
+
+    toLift: toLift || 1,
+    heldBy: [],
+    lifted: false,
 
     frameIndex: 0,
     maxFrames: spriteSet && spriteSet.length ? spriteSet.length : 1,
