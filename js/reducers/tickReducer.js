@@ -11,7 +11,10 @@ const {
 const {config} = require('../config');
 const {sin, cos, abs, sqrt} = Math;
 const {gameReducer} = require('./gameReducer');
-const {createIdleTask} = require('../state/tasks');
+const {
+  createIdleTask,
+  createGoToLocationBehavior,
+} = require('../state/tasks');
 const {invariant} = require('../utils/errors');
 const {
   randomIn,
@@ -78,6 +81,75 @@ let totalTime = 0;
 
 const handleTick = (game: GameState): GameState => {
   // const startTime = performance.now();
+
+  // get held entities
+  const heldEntityIDs = [];
+  for (const id of game.ANT) {
+    const ant = game.entities[id];
+    if (!ant.alive) {
+      continue;
+    }
+
+    if (ant.holding != null && !heldEntityIDs.includes(ant.holding.id)) {
+      heldEntityIDs.push(ant.holding.id);
+    }
+  }
+
+  // update held big entities
+  const heldBigEntities = heldEntityIDs
+    .map(i => game.entities[i])
+    .filter(e => e.toLift > 1);
+  for (const bigEntity of heldBigEntities) {
+    if (bigEntity.toLift <= bigEntity.heldBy.length) {
+      const targetLoc = {
+        position: {
+          x: Math.round(bigEntity.position.x + bigEntity.width / 2),
+          y: bigEntity.lifted ? bigEntity.position.y - 1 : bigEntity.position.y,
+        },
+        width: 1,
+        height: 1,
+      };
+      if (!bigEntity.lifted) {
+        const didMove = maybeMoveEntity(
+          game, bigEntity,
+          add(bigEntity.position, {x: 0, y: 1}),
+          true,
+        );
+        const allDone = bigEntity.heldBy
+          .map(i => game.entities[i])
+          .filter(a => a.task.name === 'Holding and Idle')
+          .length === bigEntity.heldBy.length;
+        bigEntity.lifted = didMove;
+        if (didMove) {
+          for (let i = 0; i < bigEntity.heldBy.length; i++) {
+            const ant = game.entities[bigEntity.heldBy[i]];
+            // if (
+            //   ant.task.name === 'Picking up ' + bigEntity.type ||
+            //   ant.task.name === 'Holding and Idle'
+            // ) {
+            //   break; // we already did this
+            // }
+            ant.leadHolder = i === 0;
+            ant.taskStack = [];
+            ant.taskIndex = 0;
+            const goToLocationBehavior = createGoToLocationBehavior(targetLoc);
+            ant.task = {
+              name: 'Picking up ' + bigEntity.type,
+              repeating: false,
+              behaviorQueue: [
+                goToLocationBehavior,
+                {
+                  type: 'SWITCH_TASK',
+                  task: 'Holding and Idle'
+                }
+              ],
+            };
+          }
+        }
+      }
+    }
+  }
+
   // update ants
   for (const id of game.ANT) {
     const ant = game.entities[id];
@@ -91,6 +163,9 @@ const handleTick = (game: GameState): GameState => {
     // ant starvation
     if (ant.calories <= 0) {
       ant.alive = false;
+      if (ant.holding) {
+        putDownEntity(game, ant);
+      }
     }
   }
 
@@ -120,7 +195,11 @@ const handleTick = (game: GameState): GameState => {
     for (const id of game[entityType]) {
       const entity = game.entities[id];
       if (!entity.position) continue;
-      if (entity.lifted) continue; // TODO not affected by gravity for now
+      // TODO lifted (big)entities not affected by gravity for now
+      const isBig = entity.toLift > 1;
+      const isReadyToLift = entity.toLift <= entity.heldBy.length;
+      if (entity.lifted) continue;
+      // if (isBig && isReadyToLift && !entity.isLifted) continue;
       const positionBeneath = subtract(entity.position, {x: 0, y: 1});
       const entitiesBeneath = fastCollidesWith(game, {...entity, position: positionBeneath})
         .filter(e => config.stopFallingEntities.includes(e.type))
@@ -243,7 +322,8 @@ const performTask = (game: GameState, ant: Ant): void => {
         ant.taskIndex = 0;
         ant.task = createIdleTask();
       } else {
-        ant.taskIndex = parentTask.index + 1;
+        ant.taskIndex = 0; // TODO there was starting taskIndex and parent
+        // task's index, but this involves mutating the task which we can't do
         ant.task = game.tasks.filter(t => t.name === parentTask.name)[0];
       }
     }
@@ -442,33 +522,10 @@ const performAction = (
   if (ant.holding != null && ant.holding.toLift > 1) {
     const bigEntity = ant.holding;
 
-    // if the ant is assigned something else to do, drop it
     if (bigEntity.toLift > bigEntity.heldBy.length) {
+      // if the ant is assigned something else to do, drop it
       if (action.type !== 'PUTDOWN' && action.type !== 'IDLE') {
-        putDownEntity(game, ant, bigEntity.position);
-      }
-    } else { // picking up the bigEntity
-      const targetLoc = {
-        position: {
-          x: Math.round(bigEntity.position.x + bigEntity.width / 2),
-          y: bigEntity.lifted ? bigEntity.position.y - 1 : bigEntity.position.y,
-        },
-        width: 1,
-        height: 1,
-      };
-      if (!collides(ant, targetLoc)) {
-        actionType = 'MOVE';
-        object = targetLoc;
-      }
-      if (!bigEntity.lifted) {
-        const didMove = maybeMoveEntity(
-          game, bigEntity,
-          add(bigEntity.position, {x: 0, y: 1}),
-          true,
-        );
-        if (didMove) {
-          bigEntity.lifted = true;
-        }
+        putDownEntity(game, ant);
       }
     }
   }
@@ -629,7 +686,7 @@ const performAction = (
         .filter(e => config.antBlockingEntities.includes(e.type))
         .length === 0;
       if (collides(ant, locationToPutdown) && ant.holding != null && putDownFree) {
-        putDownEntity(game, ant, locationToPutdown.position);
+        putDownEntity(game, ant);
         // move the ant out of the way
         const freePositions = fastGetEmptyNeighborPositions(
           game, ant, config.antBlockingEntities,

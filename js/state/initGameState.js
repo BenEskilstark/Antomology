@@ -64,6 +64,7 @@ const level0 = (): GameState => {
     tasks.createGoToColonyEntranceWithBlockerTask(game),
     tasks.createLayEggTask(),
     tasks.createFollowTrailTask(),
+    tasks.createHoldingAndIdleTask(),
     {
       name: 'Find Food',
       repeating: false,

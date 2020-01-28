@@ -121,11 +121,13 @@ function pickUpEntity(
 }
 
 function putDownEntity(
-  game: GameState, ant: Ant, positionToPutdown: Vector,
+  game: GameState, ant: Ant,
 ): void {
+  const positionToPutdown = ant.holding.toLift > 1 ? ant.holding.position : ant.position;
   moveEntity(game, ant.holding, positionToPutdown);
   ant.holding.heldBy = ant.holding.heldBy.filter(i => i != ant.id);
   ant.holding = null;
+  ant.leadHolder = false;
 }
 
 ////////////////////////////////////////////////////////////////////////

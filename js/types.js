@@ -163,6 +163,7 @@ export type AntSubType = 'QUEEN' | 'WORKER';
 export type Ant = Entity & {
   subType: AntSubType,
   holding: ?Entity,
+  leadHolder: boolean, // is this holding something and the leader
   calories: number,
   blocked: boolean, // is this ant blocked from where it's going
   blockedBy: ?entity, // entity that is blocking it

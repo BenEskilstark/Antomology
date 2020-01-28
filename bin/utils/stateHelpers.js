@@ -143,12 +143,14 @@ function pickUpEntity(game, ant, entityToPickup) {
   entityToPickup.heldBy.push(ant.id);
 }
 
-function putDownEntity(game, ant, positionToPutdown) {
+function putDownEntity(game, ant) {
+  var positionToPutdown = ant.holding.toLift > 1 ? ant.holding.position : ant.position;
   moveEntity(game, ant.holding, positionToPutdown);
   ant.holding.heldBy = ant.holding.heldBy.filter(function (i) {
     return i != ant.id;
   });
   ant.holding = null;
+  ant.leadHolder = false;
 }
 
 ////////////////////////////////////////////////////////////////////////

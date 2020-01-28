@@ -38,6 +38,14 @@ var createIdleTask = function createIdleTask() {
   };
 };
 
+var createHoldingAndIdleTask = function createHoldingAndIdleTask() {
+  return {
+    name: 'Holding and Idle',
+    repeating: true,
+    behaviorQueue: [createDoAction('IDLE', null)]
+  };
+};
+
 var createLayEggTask = function createLayEggTask() {
   return {
     name: 'Lay Egg',
@@ -294,13 +302,15 @@ var tasks = {
   createRandomMoveTask: createRandomMoveTask,
   createMoveBlockerTask: createMoveBlockerTask,
   createGoToColonyEntranceWithBlockerTask: createGoToColonyEntranceWithBlockerTask,
+  createGoToLocationBehavior: createGoToLocationBehavior,
   createDigBlueprintTask: createDigBlueprintTask,
   sendAllAntsToLocation: sendAllAntsToLocation,
   sendAllAntsToBlueprint: sendAllAntsToBlueprint,
   createDoAction: createDoAction,
   createIdleTask: createIdleTask,
   createLayEggTask: createLayEggTask,
-  createFollowTrailTask: createFollowTrailTask
+  createFollowTrailTask: createFollowTrailTask,
+  createHoldingAndIdleTask: createHoldingAndIdleTask
 };
 window.tasks = tasks;
 

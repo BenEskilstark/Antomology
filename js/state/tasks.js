@@ -45,6 +45,16 @@ const createIdleTask = (): Task => {
   }
 }
 
+const createHoldingAndIdleTask = (): Task => {
+  return {
+    name: 'Holding and Idle',
+    repeating: true,
+    behaviorQueue: [
+      createDoAction('IDLE', null),
+    ],
+  };
+}
+
 const createLayEggTask = (): Task => {
   return {
     name: 'Lay Egg',
@@ -325,6 +335,7 @@ const tasks = {
   createRandomMoveTask,
   createMoveBlockerTask,
   createGoToColonyEntranceWithBlockerTask,
+  createGoToLocationBehavior,
   createDigBlueprintTask,
   sendAllAntsToLocation,
   sendAllAntsToBlueprint,
@@ -332,6 +343,7 @@ const tasks = {
   createIdleTask,
   createLayEggTask,
   createFollowTrailTask,
+  createHoldingAndIdleTask,
 };
 window.tasks = tasks;
 

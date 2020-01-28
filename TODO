@@ -1,11 +1,12 @@
 
- - - - - entities that ants can coordinate to lift - - - -
+ - - - - - - LIFTNG BIG ENTITIES - - - - - -
  - picking up:
-    - once threshold is reached, lift the entity
+    - ants trying to pick up big entity, but blocked by it, should just pick up
     - ants picking up big entities should be facing it
     - dead ants shouldn't count towards held
  - moving:
-    - all ants holding a held-enough bigEntity do the same thing via heldBy array
+    - ants + big entity combine into a super entity that moves as one
+    - ants need to be able to push held entity up against gravity
     - how to render ants that are moving and holding
     - how to compute ants falling off
  - putting down:
@@ -102,5 +103,8 @@
 
 
  - - - - - - BUGS - - - - - -
+ - groups of ants can ignore gravity by climbing on each other
+ - ants that are falling and trying to go to a clicked location above them
+   will hover in air
  - picked-up pupa never hatch and then die on putdown. Should probably just wait to hatch
 
