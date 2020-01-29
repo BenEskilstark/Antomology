@@ -123,9 +123,13 @@ function pickUpEntity(
 function putDownEntity(
   game: GameState, ant: Ant,
 ): void {
-  const positionToPutdown = ant.holding.toLift > 1 ? ant.holding.position : ant.position;
-  moveEntity(game, ant.holding, positionToPutdown);
-  ant.holding.heldBy = ant.holding.heldBy.filter(i => i != ant.id);
+  const heldEntity = ant.holding;
+  const positionToPutdown = heldEntity.toLift > 1 ? heldEntity.position : ant.position;
+  moveEntity(game, heldEntity, positionToPutdown);
+  heldEntity.heldBy = heldEntity.heldBy.filter(i => i != ant.id);
+  if (heldEntity.toLift > heldEntity.heldBy.length) {
+    heldEntity.lifted = false;
+  }
   ant.holding = null;
   ant.leadHolder = false;
 }

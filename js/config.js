@@ -37,7 +37,7 @@ const config = {
 
   // ant-specific values
   antPickupEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'DEAD_ANT', 'OBELISK'],
-  antBlockingEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'STONE', 'OBELISK'],
+  antBlockingEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'STONE'],
   antEatEntities: ['FOOD', 'DEAD_ANT'],
   antStartingCalories: 4000,
   antCaloriesPerEat: 1000,

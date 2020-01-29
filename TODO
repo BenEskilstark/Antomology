@@ -1,16 +1,12 @@
 
  - - - - - - LIFTNG BIG ENTITIES - - - - - -
  - picking up:
-    - ants trying to pick up big entity, but blocked by it, should just pick up
-    - ants picking up big entities should be facing it
+    - ants should put down when they are re-assigned/go away
     - dead ants shouldn't count towards held
  - moving:
-    - ants + big entity combine into a super entity that moves as one
     - ants need to be able to push held entity up against gravity
-    - how to render ants that are moving and holding
     - how to compute ants falling off
  - putting down:
-    - how to compute putting down big entities
 
  - - - - - - WORLD - - - - - -
  - fix food system to spawn larger food less frequently

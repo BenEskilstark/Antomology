@@ -144,11 +144,15 @@ function pickUpEntity(game, ant, entityToPickup) {
 }
 
 function putDownEntity(game, ant) {
-  var positionToPutdown = ant.holding.toLift > 1 ? ant.holding.position : ant.position;
-  moveEntity(game, ant.holding, positionToPutdown);
-  ant.holding.heldBy = ant.holding.heldBy.filter(function (i) {
+  var heldEntity = ant.holding;
+  var positionToPutdown = heldEntity.toLift > 1 ? heldEntity.position : ant.position;
+  moveEntity(game, heldEntity, positionToPutdown);
+  heldEntity.heldBy = heldEntity.heldBy.filter(function (i) {
     return i != ant.id;
   });
+  if (heldEntity.toLift > heldEntity.heldBy.length) {
+    heldEntity.lifted = false;
+  }
   ant.holding = null;
   ant.leadHolder = false;
 }

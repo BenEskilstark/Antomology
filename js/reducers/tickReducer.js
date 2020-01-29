@@ -82,75 +82,8 @@ let totalTime = 0;
 const handleTick = (game: GameState): GameState => {
   // const startTime = performance.now();
 
-  // get held entities
-  const heldEntityIDs = [];
-  for (const id of game.ANT) {
-    const ant = game.entities[id];
-    if (!ant.alive) {
-      continue;
-    }
-
-    if (ant.holding != null && !heldEntityIDs.includes(ant.holding.id)) {
-      heldEntityIDs.push(ant.holding.id);
-    }
-  }
-
-  // update held big entities
-  const heldBigEntities = heldEntityIDs
-    .map(i => game.entities[i])
-    .filter(e => e.toLift > 1);
-  for (const bigEntity of heldBigEntities) {
-    if (bigEntity.toLift <= bigEntity.heldBy.length) {
-      const targetLoc = {
-        position: {
-          x: Math.round(bigEntity.position.x + bigEntity.width / 2),
-          y: bigEntity.lifted ? bigEntity.position.y - 1 : bigEntity.position.y,
-        },
-        width: 1,
-        height: 1,
-      };
-      if (!bigEntity.lifted) {
-        const didMove = maybeMoveEntity(
-          game, bigEntity,
-          add(bigEntity.position, {x: 0, y: 1}),
-          true,
-        );
-        const allDone = bigEntity.heldBy
-          .map(i => game.entities[i])
-          .filter(a => a.task.name === 'Holding and Idle')
-          .length === bigEntity.heldBy.length;
-        bigEntity.lifted = didMove;
-        if (didMove) {
-          for (let i = 0; i < bigEntity.heldBy.length; i++) {
-            const ant = game.entities[bigEntity.heldBy[i]];
-            // if (
-            //   ant.task.name === 'Picking up ' + bigEntity.type ||
-            //   ant.task.name === 'Holding and Idle'
-            // ) {
-            //   break; // we already did this
-            // }
-            ant.leadHolder = i === 0;
-            ant.taskStack = [];
-            ant.taskIndex = 0;
-            const goToLocationBehavior = createGoToLocationBehavior(targetLoc);
-            ant.task = {
-              name: 'Picking up ' + bigEntity.type,
-              repeating: false,
-              behaviorQueue: [
-                goToLocationBehavior,
-                {
-                  type: 'SWITCH_TASK',
-                  task: 'Holding and Idle'
-                }
-              ],
-            };
-          }
-        }
-      }
-    }
-  }
-
   // update ants
+  const heldEntityIDs = [];
   for (const id of game.ANT) {
     const ant = game.entities[id];
     if (!ant.alive) {
@@ -165,6 +98,39 @@ const handleTick = (game: GameState): GameState => {
       ant.alive = false;
       if (ant.holding) {
         putDownEntity(game, ant);
+      }
+    }
+    if (ant.holding != null && !heldEntityIDs.includes(ant.holding.id)) {
+      heldEntityIDs.push(ant.holding.id);
+    }
+  }
+
+  // update held big entities
+  const heldBigEntities = heldEntityIDs
+    .map(i => game.entities[i])
+    .filter(e => e.toLift > 1);
+  for (const bigEntity of heldBigEntities) {
+    if (bigEntity.toLift <= bigEntity.heldBy.length) {
+      if (!bigEntity.lifted) {
+        const didMove = maybeMoveEntity(
+          game, bigEntity,
+          add(bigEntity.position, {x: 0, y: 1}),
+          true, // debug
+        );
+        bigEntity.lifted = didMove;
+      } else {
+        // move the bigEntity according to the average movement of the ants holding it
+        let sum = {x: 0, y: 0};
+        for (let i = 0; i < bigEntity.heldBy.length; i++) {
+          const ant = game.entities[bigEntity.heldBy[i]];
+          const diff = subtract(ant.position, ant.prevPosition);
+          sum = add(sum, diff);
+        }
+        const avg = {
+          x: Math.round(sum.x / bigEntity.heldBy.length),
+          y: Math.round(sum.y / bigEntity.heldBy.length),
+        };
+        maybeMoveEntity(game, bigEntity, add(bigEntity.position, avg), true);
       }
     }
   }
@@ -522,12 +488,12 @@ const performAction = (
   if (ant.holding != null && ant.holding.toLift > 1) {
     const bigEntity = ant.holding;
 
-    if (bigEntity.toLift > bigEntity.heldBy.length) {
-      // if the ant is assigned something else to do, drop it
-      if (action.type !== 'PUTDOWN' && action.type !== 'IDLE') {
-        putDownEntity(game, ant);
-      }
-    }
+    // if (bigEntity.toLift > bigEntity.heldBy.length) {
+    //   // if the ant is assigned something else to do, drop it
+    //   if (action.type !== 'PUTDOWN' && action.type !== 'IDLE') {
+    //     putDownEntity(game, ant);
+    //   }
+    // }
   }
 
   // then handle the actually-assigned action
@@ -551,6 +517,7 @@ const performAction = (
           ant.calories += 1; // calories don't go down if you fully idle
         }
       }
+      ant.prevPosition = {...ant.position};
       break;
     }
     case 'MOVE': {
@@ -674,6 +641,31 @@ const performAction = (
       }
       if (ant.holding == null) {
         pickUpEntity(game, ant, entityToPickup);
+        if (entityToPickup.toLift > 1) {
+          const bigEntity = entityToPickup;
+          const targetLoc = {
+            position: {
+              x: Math.round(bigEntity.position.x + bigEntity.width / 2),
+              y: bigEntity.lifted ? bigEntity.position.y - 1 : bigEntity.position.y,
+            },
+            width: 1,
+            height: 1,
+          };
+          ant.taskStack = [];
+          ant.taskIndex = -1; // HACK to switch tasks inside a task
+          const goToLocationBehavior = createGoToLocationBehavior(targetLoc);
+          ant.task = {
+            name: 'Picking up ' + bigEntity.type,
+            repeating: false,
+            behaviorQueue: [
+              goToLocationBehavior,
+              {
+                type: 'SWITCH_TASK',
+                task: 'Holding and Idle'
+              }
+            ],
+          };
+        }
       }
       break;
     }
