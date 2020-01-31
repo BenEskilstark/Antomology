@@ -1,4 +1,24 @@
 
+ - - - - - - PHEROMONE GRAPH - - - - - -
+ - location-node, pheromone-edge type representation
+ - sidebar UI
+    - status cards for edges saying start and end
+    - status cards for locations showing incoming and outgoing edges
+    - also giving task editor for what ants do there
+ - pheromone brush
+    - force pheromone trails to be continuous as you drag
+    - call out disconnected edges and let you resume them
+    - detect pheromone starting/ending on locations and update graph representation
+ - world UX
+    - handling attaching edges to co-located locations
+ - "edge" cases
+    - queen laying eggs
+    - food search random walk
+    - digging out areas
+ - future features
+    - pheromones fading vs being permanent
+    - ants that lay trails themselves
+
  - - - - - - LIFTNG BIG ENTITIES - - - - - -
  - picking up:
     - ants should put down when they are re-assigned/go away
