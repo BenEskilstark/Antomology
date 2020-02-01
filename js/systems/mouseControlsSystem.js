@@ -44,12 +44,40 @@ const initMouseControlsSystem = (store) => {
     if (state.game == null) return;
     const gridPos = getClickedPos(state.game, ev);
     if (gridPos == null) return;
+    const {game} = state;
 
     if (ev.button == 0) { // left click
       dispatch({type: 'SET_MOUSE_DOWN', isLeft: true, isDown: true, downPos: gridPos});
-    } else if (ev.button == 2) { // right click
-      dispatch({type: 'SET_MOUSE_DOWN', isLeft: false, isDown: true, downPos: gridPos});
+      if (game.userMode == 'MARK_TRAIL') {
+        const clickedEntities = lookupInGrid(game.grid, gridPos)
+          .map(i => game.entities[i]);
+        const clickedLocations = clickedEntities
+          .filter(e => e.type === 'LOCATION');
+        const clickedPheromones = clickedEntities
+          .filter(e => e.type === 'PHEROMONE');
 
+        if (clickedLocations.length > 0) {
+          // TODO distinguish which location you're starting from/ending on
+          const loc = clickedLocations[0];
+          if (game.curEdge == null) {
+            dispatch({type: 'CREATE_EDGE', start: loc.id});
+          } else {
+            const edge = game.edges[game.curEdge];
+            dispatch({
+              type: 'UPDATE_EDGE', id: edge.id, edge: {...edge, end: loc.id}
+            });
+          }
+        } else if (clickedPheromones.length > 0) {
+          const edge = game.edges[clickedPheromones[0].edge];
+          if (!edge.end) {
+            dispatch({type: 'SET_CUR_EDGE', curEdge: edge.id});
+          }
+        }
+      }
+    } else if (ev.button == 2) { // right click
+      dispatch(
+        {type: 'SET_MOUSE_DOWN', isLeft: false, isDown: true, downPos: gridPos},
+      );
     }
   }
 
@@ -84,11 +112,14 @@ const handleMouseMove = (
 ): void => {
   if (state.game.mouse.isLeftDown && state.game.userMode === 'MARK_TRAIL') {
     dispatch({type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos});
+    if (state.game.curEdge == null) {
+      return; // not creating an edge
+    }
     let prevPheromone = state.game.entities[state.game.prevPheromone];
     if (prevPheromone == null) {
       dispatch({
         type: 'CREATE_ENTITY',
-        entity: makePheromone(gridPos, theta: 0, 1),
+        entity: makePheromone(gridPos, theta: 0, 1, state.game.curEdge),
       });
       return;
     }
@@ -114,7 +145,7 @@ const handleMouseMove = (
     } else {
       dispatch({
         type: 'CREATE_ENTITY',
-        entity: makePheromone(gridPos, theta, 1),
+        entity: makePheromone(gridPos, theta, 1, state.game.curEdge),
       });
     }
   } else if (state.game.mouse.isLeftDown && state.game.userMode === 'PAN') {
@@ -123,11 +154,10 @@ const handleMouseMove = (
       dispatch({type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos});
       return;
     }
-    // const nextViewPosPixel = subtract(gridToCanvas(state.game, state.game.viewPos), dragDiff);
-    // const nextViewPos = canvasToGrid(state.game, nextViewPosPixel);
-    const dragDiff = multiply(dragDiffPixel,
-      {x: config.width / config.canvasWidth, y: -1 * config.height / config.canvasHeight}
-    );
+    const dragDiff = multiply(dragDiffPixel,{
+      x: config.width / config.canvasWidth,
+      y: -1 * config.height / config.canvasHeight,
+    });
     const nextViewPos = subtract(state.game.viewPos, dragDiff);
     if (
       nextViewPos.x < 0 || nextViewPos.y < 0 ||
@@ -152,10 +182,11 @@ const handleLeftClick = (
   dispatch: Dispatch,
   gridPos: Vector,
 ): void => {
+  const {game} = state;
   // handle creating locations
-  if (state.game.userMode === 'CREATE_LOCATION') {
-    const dimensions = subtract(gridPos, state.game.mouse.downPos);
-    const locPosition = {...state.game.mouse.downPos};
+  if (game.userMode === 'CREATE_LOCATION') {
+    const dimensions = subtract(gridPos, game.mouse.downPos);
+    const locPosition = {...game.mouse.downPos};
     if (dimensions.x < 0) {
       locPosition.x = locPosition.x + dimensions.x;
     }
@@ -163,25 +194,25 @@ const handleLeftClick = (
       locPosition.y = locPosition.y + dimensions.y;
     }
     const newLocation = makeLocation(
-      state.game.nextLocationName,
+      game.nextLocationName,
       Math.abs(dimensions.x) + 1, // off by one
       Math.abs(dimensions.y) + 1,
       locPosition,
     );
     dispatch({type: 'CREATE_ENTITY', entity: newLocation});
     return;
-  } else if (state.game.userMode === 'SELECT') {
+  } else if (game.userMode === 'SELECT') {
     // handle selecting ants
-    const {mouse} = state.game;
+    const {mouse} = game;
     const dims = subtract(mouse.curPos, mouse.downPos);
     const x = dims.x > 0 ? mouse.downPos.x : mouse.curPos.x;
     const y = dims.y > 0 ? mouse.downPos.y : mouse.curPos.y;
     const marqueeLocation =
       {position: {x, y}, width: Math.abs(dims.x) + 1, height: Math.abs(dims.y) + 1};
-    let clickedEntities = entitiesInMarquee(state.game, marqueeLocation)
+    let clickedEntities = entitiesInMarquee(game, marqueeLocation)
       .filter(e => config.selectableEntities.includes(e.type))
       .map(e => e.id);
-    const obeliskID = state.game.OBELISK[0];
+    const obeliskID = game.OBELISK[0];
     if (clickedEntities.includes(obeliskID)) {
       clickedEntities = [obeliskID];
     }
@@ -190,11 +221,27 @@ const handleLeftClick = (
         type: 'SET_SELECTED_ENTITIES',
         entityIDs: clickedEntities.slice(0, config.maxSelectableAnts),
       });
-    } else if (state.game.selectedEntities.length > 0) {
+    } else if (game.selectedEntities.length > 0) {
       dispatch({
         type: 'SET_SELECTED_ENTITIES',
         entityIDs: [],
       });
+    }
+  } else if (game.userMode === 'MARK_TRAIL') {
+    const clickedEntities = lookupInGrid(game.grid, gridPos)
+      .map(i => game.entities[i]);
+    const clickedLocations = clickedEntities
+      .filter(e => e.type === 'LOCATION');
+
+    if (clickedLocations.length > 0 && game.curEdge != null) {
+      // TODO distinguish which location you're starting from/ending on
+      const loc = clickedLocations[0];
+      const edge = game.edges[game.curEdge];
+      dispatch({
+        type: 'UPDATE_EDGE', id: edge.id, edge: {...edge, end: loc.id}
+      });
+    } else {
+      dispatch({type: 'SET_CUR_EDGE', curEdge: null});
     }
   }
 };

@@ -38,6 +38,8 @@ function StatusCard(props) {
     case 'OBELISK':
       card = React.createElement(TaskEditor, props);
       break;
+    case 'LOCATION':
+      card = React.createElement(LocationCard, props);
   }
 
   return card;
@@ -56,7 +58,6 @@ function AntCard(props) {
   return React.createElement(
     'div',
     {
-      className: 'antCard',
       style: {
         border: '1px solid black'
       }
@@ -134,7 +135,6 @@ function EggCard(props) {
   return React.createElement(
     'div',
     {
-      className: 'antCard',
       style: {
         border: '1px solid black'
       }
@@ -183,7 +183,6 @@ function LarvaCard(props) {
   return React.createElement(
     'div',
     {
-      className: 'antCard',
       style: {
         border: '1px solid black'
       }
@@ -237,7 +236,6 @@ function PupaCard(props) {
   return React.createElement(
     'div',
     {
-      className: 'antCard',
       style: {
         border: '1px solid black'
       }
@@ -270,6 +268,97 @@ function PupaCard(props) {
       ' ANT'
     ),
     React.createElement(DeselectButton, props)
+  );
+}
+
+function LocationCard(props) {
+  var state = props.state,
+      dispatch = props.dispatch,
+      entity = props.entity;
+
+  var game = state.game;
+  var loc = entity;
+
+  var incomingEdgeInfos = loc.incomingEdges.map(function (id) {
+    return game.edges[id];
+  }).map(function (edge) {
+    return React.createElement(
+      'div',
+      {
+        style: { paddingLeft: 10 },
+        id: "inc_" + edge.id
+      },
+      'Source: ',
+      edge.start != null ? game.entities[edge.start].name : 'Not Set'
+    );
+  });
+  var outgoingEdgeInfos = loc.outgoingEdges.map(function (id) {
+    return game.edges[id];
+  }).map(function (edge) {
+    return React.createElement(
+      'div',
+      {
+        style: { paddingLeft: 10 },
+        id: "out_" + edge.id
+      },
+      React.createElement(
+        'div',
+        null,
+        'Destination: ',
+        edge.end != null ? game.entities[edge.end].name : 'Not Set'
+      ),
+      React.createElement(
+        'div',
+        null,
+        'Condition: TODO'
+      )
+    );
+  });
+
+  return React.createElement(
+    'div',
+    {
+      style: {
+        border: '1px solid black'
+      }
+    },
+    React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'b',
+        null,
+        'LOCATION:'
+      ),
+      React.createElement('input', { type: 'text', value: loc.name,
+        onChange: function onChange(ev) {
+          dispatch({
+            type: 'UPDATE_LOCATION_NAME',
+            id: loc.id,
+            newName: ev.target.value
+          });
+        } })
+    ),
+    React.createElement(
+      'div',
+      null,
+      'Incoming Trails:',
+      React.createElement(
+        'div',
+        null,
+        incomingEdgeInfos
+      )
+    ),
+    React.createElement(
+      'div',
+      null,
+      'Outgoing Trails:',
+      React.createElement(
+        'div',
+        null,
+        outgoingEdgeInfos
+      )
+    )
   );
 }
 

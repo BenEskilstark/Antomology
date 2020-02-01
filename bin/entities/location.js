@@ -8,6 +8,8 @@ var _require = require('./entity'),
 var makeLocation = function makeLocation(name, width, height, position) {
   return _extends({}, makeEntity('LOCATION', width, height, position), {
     name: name,
+    incomingEdges: [],
+    outgoingEdges: [],
     visible: true
   });
 };

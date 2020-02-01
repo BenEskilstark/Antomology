@@ -3,12 +3,13 @@
 const {makeEntity} = require('./entity');
 const {config} = require('../config');
 
-import type {Size, Radian, Entity, Pheromone, Vector} from '../types';
+import type {Size, Radian, Entity, Pheromone, Vector, EdgeID} from '../types';
 
 const makePheromone = (
   position: Vector,
   theta: Radian,
   category: number,
+  edge: EdgeID,
   quantity: ?number,
 ): Pheromone => {
   const amount = quantity != null ? quantity : config.pheromoneStartingQuantity;
@@ -17,6 +18,7 @@ const makePheromone = (
     theta,
     category,
     quantity: amount,
+    edge,
     visible: true,
   };
 };

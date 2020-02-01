@@ -60,7 +60,10 @@ export type GameState = {
 
   // UI-based partial state
   nextLocationName: string,
-  prevPheromone: EntityID,
+  prevPheromone: ?EntityID,
+  curEdge: ?EdgeID,
+
+  edges: {[EdgeID]: Edge},
 
   // world info in grid coords
   worldWidth: number,
@@ -128,6 +131,19 @@ export type Entity = {
   spriteSet: string,
 };
 
+export type EdgeID = number;
+export type Edge = {
+  id: EdgeID,
+  start: EntityID,
+  end: ?EntityID,
+  condition: ?Condition,
+};
+export type Location = Entity & {
+  name: string,
+  incomingEdges: Array<EdgeID>,
+  outgoingEdges: Array<EdgeID>,
+};
+
 export type Dirt = Entity;
 export type Egg = Entity & {
   subType: AntSubType,
@@ -140,9 +156,6 @@ export type Larva = Entity & {
 export type Pupa = Entity & {
   subType: AntSubType,
 };
-export type Location = Entity & {
-  name: string,
-};
 export type Food = Entity & {
   name: string,
   calories: number,
@@ -150,6 +163,7 @@ export type Food = Entity & {
 export type Pheromone = Entity & {
   category: number, // so there can be different kinds of trails
   quantity: number,
+  edge: EdgeID,
 };
 export type Background = Entity & {
   subType: 'SKY' | 'DIRT'
@@ -259,7 +273,8 @@ export type Action =
   {type: 'DESTROY_ENTITY', id: EntityID} |
   {type: 'UPDATE_TASK', task: Task, originalName: string} |
   {type: 'CREATE_TASK', task: Task} |
-  {TYPE: 'UPDATE_NEXT_LOCATION_NAME', name: string} |
+  {type: 'UPDATE_LOCATION_NAME', id: EntityID, newName: string} |
+  {type: 'UPDATE_NEXT_LOCATION_NAME', name: string} |
   {type: 'ASSIGN_TASK', task: Task, ants: Array<EntityID>} |
   {type: 'SET_USER_MODE', userMode: UserMode} |
   {type: 'SET_ANT_MODE', antMode: AntMode} |
@@ -268,5 +283,8 @@ export type Action =
   {type: 'SET_PREV_PHEROMONE', id: EntityID} |
   {type: 'SET_VIEW_POS', viewPos: Vector} |
   {type: 'ZOOM', out: number} |
+  {type: 'CREATE_EDGE', start: EntityID} |
+  {type: 'UPDATE_EDGE', id: EdgeID, edge: Edge} |
+  {type: 'SET_CUR_EDGE', curEdge: EdgeID} |
   {type: 'SET_MOUSE_POS', curPos: Vector, curPixel: Vector};
 

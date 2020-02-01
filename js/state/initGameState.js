@@ -171,8 +171,13 @@ const baseState = (worldWidth: number, worldHeight: number): GameState => {
     tickInterval: null,
     antMode: 'PICKUP',
     userMode: 'SELECT',
+
     nextLocationName: 'Give Locations Unique Names',
     prevPheromone: null,
+    curEdge: null,
+
+    edges: {},
+
     mouse: {
       isLeftDown: false,
       isRightDown: false,

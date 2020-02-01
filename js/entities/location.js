@@ -17,6 +17,8 @@ const makeLocation = (
       position,
     ),
     name,
+    incomingEdges: [],
+    outgoingEdges: [],
     visible: true,
   };
 };

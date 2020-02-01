@@ -44,6 +44,7 @@ var rootReducer = function rootReducer(state, action) {
     case 'SET_SELECTED_ENTITIES':
     case 'CREATE_TASK':
     case 'UPDATE_TASK':
+    case 'UPDATE_LOCATION_NAME':
     case 'UPDATE_NEXT_LOCATION_NAME':
     case 'ASSIGN_TASK':
     case 'SET_USER_MODE':
@@ -52,6 +53,9 @@ var rootReducer = function rootReducer(state, action) {
     case 'SET_MOUSE_POS':
     case 'UPDATE_THETA':
     case 'SET_PREV_PHEROMONE':
+    case 'CREATE_EDGE':
+    case 'UPDATE_EDGE':
+    case 'SET_CUR_EDGE':
     case 'SET_VIEW_POS':
     case 'ZOOM':
       if (!state.game) return state;

@@ -35,6 +35,8 @@ function StatusCard(props: Props): React.Node {
     case 'OBELISK':
       card = <TaskEditor {...props} />;
       break;
+    case 'LOCATION':
+      card = <LocationCard {...props} />;
   }
 
   return card;
@@ -52,7 +54,6 @@ function AntCard(props: Props): React.Node {
 
   return (
     <div
-      className="antCard"
       style={{
         border: '1px solid black',
       }}
@@ -97,7 +98,6 @@ function EggCard(props: Props): React.Node {
 
   return (
     <div
-      className="antCard"
       style={{
         border: '1px solid black',
       }}
@@ -123,7 +123,6 @@ function LarvaCard(props: Props): React.Node {
 
   return (
     <div
-      className="antCard"
       style={{
         border: '1px solid black',
       }}
@@ -144,7 +143,6 @@ function PupaCard(props: Props): React.Node {
 
   return (
     <div
-      className="antCard"
       style={{
         border: '1px solid black',
       }}
@@ -154,6 +152,73 @@ function PupaCard(props: Props): React.Node {
       <div>HP: 10/10</div>
       <div>Will become: {pupa.subType} ANT</div>
       <DeselectButton {...props} />
+    </div>
+  );
+}
+
+function LocationCard(props: Props): React.Node {
+  const {state, dispatch, entity} = props;
+  const game = state.game;
+  const loc = entity;
+
+  const incomingEdgeInfos = loc.incomingEdges
+    .map(id => game.edges[id])
+    .map(edge => {
+      return (
+        <div
+          style={{paddingLeft: 10}}
+          key={"inc_" + edge.id}
+        >
+          Source: {edge.start != null ? game.entities[edge.start].name : 'Not Set'}
+        </div>
+      );
+    });
+  const outgoingEdgeInfos = loc.outgoingEdges
+    .map(id => game.edges[id])
+    .map(edge => {
+      return (
+        <div
+          style={{paddingLeft: 10}}
+          key={"out_" + edge.id}
+        >
+          <div>
+            Destination: {edge.end != null ? game.entities[edge.end].name : 'Not Set'}
+          </div>
+          <div>
+            Condition: TODO
+          </div>
+        </div>
+      );
+    });
+
+  return (
+    <div
+      style={{
+        border: '1px solid black',
+      }}
+    >
+      <div>
+        <b>LOCATION:</b><input type='text' value={loc.name}
+          onChange={(ev) => {
+            dispatch({
+              type: 'UPDATE_LOCATION_NAME',
+              id: loc.id,
+              newName: ev.target.value,
+            });
+          }} />
+      </div>
+      <div>
+        Incoming Trails:
+        <div>
+          {incomingEdgeInfos}
+        </div>
+      </div>
+      <div>
+        Outgoing Trails:
+        <div>
+          {outgoingEdgeInfos}
+        </div>
+      </div>
     </div>
   );
 }

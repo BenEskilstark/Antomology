@@ -138,23 +138,23 @@ const handleTick = (game: GameState): GameState => {
   updateAntLifeCycles(game);
 
   // update pheromones
-  for (const id of game.PHEROMONE) {
-    const pheromone = game.entities[id];
-    const antsHere = lookupInGrid(game.grid, pheromone.position)
-      .map(i => game.entities[i])
-      .filter(e => e.type === 'ANT')
-      .length > 0;
-    if (antsHere) {
-      pheromone.quantity = Math.min(
-        pheromone.quantity + 1, config.pheromoneMaxQuantity,
-      );
-    } else {
-      pheromone.quantity -= 1;
-    }
-    if (pheromone.quantity <= 0) {
-      removeEntity(game, pheromone);
-    }
-  }
+  // for (const id of game.PHEROMONE) {
+  //   const pheromone = game.entities[id];
+  //   const antsHere = lookupInGrid(game.grid, pheromone.position)
+  //     .map(i => game.entities[i])
+  //     .filter(e => e.type === 'ANT')
+  //     .length > 0;
+  //   if (antsHere) {
+  //     pheromone.quantity = Math.min(
+  //       pheromone.quantity + 1, config.pheromoneMaxQuantity,
+  //     );
+  //   } else {
+  //     pheromone.quantity -= 1;
+  //   }
+  //   if (pheromone.quantity <= 0) {
+  //     removeEntity(game, pheromone);
+  //   }
+  // }
 
   // compute gravity
   for (const entityType of config.fallingEntities) {

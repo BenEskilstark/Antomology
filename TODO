@@ -1,22 +1,28 @@
 
  - - - - - - PHEROMONE GRAPH - - - - - -
- - location-node, pheromone-edge type representation
+ - selectable pheromones that highlight the whole edge
  - sidebar UI
     - status cards for edges saying start and end
-    - status cards for locations showing incoming and outgoing edges
     - also giving task editor for what ants do there
  - pheromone brush
     - force pheromone trails to be continuous as you drag
-    - call out disconnected edges and let you resume them
-    - detect pheromone starting/ending on locations and update graph representation
+    - only let you resume pheromone trails from the end
+ - simulation
+    - ants do the task of the location they're at
+    - sensible base task for locations -- move randomly until X or for Y steps
+    - initially just randomly select outgoing edge to take
+    - locate start of selected outgoing edge
+    - implement conditional checking for outgoing edges
  - world UX
     - handling attaching edges to co-located locations
+    - call out disconnected edges
  - "edge" cases
     - queen laying eggs
     - food search random walk
     - digging out areas
  - future features
     - pheromones fading vs being permanent
+    - clicking edge infos selects (and centers) that location
     - ants that lay trails themselves
 
  - - - - - - LIFTNG BIG ENTITIES - - - - - -
@@ -27,6 +33,7 @@
     - ants need to be able to push held entity up against gravity
     - how to compute ants falling off
  - putting down:
+    - ants should get out of the way and let it fall
 
  - - - - - - WORLD - - - - - -
  - fix food system to spawn larger food less frequently
@@ -116,6 +123,7 @@
  - replace collides function with fastCollidesWith in tickReducer
  - antBlockingEntities should be renamed to moveBlockingEntities
  - fix or remove the concept of "blockers"
+ - passing around location names instead of ids is V dangerous
 
 
  - - - - - - BUGS - - - - - -

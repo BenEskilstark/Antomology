@@ -209,6 +209,7 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
   ctx.translate(entity.position.x + entity.width / 2, entity.position.y + entity.height / 2);
   ctx.rotate(entity.theta);
   ctx.translate(-entity.width / 2, -entity.height / 2);
+  ctx.lineWidth = px;
 
   // handle fog
   if (!entity.visible && !noRecursion) {
@@ -345,7 +346,12 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
     case 'LOCATION':
       {
         ctx.fillStyle = 'rgba(50, 50, 50, 0.2)';
+        ctx.strokeStyle = 'rgba(50, 50, 50, 0.2)';
+        if (state.game.selectedEntities.includes(entity.id)) {
+          ctx.strokeStyle = '#FF6347';
+        }
         ctx.fillRect(0, 0, entity.width, entity.height);
+        ctx.strokeRect(0, 0, entity.width, entity.height);
         // gotta flip back for location label
         ctx.save();
         ctx.scale(1, -1);
@@ -414,6 +420,10 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
         ctx.save();
         var alpha = 0.75 * (entity.quantity / config.pheromoneMaxQuantity) + 0.25;
         ctx.fillStyle = "rgba(0, 200, 0, " + alpha + ")";
+        ctx.strokeStyle = "rgba(0, 200, 0, " + alpha + ")";
+        if (state.game.selectedEntities.includes(entity.id)) {
+          ctx.strokeStyle = '#FF6347';
+        }
         // relative to center
         ctx.translate(entity.width / 2, entity.height / 2);
         var _radius3 = entity.width / 2;
@@ -427,6 +437,7 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
         ctx.lineTo(_radius3 / 3, 2 * _radius3 / 3);
         ctx.closePath();
         ctx.fill();
+        ctx.stroke();
         // shift back
         ctx.translate(-entity.width / 2, -entity.height / 2);
         ctx.restore();

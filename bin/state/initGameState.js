@@ -173,8 +173,13 @@ var baseState = function baseState(worldWidth, worldHeight) {
     tickInterval: null,
     antMode: 'PICKUP',
     userMode: 'SELECT',
+
     nextLocationName: 'Give Locations Unique Names',
     prevPheromone: null,
+    curEdge: null,
+
+    edges: {},
+
     mouse: {
       isLeftDown: false,
       isRightDown: false,

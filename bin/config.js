@@ -33,7 +33,7 @@ var config = {
 
   // selection
   maxSelectableAnts: 6,
-  selectableEntities: ['ANT', 'EGG', 'LARVA', 'PUPA', 'OBELISK'],
+  selectableEntities: ['ANT', 'EGG', 'LARVA', 'PUPA', 'OBELISK', 'LOCATION', 'PHEROMONE'],
 
   // ant-specific values
   antPickupEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'DEAD_ANT', 'OBELISK'],

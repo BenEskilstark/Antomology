@@ -141,7 +141,7 @@ const renderEntity = (
   );
   ctx.rotate(entity.theta);
   ctx.translate(-entity.width / 2, -entity.height / 2);
-
+  ctx.lineWidth = px;
 
   // handle fog
   if (!entity.visible && !noRecursion) {
@@ -278,7 +278,12 @@ const renderEntity = (
     }
     case 'LOCATION': {
       ctx.fillStyle = 'rgba(50, 50, 50, 0.2)';
+      ctx.strokeStyle = 'rgba(50, 50, 50, 0.2)';
+      if (state.game.selectedEntities.includes(entity.id)) {
+        ctx.strokeStyle = '#FF6347';
+      }
       ctx.fillRect(0, 0, entity.width, entity.height);
+      ctx.strokeRect(0, 0, entity.width, entity.height);
       // gotta flip back for location label
       ctx.save();
       ctx.scale(1, -1);
@@ -345,6 +350,10 @@ const renderEntity = (
       ctx.save();
       const alpha = 0.75 * (entity.quantity / config.pheromoneMaxQuantity) + 0.25;
       ctx.fillStyle = "rgba(0, 200, 0, " + alpha + ")";
+      ctx.strokeStyle = "rgba(0, 200, 0, " + alpha + ")";
+      if (state.game.selectedEntities.includes(entity.id)) {
+        ctx.strokeStyle = '#FF6347';
+      }
       // relative to center
       ctx.translate(entity.width / 2, entity.height / 2);
       const radius = entity.width / 2;
@@ -358,6 +367,7 @@ const renderEntity = (
       ctx.lineTo(radius / 3, 2 * radius / 3);
       ctx.closePath();
       ctx.fill();
+      ctx.stroke();
       // shift back
       ctx.translate(-entity.width / 2, -entity.height / 2);
       ctx.restore();

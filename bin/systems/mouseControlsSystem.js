@@ -66,10 +66,41 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
     if (state.game == null) return;
     var gridPos = getClickedPos(state.game, ev);
     if (gridPos == null) return;
+    var game = state.game;
+
 
     if (ev.button == 0) {
       // left click
       dispatch({ type: 'SET_MOUSE_DOWN', isLeft: true, isDown: true, downPos: gridPos });
+      if (game.userMode == 'MARK_TRAIL') {
+        var clickedEntities = lookupInGrid(game.grid, gridPos).map(function (i) {
+          return game.entities[i];
+        });
+        var clickedLocations = clickedEntities.filter(function (e) {
+          return e.type === 'LOCATION';
+        });
+        var clickedPheromones = clickedEntities.filter(function (e) {
+          return e.type === 'PHEROMONE';
+        });
+
+        if (clickedLocations.length > 0) {
+          // TODO distinguish which location you're starting from/ending on
+          var loc = clickedLocations[0];
+          if (game.curEdge == null) {
+            dispatch({ type: 'CREATE_EDGE', start: loc.id });
+          } else {
+            var edge = game.edges[game.curEdge];
+            dispatch({
+              type: 'UPDATE_EDGE', id: edge.id, edge: _extends({}, edge, { end: loc.id })
+            });
+          }
+        } else if (clickedPheromones.length > 0) {
+          var _edge = game.edges[clickedPheromones[0].edge];
+          if (!_edge.end) {
+            dispatch({ type: 'SET_CUR_EDGE', curEdge: _edge.id });
+          }
+        }
+      }
     } else if (ev.button == 2) {
       // right click
       dispatch({ type: 'SET_MOUSE_DOWN', isLeft: false, isDown: true, downPos: gridPos });
@@ -101,11 +132,14 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
 var handleMouseMove = function handleMouseMove(state, dispatch, gridPos, canvasPos) {
   if (state.game.mouse.isLeftDown && state.game.userMode === 'MARK_TRAIL') {
     dispatch({ type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos });
+    if (state.game.curEdge == null) {
+      return; // not creating an edge
+    }
     var prevPheromone = state.game.entities[state.game.prevPheromone];
     if (prevPheromone == null) {
       dispatch({
         type: 'CREATE_ENTITY',
-        entity: makePheromone(gridPos, theta, 1)
+        entity: makePheromone(gridPos, theta, 1, state.game.curEdge)
       });
       return;
     }
@@ -133,7 +167,7 @@ var handleMouseMove = function handleMouseMove(state, dispatch, gridPos, canvasP
     } else {
       dispatch({
         type: 'CREATE_ENTITY',
-        entity: makePheromone(gridPos, theta, 1)
+        entity: makePheromone(gridPos, theta, 1, state.game.curEdge)
       });
     }
   } else if (state.game.mouse.isLeftDown && state.game.userMode === 'PAN') {
@@ -142,9 +176,10 @@ var handleMouseMove = function handleMouseMove(state, dispatch, gridPos, canvasP
       dispatch({ type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos });
       return;
     }
-    // const nextViewPosPixel = subtract(gridToCanvas(state.game, state.game.viewPos), dragDiff);
-    // const nextViewPos = canvasToGrid(state.game, nextViewPosPixel);
-    var dragDiff = multiply(dragDiffPixel, { x: config.width / config.canvasWidth, y: -1 * config.height / config.canvasHeight });
+    var dragDiff = multiply(dragDiffPixel, {
+      x: config.width / config.canvasWidth,
+      y: -1 * config.height / config.canvasHeight
+    });
     var nextViewPos = subtract(state.game.viewPos, dragDiff);
     if (nextViewPos.x < 0 || nextViewPos.y < 0 || nextViewPos.x + config.width > state.game.worldWidth || nextViewPos.y + config.height > state.game.worldHeight) {
       dispatch({ type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos });
@@ -161,34 +196,36 @@ var handleMouseMove = function handleMouseMove(state, dispatch, gridPos, canvasP
 ////////////////////////////////////////////////////////////////////////////
 
 var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
+  var game = state.game;
   // handle creating locations
-  if (state.game.userMode === 'CREATE_LOCATION') {
-    var dimensions = subtract(gridPos, state.game.mouse.downPos);
-    var locPosition = _extends({}, state.game.mouse.downPos);
+
+  if (game.userMode === 'CREATE_LOCATION') {
+    var dimensions = subtract(gridPos, game.mouse.downPos);
+    var locPosition = _extends({}, game.mouse.downPos);
     if (dimensions.x < 0) {
       locPosition.x = locPosition.x + dimensions.x;
     }
     if (dimensions.y < 0) {
       locPosition.y = locPosition.y + dimensions.y;
     }
-    var newLocation = makeLocation(state.game.nextLocationName, Math.abs(dimensions.x) + 1, // off by one
+    var newLocation = makeLocation(game.nextLocationName, Math.abs(dimensions.x) + 1, // off by one
     Math.abs(dimensions.y) + 1, locPosition);
     dispatch({ type: 'CREATE_ENTITY', entity: newLocation });
     return;
-  } else if (state.game.userMode === 'SELECT') {
+  } else if (game.userMode === 'SELECT') {
     // handle selecting ants
-    var mouse = state.game.mouse;
+    var mouse = game.mouse;
 
     var dims = subtract(mouse.curPos, mouse.downPos);
     var x = dims.x > 0 ? mouse.downPos.x : mouse.curPos.x;
     var y = dims.y > 0 ? mouse.downPos.y : mouse.curPos.y;
     var marqueeLocation = { position: { x: x, y: y }, width: Math.abs(dims.x) + 1, height: Math.abs(dims.y) + 1 };
-    var clickedEntities = entitiesInMarquee(state.game, marqueeLocation).filter(function (e) {
+    var clickedEntities = entitiesInMarquee(game, marqueeLocation).filter(function (e) {
       return config.selectableEntities.includes(e.type);
     }).map(function (e) {
       return e.id;
     });
-    var obeliskID = state.game.OBELISK[0];
+    var obeliskID = game.OBELISK[0];
     if (clickedEntities.includes(obeliskID)) {
       clickedEntities = [obeliskID];
     }
@@ -197,11 +234,29 @@ var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
         type: 'SET_SELECTED_ENTITIES',
         entityIDs: clickedEntities.slice(0, config.maxSelectableAnts)
       });
-    } else if (state.game.selectedEntities.length > 0) {
+    } else if (game.selectedEntities.length > 0) {
       dispatch({
         type: 'SET_SELECTED_ENTITIES',
         entityIDs: []
       });
+    }
+  } else if (game.userMode === 'MARK_TRAIL') {
+    var _clickedEntities = lookupInGrid(game.grid, gridPos).map(function (i) {
+      return game.entities[i];
+    });
+    var clickedLocations = _clickedEntities.filter(function (e) {
+      return e.type === 'LOCATION';
+    });
+
+    if (clickedLocations.length > 0 && game.curEdge != null) {
+      // TODO distinguish which location you're starting from/ending on
+      var loc = clickedLocations[0];
+      var edge = game.edges[game.curEdge];
+      dispatch({
+        type: 'UPDATE_EDGE', id: edge.id, edge: _extends({}, edge, { end: loc.id })
+      });
+    } else {
+      dispatch({ type: 'SET_CUR_EDGE', curEdge: null });
     }
   }
 };

@@ -14,6 +14,9 @@ var _require2 = require('../utils/stateHelpers'),
 var _require3 = require('../utils/helpers'),
     clamp = _require3.clamp;
 
+var _require4 = require('../entities/edge'),
+    createEdge = _require4.createEdge;
+
 var gameReducer = function gameReducer(game, action) {
   switch (action.type) {
     case 'CREATE_ENTITY':
@@ -53,6 +56,36 @@ var gameReducer = function gameReducer(game, action) {
           selectedEntities: action.entityIDs
         });
       }
+    case 'CREATE_EDGE':
+      {
+        var start = action.start;
+
+        var newEdge = createEdge(start);
+        game.edges[newEdge.id] = newEdge;
+        game.curEdge = newEdge.id;
+        game.entities[start].outgoingEdges.push(newEdge.id);
+        return game;
+      }
+    case 'UPDATE_EDGE':
+      {
+        var _id = action.id,
+            edge = action.edge;
+
+        if (game.edges[_id].end == null && edge.end != null) {
+          game.entities[edge.end].incomingEdges.push(_id);
+        }
+        game.edges[_id] = edge;
+        game.curEdge = null;
+        return game;
+      }
+    case 'SET_CUR_EDGE':
+      {
+        var curEdge = action.curEdge;
+
+        return _extends({}, game, {
+          curEdge: curEdge
+        });
+      }
     case 'CREATE_TASK':
       {
         var task = action.task;
@@ -70,6 +103,14 @@ var gameReducer = function gameReducer(game, action) {
         })[0];
         oldTask.repeating = _task.repeating;
         oldTask.behaviorQueue = _task.behaviorQueue;
+        return game;
+      }
+    case 'UPDATE_LOCATION_NAME':
+      {
+        var _id2 = action.id,
+            newName = action.newName;
+
+        game.entities[_id2].name = newName;
         return game;
       }
     case 'UPDATE_NEXT_LOCATION_NAME':
@@ -90,11 +131,11 @@ var gameReducer = function gameReducer(game, action) {
 
         try {
           for (var _iterator = ants[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-            var _id = _step.value;
+            var _id3 = _step.value;
 
-            game.entities[_id].task = _task2;
-            game.entities[_id].taskStack = [];
-            game.entities[_id].taskIndex = 0;
+            game.entities[_id3].task = _task2;
+            game.entities[_id3].taskStack = [];
+            game.entities[_id3].taskIndex = 0;
           }
           // add the task to the task array
         } catch (err) {
@@ -138,20 +179,20 @@ var gameReducer = function gameReducer(game, action) {
       }
     case 'UPDATE_THETA':
       {
-        var _id2 = action.id,
+        var _id4 = action.id,
             theta = action.theta;
 
-        if (game.entities[_id2] != null) {
-          game.entities[_id2].theta = theta;
+        if (game.entities[_id4] != null) {
+          game.entities[_id4].theta = theta;
         }
         return game;
       }
     case 'SET_PREV_PHEROMONE':
       {
-        var _id3 = action.id;
+        var _id5 = action.id;
 
         return _extends({}, game, {
-          prevPheromone: _id3
+          prevPheromone: _id5
         });
       }
     case 'SET_MOUSE_DOWN':

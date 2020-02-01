@@ -194,62 +194,41 @@ var handleTick = function handleTick(game) {
   updateAntLifeCycles(game);
 
   // update pheromones
+  // for (const id of game.PHEROMONE) {
+  //   const pheromone = game.entities[id];
+  //   const antsHere = lookupInGrid(game.grid, pheromone.position)
+  //     .map(i => game.entities[i])
+  //     .filter(e => e.type === 'ANT')
+  //     .length > 0;
+  //   if (antsHere) {
+  //     pheromone.quantity = Math.min(
+  //       pheromone.quantity + 1, config.pheromoneMaxQuantity,
+  //     );
+  //   } else {
+  //     pheromone.quantity -= 1;
+  //   }
+  //   if (pheromone.quantity <= 0) {
+  //     removeEntity(game, pheromone);
+  //   }
+  // }
+
+  // compute gravity
   var _iteratorNormalCompletion3 = true;
   var _didIteratorError3 = false;
   var _iteratorError3 = undefined;
 
   try {
-    for (var _iterator3 = game.PHEROMONE[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-      var _id = _step3.value;
-
-      var pheromone = game.entities[_id];
-      var antsHere = lookupInGrid(game.grid, pheromone.position).map(function (i) {
-        return game.entities[i];
-      }).filter(function (e) {
-        return e.type === 'ANT';
-      }).length > 0;
-      if (antsHere) {
-        pheromone.quantity = Math.min(pheromone.quantity + 1, config.pheromoneMaxQuantity);
-      } else {
-        pheromone.quantity -= 1;
-      }
-      if (pheromone.quantity <= 0) {
-        removeEntity(game, pheromone);
-      }
-    }
-
-    // compute gravity
-  } catch (err) {
-    _didIteratorError3 = true;
-    _iteratorError3 = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion3 && _iterator3.return) {
-        _iterator3.return();
-      }
-    } finally {
-      if (_didIteratorError3) {
-        throw _iteratorError3;
-      }
-    }
-  }
-
-  var _iteratorNormalCompletion4 = true;
-  var _didIteratorError4 = false;
-  var _iteratorError4 = undefined;
-
-  try {
-    for (var _iterator4 = config.fallingEntities[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-      var entityType = _step4.value;
-      var _iteratorNormalCompletion8 = true;
-      var _didIteratorError8 = false;
-      var _iteratorError8 = undefined;
+    for (var _iterator3 = config.fallingEntities[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+      var entityType = _step3.value;
+      var _iteratorNormalCompletion7 = true;
+      var _didIteratorError7 = false;
+      var _iteratorError7 = undefined;
 
       try {
-        for (var _iterator8 = game[entityType][Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-          var _id2 = _step8.value;
+        for (var _iterator7 = game[entityType][Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+          var _id = _step7.value;
 
-          var entity = game.entities[_id2];
+          var entity = game.entities[_id];
           if (!entity.position) continue;
           // TODO lifted (big)entities not affected by gravity for now
           var isBig = entity.toLift > 1;
@@ -276,6 +255,64 @@ var handleTick = function handleTick(game) {
           }
         }
       } catch (err) {
+        _didIteratorError7 = true;
+        _iteratorError7 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion7 && _iterator7.return) {
+            _iterator7.return();
+          }
+        } finally {
+          if (_didIteratorError7) {
+            throw _iteratorError7;
+          }
+        }
+      }
+    }
+
+    // update FoW vision
+  } catch (err) {
+    _didIteratorError3 = true;
+    _iteratorError3 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion3 && _iterator3.return) {
+        _iterator3.return();
+      }
+    } finally {
+      if (_didIteratorError3) {
+        throw _iteratorError3;
+      }
+    }
+  }
+
+  var previouslyVisible = [];
+  var _iteratorNormalCompletion4 = true;
+  var _didIteratorError4 = false;
+  var _iteratorError4 = undefined;
+
+  try {
+    for (var _iterator4 = config.entitiesInFog[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+      var _entityType = _step4.value;
+      var _iteratorNormalCompletion8 = true;
+      var _didIteratorError8 = false;
+      var _iteratorError8 = undefined;
+
+      try {
+        for (var _iterator8 = game[_entityType][Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+          var _id2 = _step8.value;
+
+          var _entity = game.entities[_id2];
+          if (_entity.position == null) {
+            _entity.visible = true; // held entities are visible
+            continue;
+          }
+          if (_entity.visible) {
+            previouslyVisible.push(_entity);
+            _entity.visible = false;
+          }
+        }
+      } catch (err) {
         _didIteratorError8 = true;
         _iteratorError8 = err;
       } finally {
@@ -290,8 +327,6 @@ var handleTick = function handleTick(game) {
         }
       }
     }
-
-    // update FoW vision
   } catch (err) {
     _didIteratorError4 = true;
     _iteratorError4 = err;
@@ -307,46 +342,18 @@ var handleTick = function handleTick(game) {
     }
   }
 
-  var previouslyVisible = [];
   var _iteratorNormalCompletion5 = true;
   var _didIteratorError5 = false;
   var _iteratorError5 = undefined;
 
   try {
-    for (var _iterator5 = config.entitiesInFog[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-      var _entityType = _step5.value;
-      var _iteratorNormalCompletion9 = true;
-      var _didIteratorError9 = false;
-      var _iteratorError9 = undefined;
+    for (var _iterator5 = game.ANT[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+      var _id3 = _step5.value;
 
-      try {
-        for (var _iterator9 = game[_entityType][Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-          var _id3 = _step9.value;
-
-          var _entity = game.entities[_id3];
-          if (_entity.position == null) {
-            _entity.visible = true; // held entities are visible
-            continue;
-          }
-          if (_entity.visible) {
-            previouslyVisible.push(_entity);
-            _entity.visible = false;
-          }
-        }
-      } catch (err) {
-        _didIteratorError9 = true;
-        _iteratorError9 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion9 && _iterator9.return) {
-            _iterator9.return();
-          }
-        } finally {
-          if (_didIteratorError9) {
-            throw _iteratorError9;
-          }
-        }
-      }
+      var _ant2 = game.entities[_id3];
+      getEntitiesInRadius(game, _ant2.position, config.antVisionRadius).forEach(function (e) {
+        return e.visible = true;
+      });
     }
   } catch (err) {
     _didIteratorError5 = true;
@@ -368,13 +375,12 @@ var handleTick = function handleTick(game) {
   var _iteratorError6 = undefined;
 
   try {
-    for (var _iterator6 = game.ANT[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-      var _id4 = _step6.value;
+    for (var _iterator6 = previouslyVisible[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+      var _entity2 = _step6.value;
 
-      var _ant2 = game.entities[_id4];
-      getEntitiesInRadius(game, _ant2.position, config.antVisionRadius).forEach(function (e) {
-        return e.visible = true;
-      });
+      if (!_entity2.visible) {
+        _entity2.lastSeenPos = _entity2.position;
+      }
     }
   } catch (err) {
     _didIteratorError6 = true;
@@ -387,33 +393,6 @@ var handleTick = function handleTick(game) {
     } finally {
       if (_didIteratorError6) {
         throw _iteratorError6;
-      }
-    }
-  }
-
-  var _iteratorNormalCompletion7 = true;
-  var _didIteratorError7 = false;
-  var _iteratorError7 = undefined;
-
-  try {
-    for (var _iterator7 = previouslyVisible[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-      var _entity2 = _step7.value;
-
-      if (!_entity2.visible) {
-        _entity2.lastSeenPos = _entity2.position;
-      }
-    }
-  } catch (err) {
-    _didIteratorError7 = true;
-    _iteratorError7 = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion7 && _iterator7.return) {
-        _iterator7.return();
-      }
-    } finally {
-      if (_didIteratorError7) {
-        throw _iteratorError7;
       }
     }
   }
@@ -431,13 +410,13 @@ var handleTick = function handleTick(game) {
 
 var updateAntLifeCycles = function updateAntLifeCycles(game) {
   // update eggs
-  var _iteratorNormalCompletion10 = true;
-  var _didIteratorError10 = false;
-  var _iteratorError10 = undefined;
+  var _iteratorNormalCompletion9 = true;
+  var _didIteratorError9 = false;
+  var _iteratorError9 = undefined;
 
   try {
-    for (var _iterator10 = game.EGG[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-      var id = _step10.value;
+    for (var _iterator9 = game.EGG[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+      var id = _step9.value;
 
       var egg = game.entities[id];
       egg.age += 1;
@@ -448,6 +427,49 @@ var updateAntLifeCycles = function updateAntLifeCycles(game) {
     }
 
     // update larva
+  } catch (err) {
+    _didIteratorError9 = true;
+    _iteratorError9 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion9 && _iterator9.return) {
+        _iterator9.return();
+      }
+    } finally {
+      if (_didIteratorError9) {
+        throw _iteratorError9;
+      }
+    }
+  }
+
+  var _iteratorNormalCompletion10 = true;
+  var _didIteratorError10 = false;
+  var _iteratorError10 = undefined;
+
+  try {
+    for (var _iterator10 = game.LARVA[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+      var _id4 = _step10.value;
+
+      var larva = game.entities[_id4];
+      larva.age += 1;
+      if (!larva.alive) {
+        continue;
+      }
+
+      larva.calories -= 1;
+      // larva starvation
+      if (larva.calories <= 0) {
+        larva.alive = false;
+        continue;
+      }
+
+      if (larva.calories >= config.larvaEndCalories) {
+        game.entities[_id4] = _extends({}, makePupa(larva.position, larva.subType), { id: _id4 });
+        changeEntityType(game, game.entities[_id4], 'LARVA', 'PUPA');
+      }
+    }
+
+    // update pupa
   } catch (err) {
     _didIteratorError10 = true;
     _iteratorError10 = err;
@@ -468,29 +490,16 @@ var updateAntLifeCycles = function updateAntLifeCycles(game) {
   var _iteratorError11 = undefined;
 
   try {
-    for (var _iterator11 = game.LARVA[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+    for (var _iterator11 = game.PUPA[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
       var _id5 = _step11.value;
 
-      var larva = game.entities[_id5];
-      larva.age += 1;
-      if (!larva.alive) {
-        continue;
-      }
-
-      larva.calories -= 1;
-      // larva starvation
-      if (larva.calories <= 0) {
-        larva.alive = false;
-        continue;
-      }
-
-      if (larva.calories >= config.larvaEndCalories) {
-        game.entities[_id5] = _extends({}, makePupa(larva.position, larva.subType), { id: _id5 });
-        changeEntityType(game, game.entities[_id5], 'LARVA', 'PUPA');
+      var pupa = game.entities[_id5];
+      pupa.age += 1;
+      if (pupa.age > config.pupaHatchAge) {
+        game.entities[_id5] = _extends({}, makeAnt(pupa.position, pupa.subType), { id: _id5 });
+        changeEntityType(game, game.entities[_id5], 'PUPA', 'ANT');
       }
     }
-
-    // update pupa
   } catch (err) {
     _didIteratorError11 = true;
     _iteratorError11 = err;
@@ -502,36 +511,6 @@ var updateAntLifeCycles = function updateAntLifeCycles(game) {
     } finally {
       if (_didIteratorError11) {
         throw _iteratorError11;
-      }
-    }
-  }
-
-  var _iteratorNormalCompletion12 = true;
-  var _didIteratorError12 = false;
-  var _iteratorError12 = undefined;
-
-  try {
-    for (var _iterator12 = game.PUPA[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
-      var _id6 = _step12.value;
-
-      var pupa = game.entities[_id6];
-      pupa.age += 1;
-      if (pupa.age > config.pupaHatchAge) {
-        game.entities[_id6] = _extends({}, makeAnt(pupa.position, pupa.subType), { id: _id6 });
-        changeEntityType(game, game.entities[_id6], 'PUPA', 'ANT');
-      }
-    }
-  } catch (err) {
-    _didIteratorError12 = true;
-    _iteratorError12 = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion12 && _iterator12.return) {
-        _iterator12.return();
-      }
-    } finally {
-      if (_didIteratorError12) {
-        throw _iteratorError12;
       }
     }
   }
@@ -684,51 +663,51 @@ var evaluateCondition = function evaluateCondition(game, ant, condition) {
             return e.type === 'DIRT';
           });
           isTrue = false;
-          var _iteratorNormalCompletion13 = true;
-          var _didIteratorError13 = false;
-          var _iteratorError13 = undefined;
+          var _iteratorNormalCompletion12 = true;
+          var _didIteratorError12 = false;
+          var _iteratorError12 = undefined;
 
           try {
-            for (var _iterator13 = dirtNeighbors[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
-              var dirt = _step13.value;
-              var _iteratorNormalCompletion14 = true;
-              var _didIteratorError14 = false;
-              var _iteratorError14 = undefined;
+            for (var _iterator12 = dirtNeighbors[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
+              var dirt = _step12.value;
+              var _iteratorNormalCompletion13 = true;
+              var _didIteratorError13 = false;
+              var _iteratorError13 = undefined;
 
               try {
-                for (var _iterator14 = pheromoneNeighbors[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
-                  var pheromone = _step14.value;
+                for (var _iterator13 = pheromoneNeighbors[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
+                  var pheromone = _step13.value;
 
                   if (equals(dirt.position, pheromone.position)) {
                     isTrue = true;
                   }
                 }
               } catch (err) {
-                _didIteratorError14 = true;
-                _iteratorError14 = err;
+                _didIteratorError13 = true;
+                _iteratorError13 = err;
               } finally {
                 try {
-                  if (!_iteratorNormalCompletion14 && _iterator14.return) {
-                    _iterator14.return();
+                  if (!_iteratorNormalCompletion13 && _iterator13.return) {
+                    _iterator13.return();
                   }
                 } finally {
-                  if (_didIteratorError14) {
-                    throw _iteratorError14;
+                  if (_didIteratorError13) {
+                    throw _iteratorError13;
                   }
                 }
               }
             }
           } catch (err) {
-            _didIteratorError13 = true;
-            _iteratorError13 = err;
+            _didIteratorError12 = true;
+            _iteratorError12 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion13 && _iterator13.return) {
-                _iterator13.return();
+              if (!_iteratorNormalCompletion12 && _iterator12.return) {
+                _iterator12.return();
               }
             } finally {
-              if (_didIteratorError13) {
-                throw _iteratorError13;
+              if (_didIteratorError12) {
+                throw _iteratorError12;
               }
             }
           }
@@ -952,51 +931,51 @@ var performAction = function performAction(game, ant, action) {
             return e.type === 'DIRT';
           });
           var markedDirt = [];
-          var _iteratorNormalCompletion15 = true;
-          var _didIteratorError15 = false;
-          var _iteratorError15 = undefined;
+          var _iteratorNormalCompletion14 = true;
+          var _didIteratorError14 = false;
+          var _iteratorError14 = undefined;
 
           try {
-            for (var _iterator15 = dirtNeighbors[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
-              var dirt = _step15.value;
-              var _iteratorNormalCompletion16 = true;
-              var _didIteratorError16 = false;
-              var _iteratorError16 = undefined;
+            for (var _iterator14 = dirtNeighbors[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
+              var dirt = _step14.value;
+              var _iteratorNormalCompletion15 = true;
+              var _didIteratorError15 = false;
+              var _iteratorError15 = undefined;
 
               try {
-                for (var _iterator16 = pheromoneNeighbors[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
-                  var _pheromone = _step16.value;
+                for (var _iterator15 = pheromoneNeighbors[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
+                  var _pheromone = _step15.value;
 
                   if (equals(dirt.position, _pheromone.position)) {
                     markedDirt.push(dirt);
                   }
                 }
               } catch (err) {
-                _didIteratorError16 = true;
-                _iteratorError16 = err;
+                _didIteratorError15 = true;
+                _iteratorError15 = err;
               } finally {
                 try {
-                  if (!_iteratorNormalCompletion16 && _iterator16.return) {
-                    _iterator16.return();
+                  if (!_iteratorNormalCompletion15 && _iterator15.return) {
+                    _iterator15.return();
                   }
                 } finally {
-                  if (_didIteratorError16) {
-                    throw _iteratorError16;
+                  if (_didIteratorError15) {
+                    throw _iteratorError15;
                   }
                 }
               }
             }
           } catch (err) {
-            _didIteratorError15 = true;
-            _iteratorError15 = err;
+            _didIteratorError14 = true;
+            _iteratorError14 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion15 && _iterator15.return) {
-                _iterator15.return();
+              if (!_iteratorNormalCompletion14 && _iterator14.return) {
+                _iterator14.return();
               }
             } finally {
-              if (_didIteratorError15) {
-                throw _iteratorError15;
+              if (_didIteratorError14) {
+                throw _iteratorError14;
               }
             }
           }
@@ -1027,7 +1006,7 @@ var performAction = function performAction(game, ant, action) {
               height: 1
             };
             ant.taskStack = [];
-            ant.taskIndex = -1; // HACK
+            ant.taskIndex = -1; // HACK to switch tasks inside a task
             var goToLocationBehavior = createGoToLocationBehavior(targetLoc);
             ant.task = {
               name: 'Picking up ' + _bigEntity.type,
@@ -1092,13 +1071,13 @@ var performAction = function performAction(game, ant, action) {
         if (ant.holding != null && ant.holding.type === 'FOOD' && feedableEntities.length > 0) {
           // prefer to feed larva if possible
           var fedEntity = oneOf(feedableEntities);
-          var _iteratorNormalCompletion17 = true;
-          var _didIteratorError17 = false;
-          var _iteratorError17 = undefined;
+          var _iteratorNormalCompletion16 = true;
+          var _didIteratorError16 = false;
+          var _iteratorError16 = undefined;
 
           try {
-            for (var _iterator17 = feedableEntities[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
-              var e = _step17.value;
+            for (var _iterator16 = feedableEntities[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
+              var e = _step16.value;
 
               if (e.type === 'LARVA') {
                 fedEntity = e;
@@ -1106,16 +1085,16 @@ var performAction = function performAction(game, ant, action) {
               }
             }
           } catch (err) {
-            _didIteratorError17 = true;
-            _iteratorError17 = err;
+            _didIteratorError16 = true;
+            _iteratorError16 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion17 && _iterator17.return) {
-                _iterator17.return();
+              if (!_iteratorNormalCompletion16 && _iterator16.return) {
+                _iterator16.return();
               }
             } finally {
-              if (_didIteratorError17) {
-                throw _iteratorError17;
+              if (_didIteratorError16) {
+                throw _iteratorError16;
               }
             }
           }

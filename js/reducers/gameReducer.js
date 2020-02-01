@@ -6,6 +6,7 @@ const {
   removeEntity,
 } = require('../utils/stateHelpers');
 const {clamp} = require('../utils/helpers');
+const {createEdge} = require('../entities/edge');
 
 import type {State, GameState, Action} from '../types';
 
@@ -44,6 +45,30 @@ const gameReducer = (game: GameState, action: Action): GameState => {
         selectedEntities: action.entityIDs,
       };
     }
+    case 'CREATE_EDGE': {
+      const {start} = action;
+      const newEdge = createEdge(start);
+      game.edges[newEdge.id] = newEdge;
+      game.curEdge = newEdge.id;
+      game.entities[start].outgoingEdges.push(newEdge.id);
+      return game;
+    }
+    case 'UPDATE_EDGE': {
+      const {id, edge} = action;
+      if (game.edges[id].end == null && edge.end != null) {
+        game.entities[edge.end].incomingEdges.push(id);
+      }
+      game.edges[id] = edge;
+      game.curEdge = null;
+      return game;
+    }
+    case 'SET_CUR_EDGE': {
+      const {curEdge} = action;
+      return {
+        ...game,
+        curEdge,
+      };
+    }
     case 'CREATE_TASK': {
       const {task} = action;
       return {
@@ -56,6 +81,11 @@ const gameReducer = (game: GameState, action: Action): GameState => {
       const oldTask = game.tasks.filter(t => t.name === task.name)[0];
       oldTask.repeating = task.repeating;
       oldTask.behaviorQueue = task.behaviorQueue;
+      return game;
+    }
+    case 'UPDATE_LOCATION_NAME': {
+      const {id, newName} = action;
+      game.entities[id].name = newName;
       return game;
     }
     case 'UPDATE_NEXT_LOCATION_NAME': {
