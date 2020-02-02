@@ -2,6 +2,8 @@
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 var _require = require('../config'),
     config = _require.config;
 
@@ -89,16 +91,25 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
           if (game.curEdge == null) {
             dispatch({ type: 'CREATE_EDGE', start: loc.id });
           } else {
+            console.log("does update edge inside mouse down ever happen??");
             var edge = game.edges[game.curEdge];
             dispatch({
               type: 'UPDATE_EDGE', id: edge.id, edge: _extends({}, edge, { end: loc.id })
             });
           }
+          dispatch({
+            type: 'CREATE_ENTITY',
+            entity: makePheromone(gridPos, 0, 1, store.getState().game.curEdge)
+          });
         } else if (clickedPheromones.length > 0) {
           var _edge = game.edges[clickedPheromones[0].edge];
           if (!_edge.end) {
             dispatch({ type: 'SET_CUR_EDGE', curEdge: _edge.id });
           }
+          dispatch({
+            type: 'CREATE_ENTITY',
+            entity: makePheromone(gridPos, 0, 1, store.getState().game.curEdge)
+          });
         }
       }
     } else if (ev.button == 2) {
@@ -225,17 +236,74 @@ var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
     var marqueeLocation = { position: { x: x, y: y }, width: Math.abs(dims.x) + 1, height: Math.abs(dims.y) + 1 };
     var clickedEntities = entitiesInMarquee(game, marqueeLocation).filter(function (e) {
       return config.selectableEntities.includes(e.type);
-    }).map(function (e) {
-      return e.id;
     });
-    var obeliskID = game.OBELISK[0];
-    if (clickedEntities.includes(obeliskID)) {
-      clickedEntities = [obeliskID];
+    // const obeliskID = game.OBELISK[0];
+    // if (clickedEntities.includes(obeliskID)) {
+    //   clickedEntities = [obeliskID];
+    // }
+    var pheromonesInEdges = [];
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
+
+    try {
+      for (var _iterator = clickedEntities[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        var entity = _step.value;
+
+        if (entity.type === 'PHEROMONE') {
+          var edge = game.edges[entity.edge];
+          pheromonesInEdges.push.apply(pheromonesInEdges, _toConsumableArray(edge.pheromones));
+        }
+      }
+    } catch (err) {
+      _didIteratorError = true;
+      _iteratorError = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion && _iterator.return) {
+          _iterator.return();
+        }
+      } finally {
+        if (_didIteratorError) {
+          throw _iteratorError;
+        }
+      }
     }
+
     if (clickedEntities.length > 0) {
+      var clickedIDs = clickedEntities.map(function (e) {
+        return e.id;
+      });
+      var _iteratorNormalCompletion2 = true;
+      var _didIteratorError2 = false;
+      var _iteratorError2 = undefined;
+
+      try {
+        for (var _iterator2 = pheromonesInEdges[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+          var ph = _step2.value;
+
+          if (!clickedIDs.includes(ph)) {
+            clickedIDs.push(ph);
+          }
+        }
+      } catch (err) {
+        _didIteratorError2 = true;
+        _iteratorError2 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion2 && _iterator2.return) {
+            _iterator2.return();
+          }
+        } finally {
+          if (_didIteratorError2) {
+            throw _iteratorError2;
+          }
+        }
+      }
+
       dispatch({
         type: 'SET_SELECTED_ENTITIES',
-        entityIDs: clickedEntities.slice(0, config.maxSelectableAnts)
+        entityIDs: clickedIDs.slice(0, config.maxSelectableAnts)
       });
     } else if (game.selectedEntities.length > 0) {
       dispatch({
@@ -244,6 +312,7 @@ var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
       });
     }
   } else if (game.userMode === 'MARK_TRAIL') {
+    dispatch({ type: 'SET_PREV_PHEROMONE', id: null });
     var _clickedEntities = lookupInGrid(game.grid, gridPos).map(function (i) {
       return game.entities[i];
     });
@@ -254,9 +323,9 @@ var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
     if (clickedLocations.length > 0 && game.curEdge != null) {
       // TODO distinguish which location you're starting from/ending on
       var loc = clickedLocations[0];
-      var edge = game.edges[game.curEdge];
+      var _edge2 = game.edges[game.curEdge];
       dispatch({
-        type: 'UPDATE_EDGE', id: edge.id, edge: _extends({}, edge, { end: loc.id })
+        type: 'UPDATE_EDGE', id: _edge2.id, edge: _extends({}, _edge2, { end: loc.id })
       });
     } else {
       dispatch({ type: 'SET_CUR_EDGE', curEdge: null });

@@ -62,16 +62,25 @@ const initMouseControlsSystem = (store) => {
           if (game.curEdge == null) {
             dispatch({type: 'CREATE_EDGE', start: loc.id});
           } else {
+            console.log("does update edge inside mouse down ever happen??");
             const edge = game.edges[game.curEdge];
             dispatch({
               type: 'UPDATE_EDGE', id: edge.id, edge: {...edge, end: loc.id}
             });
           }
+          dispatch({
+            type: 'CREATE_ENTITY',
+            entity: makePheromone(gridPos, 0, 1, store.getState().game.curEdge),
+          });
         } else if (clickedPheromones.length > 0) {
           const edge = game.edges[clickedPheromones[0].edge];
           if (!edge.end) {
             dispatch({type: 'SET_CUR_EDGE', curEdge: edge.id});
           }
+          dispatch({
+            type: 'CREATE_ENTITY',
+            entity: makePheromone(gridPos, 0, 1, store.getState().game.curEdge),
+          });
         }
       }
     } else if (ev.button == 2) { // right click
@@ -216,15 +225,27 @@ const handleLeftClick = (
       {position: {x, y}, width: Math.abs(dims.x) + 1, height: Math.abs(dims.y) + 1};
     let clickedEntities = entitiesInMarquee(game, marqueeLocation)
       .filter(e => config.selectableEntities.includes(e.type))
-      .map(e => e.id);
-    const obeliskID = game.OBELISK[0];
-    if (clickedEntities.includes(obeliskID)) {
-      clickedEntities = [obeliskID];
+    // const obeliskID = game.OBELISK[0];
+    // if (clickedEntities.includes(obeliskID)) {
+    //   clickedEntities = [obeliskID];
+    // }
+    const pheromonesInEdges = [];
+    for (const entity of clickedEntities) {
+      if (entity.type === 'PHEROMONE') {
+        const edge = game.edges[entity.edge];
+        pheromonesInEdges.push(...edge.pheromones);
+      }
     }
     if (clickedEntities.length > 0) {
+      const clickedIDs = clickedEntities.map(e => e.id);
+      for (const ph of pheromonesInEdges) {
+        if (!clickedIDs.includes(ph)) {
+          clickedIDs.push(ph);
+        }
+      }
       dispatch({
         type: 'SET_SELECTED_ENTITIES',
-        entityIDs: clickedEntities.slice(0, config.maxSelectableAnts),
+        entityIDs: clickedIDs.slice(0, config.maxSelectableAnts),
       });
     } else if (game.selectedEntities.length > 0) {
       dispatch({
@@ -233,6 +254,7 @@ const handleLeftClick = (
       });
     }
   } else if (game.userMode === 'MARK_TRAIL') {
+    dispatch({type: 'SET_PREV_PHEROMONE', id: null});
     const clickedEntities = lookupInGrid(game.grid, gridPos)
       .map(i => game.entities[i]);
     const clickedLocations = clickedEntities

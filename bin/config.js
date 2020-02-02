@@ -32,7 +32,7 @@ var config = {
   foodSpawnCalories: 1000,
 
   // selection
-  maxSelectableAnts: 6,
+  maxSelectableAnts: 100000,
   selectableEntities: ['ANT', 'EGG', 'LARVA', 'PUPA', 'OBELISK', 'LOCATION', 'PHEROMONE'],
 
   // ant-specific values

@@ -62,13 +62,12 @@ var level1 = function level1() {
 
 var level0 = function level0() {
   var game = baseState(500, 100);
-  // seed start location
-  var clickedLocation = _extends({}, makeLocation('Clicked Position', 1, 1, { x: 0, y: 0 }), { id: config.clickedPosition
-  });
-  addEntity(game, clickedLocation);
-  var colonyEntrance = _extends({}, makeLocation('Colony Entrance', 1, 1, { x: 25, y: 29 }), { id: config.colonyEntrance
+  var colonyEntrance = _extends({}, makeLocation('Colony Entrance', 5, 5, { x: 25, y: 29 }), { id: config.colonyEntrance
   });
   addEntity(game, colonyEntrance);
+
+  var locationTwo = makeLocation('Location Two', 5, 5, { x: 40, y: 20 });
+  addEntity(game, locationTwo);
 
   // initial tasks
   game.tasks = [tasks.createIdleTask(), _extends({}, tasks.createGoToLocationTask(colonyEntrance), { name: 'Go To Colony Entrance' }), tasks.createRandomMoveTask(), tasks.createDigBlueprintTask(game), tasks.createMoveBlockerTask(), tasks.createGoToColonyEntranceWithBlockerTask(game), tasks.createLayEggTask(), tasks.createFollowTrailTask(), tasks.createHoldingAndIdleTask(), {
@@ -113,19 +112,19 @@ var level0 = function level0() {
   }
 
   // seed bottom 1/4's with dirt
-  for (var _x = 0; _x < game.worldWidth; _x++) {
-    for (var _y = 0; _y < game.worldHeight; _y++) {
-      if (_y < game.worldHeight * 0.3) {
-        if (_x == colonyEntrance.position.x && _y == colonyEntrance.position.y) {
-          continue;
-        }
-        if (_x == colonyEntrance.position.x && _y == colonyEntrance.position.y - 1) {
-          continue;
-        }
-        addEntity(game, makeDirt({ x: _x, y: _y }));
-      }
-    }
-  }
+  // for (let x = 0; x < game.worldWidth; x++) {
+  //   for (let y = 0; y < game.worldHeight; y++) {
+  //     if (y < game.worldHeight * 0.3) {
+  //       if (x == colonyEntrance.position.x && y == colonyEntrance.position.y) {
+  //         continue;
+  //       }
+  //       if (x == colonyEntrance.position.x && y == colonyEntrance.position.y - 1) {
+  //         continue;
+  //       }
+  //       addEntity(game, makeDirt({x, y}));
+  //     }
+  //   }
+  // }
 
   // seed ants
   // for (let i = 0; i < 1000; i++) {
@@ -211,6 +210,11 @@ var baseState = function baseState(worldWidth, worldHeight) {
     tasks: [],
     grid: []
   };
+
+  // seed start location
+  var clickedLocation = _extends({}, makeLocation('Clicked Position', 1, 1, { x: 0, y: 0 }), { id: config.clickedPosition
+  });
+  addEntity(game, clickedLocation);
 
   return game;
 };

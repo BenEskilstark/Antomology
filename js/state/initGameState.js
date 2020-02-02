@@ -44,15 +44,13 @@ const level1 = (): GameState => {
 
 const level0 = (): GameState => {
   const game = baseState(500, 100);
-  // seed start location
-  const clickedLocation = {
-    ...makeLocation('Clicked Position', 1, 1, {x:0, y:0}), id: config.clickedPosition,
-  }
-  addEntity(game, clickedLocation);
   const colonyEntrance = {
-    ...makeLocation('Colony Entrance', 1, 1, {x: 25, y: 29}), id: config.colonyEntrance,
+    ...makeLocation('Colony Entrance', 5, 5, {x: 25, y: 29}), id: config.colonyEntrance,
   };
   addEntity(game, colonyEntrance);
+
+  const locationTwo = makeLocation('Location Two', 5, 5, {x: 40, y: 20});
+  addEntity(game, locationTwo);
 
   // initial tasks
   game.tasks = [
@@ -111,19 +109,19 @@ const level0 = (): GameState => {
   }
 
   // seed bottom 1/4's with dirt
-  for (let x = 0; x < game.worldWidth; x++) {
-    for (let y = 0; y < game.worldHeight; y++) {
-      if (y < game.worldHeight * 0.3) {
-        if (x == colonyEntrance.position.x && y == colonyEntrance.position.y) {
-          continue;
-        }
-        if (x == colonyEntrance.position.x && y == colonyEntrance.position.y - 1) {
-          continue;
-        }
-        addEntity(game, makeDirt({x, y}));
-      }
-    }
-  }
+  // for (let x = 0; x < game.worldWidth; x++) {
+  //   for (let y = 0; y < game.worldHeight; y++) {
+  //     if (y < game.worldHeight * 0.3) {
+  //       if (x == colonyEntrance.position.x && y == colonyEntrance.position.y) {
+  //         continue;
+  //       }
+  //       if (x == colonyEntrance.position.x && y == colonyEntrance.position.y - 1) {
+  //         continue;
+  //       }
+  //       addEntity(game, makeDirt({x, y}));
+  //     }
+  //   }
+  // }
 
   // seed ants
   // for (let i = 0; i < 1000; i++) {
@@ -209,6 +207,12 @@ const baseState = (worldWidth: number, worldHeight: number): GameState => {
     tasks: [],
     grid: [],
   };
+
+  // seed start location
+  const clickedLocation = {
+    ...makeLocation('Clicked Position', 1, 1, {x:0, y:0}), id: config.clickedPosition,
+  }
+  addEntity(game, clickedLocation);
 
   return game;
 }

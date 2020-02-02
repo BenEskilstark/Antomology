@@ -1,12 +1,21 @@
 
  - - - - - - PHEROMONE GRAPH - - - - - -
- - selectable pheromones that highlight the whole edge
+ - refactor
+    - surgically remove ant task DSL so it can be easily re-added
+    - still need to support manually selected ant actions
+ - ant behavior
+    - moving randomly, following trails they pick up
+    - ants do the task of the location they're at
  - sidebar UI
-    - status cards for edges saying start and end
+    - conditionals that are addable/editable
+    - edges listed for locations should be selectable from there
+    - locations listed for edges should be selectable
     - also giving task editor for what ants do there
  - pheromone brush
-    - picking up trails in the middle causes 50/50 split
+    - picking up trails in the middle should cause 50/50 split
+    - how to handle split trails in UI? As new location at split point?
  - simulation
+    - distinguish "base" case of ants born at a location vs arriving there
     - ants do the task of the location they're at
     - sensible base task for locations -- move randomly until X or for Y steps
     - initially just randomly select outgoing edge to take
@@ -23,6 +32,9 @@
     - pheromones fading vs being permanent
     - clicking edge infos selects (and centers) that location
     - ants that lay trails themselves
+    - tool for clearing pheromone
+    - support categories of pheromone you can select and have different colors
+
 
  - - - - - - LIFTNG BIG ENTITIES - - - - - -
  - picking up:
@@ -33,6 +45,7 @@
     - how to compute ants falling off
  - putting down:
     - ants should get out of the way and let it fall
+
 
  - - - - - - WORLD - - - - - -
  - fix food system to spawn larger food less frequently
@@ -55,7 +68,6 @@
 
 
  - - - - - - ANTS - - - - - -
- - change ant color to not be too close to obelisk color
  - compute old-age death for ants
  - make location position in center instead of top left for moving towards
  - A*-like for ants moving towards location?
@@ -82,13 +94,6 @@
  - Call out ants near death of old age
  - saving with local storage
  - prevent accidental click-and-drag text selection
-
-
- - - - - - - PHEROMONE TRAILS - - - - - -
- - tool for clearing pheromone
- - behavior setting to follow trail backwards
- - support categories of pheromone you can select and have different colors
- - allow ants to lay trail fowards/backwards
 
 
  - - - - - - RENDERING - - - - - -
@@ -131,4 +136,3 @@
  - ants that are falling and trying to go to a clicked location above them
    will hover in air
  - picked-up pupa never hatch and then die on putdown. Should probably just wait to hatch
-

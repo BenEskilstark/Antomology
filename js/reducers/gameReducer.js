@@ -31,6 +31,7 @@ const gameReducer = (game: GameState, action: Action): GameState => {
       }
       if (entity.type === 'PHEROMONE') {
         game.prevPheromone = entity.id;
+        game.edges[entity.edge].pheromones.push(entity.id);
       }
       return game;
     }

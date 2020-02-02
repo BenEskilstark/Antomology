@@ -7,7 +7,8 @@ var createEdge = function createEdge(start) {
     id: nextEdgeID++,
     start: start,
     end: null,
-    condition: null
+    condition: null,
+    pheromones: []
   };
 };
 

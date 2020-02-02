@@ -40,6 +40,7 @@ var gameReducer = function gameReducer(game, action) {
         }
         if (entity.type === 'PHEROMONE') {
           game.prevPheromone = entity.id;
+          game.edges[entity.edge].pheromones.push(entity.id);
         }
         return game;
       }

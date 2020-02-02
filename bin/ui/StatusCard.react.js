@@ -40,6 +40,13 @@ function StatusCard(props) {
       break;
     case 'LOCATION':
       card = React.createElement(LocationCard, props);
+      break;
+    case 'PHEROMONE':
+      var edge = state.game.edges[entity.edge];
+      if (edge.pheromones[0] === entity.id) {
+        card = React.createElement(EdgeCard, props);
+      }
+      break;
   }
 
   return card;
@@ -358,6 +365,48 @@ function LocationCard(props) {
         null,
         outgoingEdgeInfos
       )
+    )
+  );
+}
+
+function EdgeCard(props) {
+  var state = props.state,
+      dispatch = props.dispatch,
+      entity = props.entity;
+  var game = state.game;
+
+  var edge = game.edges[entity.edge];
+  var startLoc = game.entities[edge.start];
+
+  var endLocName = edge.end != null ? game.entities[edge.end].name : 'Not Set';
+
+  return React.createElement(
+    'div',
+    {
+      style: {
+        border: '1px solid black'
+      }
+    },
+    React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'b',
+        null,
+        'TRAIL'
+      )
+    ),
+    React.createElement(
+      'div',
+      null,
+      'From: ',
+      startLoc.name
+    ),
+    React.createElement(
+      'div',
+      null,
+      'To: ',
+      endLocName
     )
   );
 }

@@ -10,6 +10,7 @@ const createEdge = (start: EntityID): Edge => {
     start,
     end: null,
     condition: null,
+    pheromones: [],
   };
 };
 

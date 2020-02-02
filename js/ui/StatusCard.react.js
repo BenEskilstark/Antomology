@@ -37,6 +37,13 @@ function StatusCard(props: Props): React.Node {
       break;
     case 'LOCATION':
       card = <LocationCard {...props} />;
+      break;
+    case 'PHEROMONE':
+      const edge = state.game.edges[entity.edge];
+      if (edge.pheromones[0] === entity.id) {
+        card = <EdgeCard {...props} />;
+      }
+      break;
   }
 
   return card;
@@ -219,6 +226,27 @@ function LocationCard(props: Props): React.Node {
           {outgoingEdgeInfos}
         </div>
       </div>
+    </div>
+  );
+}
+
+function EdgeCard(props: Props): React.Node {
+  const {state, dispatch, entity} = props;
+  const {game} = state;
+  const edge = game.edges[entity.edge];
+  const startLoc = game.entities[edge.start];
+
+  const endLocName = edge.end != null ? game.entities[edge.end].name : 'Not Set';
+
+  return (
+    <div
+      style={{
+        border: '1px solid black',
+      }}
+    >
+      <div><b>TRAIL</b></div>
+      <div>From: {startLoc.name}</div>
+      <div>To: {endLocName}</div>
     </div>
   );
 }

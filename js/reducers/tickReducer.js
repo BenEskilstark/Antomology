@@ -105,7 +105,29 @@ const handleTick = (game: GameState): GameState => {
     }
   }
 
-  // update held big entities
+  updateHeldBigEntities(game, heldEntityIDs);
+  updateAntLifeCycles(game);
+  // updatePheromones(game);
+  computeGravity(game);
+  updateFoWVision(game);
+
+  game.time += 1;
+
+  // const time = performance.now() - startTime;
+  // totalTime += time;
+  // if (game.time % 10 === 0) {
+  //   console.log(time.toFixed(3), 'avg', (totalTime / game.time).toFixed(3));
+  // }
+
+  return game;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Held Big Entities
+///////////////////////////////////////////////////////////////////////////////
+const updateHeldBigEntities = (
+  game: GameState, heldEntityIDs: Array<EntityID>,
+): void => {
   const heldBigEntities = heldEntityIDs
     .map(i => game.entities[i])
     .filter(e => e.toLift > 1);
@@ -115,7 +137,7 @@ const handleTick = (game: GameState): GameState => {
         const didMove = maybeMoveEntity(
           game, bigEntity,
           add(bigEntity.position, {x: 0, y: 1}),
-          true, // debug
+          false, // don't debug
         );
         bigEntity.lifted = didMove;
       } else {
@@ -130,104 +152,15 @@ const handleTick = (game: GameState): GameState => {
           x: Math.round(sum.x / bigEntity.heldBy.length),
           y: Math.round(sum.y / bigEntity.heldBy.length),
         };
-        maybeMoveEntity(game, bigEntity, add(bigEntity.position, avg), true);
+        maybeMoveEntity(game, bigEntity, add(bigEntity.position, avg), false);
       }
     }
   }
-
-  updateAntLifeCycles(game);
-
-  // update pheromones
-  // for (const id of game.PHEROMONE) {
-  //   const pheromone = game.entities[id];
-  //   const antsHere = lookupInGrid(game.grid, pheromone.position)
-  //     .map(i => game.entities[i])
-  //     .filter(e => e.type === 'ANT')
-  //     .length > 0;
-  //   if (antsHere) {
-  //     pheromone.quantity = Math.min(
-  //       pheromone.quantity + 1, config.pheromoneMaxQuantity,
-  //     );
-  //   } else {
-  //     pheromone.quantity -= 1;
-  //   }
-  //   if (pheromone.quantity <= 0) {
-  //     removeEntity(game, pheromone);
-  //   }
-  // }
-
-  // compute gravity
-  for (const entityType of config.fallingEntities) {
-    for (const id of game[entityType]) {
-      const entity = game.entities[id];
-      if (!entity.position) continue;
-      // TODO lifted (big)entities not affected by gravity for now
-      const isBig = entity.toLift > 1;
-      const isReadyToLift = entity.toLift <= entity.heldBy.length;
-      if (entity.lifted) continue;
-      // if (isBig && isReadyToLift && !entity.isLifted) continue;
-      const positionBeneath = subtract(entity.position, {x: 0, y: 1});
-      const entitiesBeneath = fastCollidesWith(game, {...entity, position: positionBeneath})
-        .filter(e => config.stopFallingEntities.includes(e.type))
-        .length > 0;
-      let entitiesSupporting = [];
-      if (config.supportedEntities.includes(entityType)) {
-        entitiesSupporting = fastCollidesWith(game, entity)
-          .filter(e => config.supportingBackgroundTypes.includes(e.subType))
-        if (config.climbingEntities.includes(entity.type)) {
-          entitiesSupporting = entitiesSupporting
-            .concat(
-              fastGetNeighbors(game, entity, true /* diagonal */)
-              .filter(e => config.stopFallingEntities.includes(e.type))
-            );
-        }
-      }
-      if (
-        (!entitiesSupporting.length > 0 && !entitiesBeneath)
-        && insideWorld(game, positionBeneath)
-      ) {
-          moveEntity(game, entity, positionBeneath);
-      }
-    }
-  }
-
-  // update FoW vision
-  const previouslyVisible = [];
-  for (const entityType of config.entitiesInFog) {
-    for (const id of game[entityType]) {
-      const entity = game.entities[id];
-      if (entity.position == null) {
-        entity.visible = true; // held entities are visible
-        continue;
-      }
-      if (entity.visible) {
-        previouslyVisible.push(entity);
-        entity.visible = false;
-      }
-    }
-  }
-  for (const id of game.ANT) {
-    const ant = game.entities[id];
-    getEntitiesInRadius(game, ant.position, config.antVisionRadius)
-      .forEach(e => e.visible = true);
-  }
-  for (const entity of previouslyVisible) {
-    if (!entity.visible) {
-      entity.lastSeenPos = entity.position;
-    }
-  }
-
-  game.time += 1;
-
-  // const time = performance.now() - startTime;
-  // totalTime += time;
-  // if (game.time % 10 === 0) {
-  //   console.log(time.toFixed(3), 'avg', (totalTime / game.time).toFixed(3));
-  // }
-
-  return game;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// Ant Life Cycles
+///////////////////////////////////////////////////////////////////////////////
 const updateAntLifeCycles = (game): void => {
   // update eggs
   for (const id of game.EGG) {
@@ -271,6 +204,102 @@ const updateAntLifeCycles = (game): void => {
   }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// Phermones
+///////////////////////////////////////////////////////////////////////////////
+const updatePheromones = (game: GameState): void => {
+  for (const id of game.PHEROMONE) {
+    const pheromone = game.entities[id];
+    const antsHere = lookupInGrid(game.grid, pheromone.position)
+      .map(i => game.entities[i])
+      .filter(e => e.type === 'ANT')
+      .length > 0;
+    if (antsHere) {
+      pheromone.quantity = Math.min(
+        pheromone.quantity + 1, config.pheromoneMaxQuantity,
+      );
+    } else {
+      pheromone.quantity -= 1;
+    }
+    if (pheromone.quantity <= 0) {
+      removeEntity(game, pheromone);
+    }
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Compute Gravity
+///////////////////////////////////////////////////////////////////////////////
+const computeGravity = (game: GameState): void => {
+  for (const entityType of config.fallingEntities) {
+    for (const id of game[entityType]) {
+      const entity = game.entities[id];
+      if (!entity.position) continue;
+      // TODO lifted (big)entities not affected by gravity for now
+      const isBig = entity.toLift > 1;
+      const isReadyToLift = entity.toLift <= entity.heldBy.length;
+      if (entity.lifted) continue;
+      // if (isBig && isReadyToLift && !entity.isLifted) continue;
+      const positionBeneath = subtract(entity.position, {x: 0, y: 1});
+      const entitiesBeneath = fastCollidesWith(game, {...entity, position: positionBeneath})
+        .filter(e => config.stopFallingEntities.includes(e.type))
+        .length > 0;
+      let entitiesSupporting = [];
+      if (config.supportedEntities.includes(entityType)) {
+        entitiesSupporting = fastCollidesWith(game, entity)
+          .filter(e => config.supportingBackgroundTypes.includes(e.subType))
+        if (config.climbingEntities.includes(entity.type)) {
+          entitiesSupporting = entitiesSupporting
+            .concat(
+              fastGetNeighbors(game, entity, true /* diagonal */)
+              .filter(e => config.stopFallingEntities.includes(e.type))
+            );
+        }
+      }
+      if (
+        (!entitiesSupporting.length > 0 && !entitiesBeneath)
+        && insideWorld(game, positionBeneath)
+      ) {
+          moveEntity(game, entity, positionBeneath);
+      }
+    }
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Update FoW Vision
+///////////////////////////////////////////////////////////////////////////////
+const updateFoWVision = (game: GameState): void => {
+  const previouslyVisible = [];
+  for (const entityType of config.entitiesInFog) {
+    for (const id of game[entityType]) {
+      const entity = game.entities[id];
+      if (entity.position == null) {
+        entity.visible = true; // held entities are visible
+        continue;
+      }
+      if (entity.visible) {
+        previouslyVisible.push(entity);
+        entity.visible = false;
+      }
+    }
+  }
+  for (const id of game.ANT) {
+    const ant = game.entities[id];
+    getEntitiesInRadius(game, ant.position, config.antVisionRadius)
+      .forEach(e => e.visible = true);
+  }
+  for (const entity of previouslyVisible) {
+    if (!entity.visible) {
+      entity.lastSeenPos = entity.position;
+    }
+  }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Have ant perform its task for one tick
+///////////////////////////////////////////////////////////////////////////////
 // Update the world based on the ant (attempting) performing its task.
 // In place.
 const performTask = (game: GameState, ant: Ant): void => {

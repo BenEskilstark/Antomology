@@ -137,6 +137,7 @@ export type Edge = {
   start: EntityID,
   end: ?EntityID,
   condition: ?Condition,
+  pheromones: Array<EntityID>,
 };
 export type Location = Entity & {
   name: string,
