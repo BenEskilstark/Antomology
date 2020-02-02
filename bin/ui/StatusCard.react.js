@@ -286,7 +286,7 @@ function LocationCard(props) {
       'div',
       {
         style: { paddingLeft: 10 },
-        id: "inc_" + edge.id
+        key: "inc_" + edge.id
       },
       'Source: ',
       edge.start != null ? game.entities[edge.start].name : 'Not Set'
@@ -299,7 +299,7 @@ function LocationCard(props) {
       'div',
       {
         style: { paddingLeft: 10 },
-        id: "out_" + edge.id
+        key: "out_" + edge.id
       },
       React.createElement(
         'div',

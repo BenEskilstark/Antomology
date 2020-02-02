@@ -2967,36 +2967,39 @@ var handleMouseMove = function handleMouseMove(state, dispatch, gridPos, canvasP
     if (prevPheromone == null) {
       dispatch({
         type: 'CREATE_ENTITY',
-        entity: makePheromone(gridPos, theta, 1, state.game.curEdge)
+        entity: makePheromone(gridPos, 0 /* theta */, 1, state.game.curEdge)
       });
       return;
     }
     if (equals(gridPos, prevPheromone.position)) {
       return; // don't make another at its current spot
     }
-    var theta = vectorTheta(subtract(gridPos, prevPheromone.position));
-    var xDiff = Math.abs(gridPos.x - prevPheromone.position.x);
-    var yDiff = Math.abs(gridPos.y - prevPheromone.position.y);
-    if (xDiff > 1 || yDiff > 1 || xDiff == 1 && yDiff == 1) {
-      theta = 0; // no theta update if they aren't neighbors
-    } else {
-      dispatch({ type: 'UPDATE_THETA', id: prevPheromone.id, theta: theta });
-    }
-    var pheromone = lookupInGrid(state.game.grid, gridPos).filter(function (id) {
-      return state.game.entities[id].type === 'PHEROMONE';
-    }).map(function (id) {
-      return state.game.entities[id];
-    })[0];
-    if (pheromone != null) {
-      if (pheromone.theta != theta) {
-        dispatch({ type: 'UPDATE_THETA', id: pheromone.id, theta: theta });
-        dispatch({ type: 'SET_PREV_PHEROMONE', id: pheromone.id });
+
+    var prevPos = null;
+    var prevPheromoneID = null;
+    var cursor = _extends({}, prevPheromone.position);
+    while (!equals(cursor, gridPos)) {
+      var diff = subtract(gridPos, cursor);
+      // initial case
+      if (prevPos == null) {
+        prevPos = _extends({}, cursor);
+        prevPheromoneID = prevPheromone.id;
       }
-    } else {
+      if (Math.abs(diff.x) > Math.abs(diff.y)) {
+        cursor.x += diff.x / Math.abs(diff.x);
+      } else {
+        cursor.y += diff.y / Math.abs(diff.y);
+      }
+      var theta = vectorTheta(subtract(cursor, prevPos));
+      var curPheromone = makePheromone(_extends({}, cursor), theta, 1, state.game.curEdge);
       dispatch({
         type: 'CREATE_ENTITY',
-        entity: makePheromone(gridPos, theta, 1, state.game.curEdge)
+        entity: curPheromone
       });
+      dispatch({ type: 'UPDATE_THETA', id: prevPheromoneID, theta: theta });
+
+      prevPheromoneID = curPheromone.id;
+      prevPos = _extends({}, cursor);
     }
   } else if (state.game.mouse.isLeftDown && state.game.userMode === 'PAN') {
     var dragDiffPixel = subtract(canvasPos, state.game.mouse.curPixel);
@@ -4554,7 +4557,7 @@ function LocationCard(props) {
       'div',
       {
         style: { paddingLeft: 10 },
-        id: "inc_" + edge.id
+        key: "inc_" + edge.id
       },
       'Source: ',
       edge.start != null ? game.entities[edge.start].name : 'Not Set'
@@ -4567,7 +4570,7 @@ function LocationCard(props) {
       'div',
       {
         style: { paddingLeft: 10 },
-        id: "out_" + edge.id
+        key: "out_" + edge.id
       },
       React.createElement(
         'div',

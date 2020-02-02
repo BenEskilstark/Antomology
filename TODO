@@ -5,8 +5,7 @@
     - status cards for edges saying start and end
     - also giving task editor for what ants do there
  - pheromone brush
-    - force pheromone trails to be continuous as you drag
-    - only let you resume pheromone trails from the end
+    - picking up trails in the middle causes 50/50 split
  - simulation
     - ants do the task of the location they're at
     - sensible base task for locations -- move randomly until X or for Y steps
@@ -37,6 +36,7 @@
 
  - - - - - - WORLD - - - - - -
  - fix food system to spawn larger food less frequently
+ - grass entities that support ants but not dirt
  - big entities:
     - support rotated big-entities
     - subdividing bigger entities on pickup
