@@ -49,7 +49,7 @@ const doAction = (
   game: GameState, ant: Ant, action: AntAction,
 ): void => {
   const {payload} = action;
-  let {object} = payload;
+  let {object, constraint} = payload;
   let actionType = action.type;
 
   // first handle ants that are holding a big entity
@@ -113,19 +113,21 @@ const doAction = (
         freePositions = freePositions.filter(pos => {
           return pos.x != ant.prevPosition.x || pos.y != ant.prevPosition.y;
         });
+        // don't cross colonyEntrance boundary
+        // const colEnt = game.entities[config.colonyEntrance].position;
+        // freePositions = freePositions.filter(pos => !equals(pos, colEnt));
         if (freePositions.length == 0) {
-          // then previous position was removed, so fall back to it
+          // fall back to previous position
           loc = {position: ant.prevPosition};
-        } else {
-          // don't cross colonyEntrance boundary
-          const colEnt = game.entities[config.colonyEntrance].position;
-          freePositions = freePositions.filter(pos => !equals(pos, colEnt));
-          if (freePositions.length == 0) {
-            // fall back to previous position
-            loc = {position: ant.prevPosition};
-          }
-          loc = {position: oneOf(freePositions)};
         }
+        // if required, stay inside location boundary
+        if (constraint != null) {
+          freePositions = freePositions.filter(pos => {
+            const inGrid = lookupInGrid(game.grid, pos);
+            return inGrid.includes(constraint);
+          });
+        }
+        loc = {position: oneOf(freePositions)};
       } else if (obj != 'TRAIL' && typeof obj === 'string') {
         loc = getEntitiesByType(game, ['LOCATION']).filter(l => l.name === obj)[0];
       }
@@ -337,4 +339,26 @@ const doAction = (
 
 };
 
-module.exports = {doAction};
+const doHighLevelAction = (
+  game: GameState, ant: Ant, action: AntAction,
+): void => {
+  const {payload} = action;
+  let {object} = payload;
+  let actionType = action.type;
+
+  switch (actionType) {
+    // high level move is a random move inside a location
+    case 'MOVE': {
+      doAction(
+        game, ant,
+        {
+          type: 'MOVE',
+          payload: {object: 'RANDOM', constraint: action.payload.object}
+        },
+      );
+      break;
+    }
+  }
+};
+
+module.exports = {doAction, doHighLevelAction};

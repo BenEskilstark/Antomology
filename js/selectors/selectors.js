@@ -101,11 +101,11 @@ const fastCollidesWith = (game: GameState, entity: Entity): Array<Entity> => {
   if (entity.position == null) return [];
   let {position, width, height} = entity;
   if (width == null) {
-    console.error("checking collision on non-entity");
+    console.error("checking collision on non-entity", entity);
     width = 1;
   }
   if (height == null) {
-    console.error("checking collision on non-entity");
+    console.error("checking collision on non-entity", entity);
     height = 1;
   }
   const collisions = [];

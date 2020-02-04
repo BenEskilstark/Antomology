@@ -62,8 +62,9 @@ var level1 = function level1() {
 
 var level0 = function level0() {
   var game = baseState(500, 100);
-  var colonyEntrance = _extends({}, makeLocation('Colony Entrance', 5, 5, { x: 25, y: 29 }), { id: config.colonyEntrance
-  });
+  var colonyEntrance = makeLocation('Colony Entrance', 5, 5, { x: 25, y: 29 });
+  // ...makeLocation('Colony Entrance', 5, 5, {x: 25, y: 29}), id: config.colonyEntrance,
+  // };
   addEntity(game, colonyEntrance);
 
   var locationTwo = makeLocation('Location Two', 5, 5, { x: 40, y: 20 });

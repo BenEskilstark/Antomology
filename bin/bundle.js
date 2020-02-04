@@ -88,13 +88,14 @@ var makeAnt = function makeAnt(position, subType) {
     }],
     blocked: false,
     blockedBy: null,
+    location: null,
     alive: true,
     visible: true
   });
 };
 
 module.exports = { makeAnt: makeAnt };
-},{"../config":1,"../state/tasks":24,"./entity":7}],3:[function(require,module,exports){
+},{"../config":1,"../state/tasks":27,"./entity":7}],3:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -233,17 +234,23 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 var _require = require('./entity'),
     makeEntity = _require.makeEntity;
 
+var _require2 = require('../state/graphTasks'),
+    createRandomMoveInLocationTask = _require2.createRandomMoveInLocationTask;
+
 var makeLocation = function makeLocation(name, width, height, position) {
-  return _extends({}, makeEntity('LOCATION', width, height, position), {
+  var loc = _extends({}, makeEntity('LOCATION', width, height, position), {
     name: name,
     incomingEdges: [],
     outgoingEdges: [],
+    task: null,
     visible: true
   });
+  loc.task = createRandomMoveInLocationTask(loc.id);
+  return loc;
 };
 
 module.exports = { makeLocation: makeLocation };
-},{"./entity":7}],11:[function(require,module,exports){
+},{"../state/graphTasks":24,"./entity":7}],11:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -343,7 +350,7 @@ store.subscribe(function () {
 function renderGame(store) {
   ReactDOM.render(React.createElement(Main, { state: store.getState(), dispatch: store.dispatch }), document.getElementById('container'));
 }
-},{"./reducers/rootReducer":18,"./systems/initSystems":26,"./ui/Main.react":33,"react":57,"react-dom":54,"redux":58}],16:[function(require,module,exports){
+},{"./reducers/rootReducer":18,"./systems/initSystems":29,"./ui/Main.react":36,"react":60,"react-dom":57,"redux":61}],16:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -611,7 +618,7 @@ var gameReducer = function gameReducer(game, action) {
 };
 
 module.exports = { gameReducer: gameReducer };
-},{"../config":1,"../entities/edge":5,"../utils/helpers":43,"../utils/stateHelpers":44}],17:[function(require,module,exports){
+},{"../config":1,"../entities/edge":5,"../utils/helpers":46,"../utils/stateHelpers":47}],17:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -711,7 +718,7 @@ var rootReducer = function rootReducer(state, action) {
 };
 
 module.exports = { rootReducer: rootReducer };
-},{"../state/initGameState":22,"../state/initState":23,"./gameReducer":16,"./modalReducer":17,"./tickReducer":19}],19:[function(require,module,exports){
+},{"../state/initGameState":25,"../state/initState":26,"./gameReducer":16,"./modalReducer":17,"./tickReducer":19}],19:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -828,6 +835,17 @@ var handleTick = function handleTick(game) {
       }
       ant.age += 1;
       performTask(game, ant);
+
+      // if ant just arrived at a location, switch task to that
+      var locs = fastCollidesWith(game, ant).filter(function (e) {
+        return e.type === 'LOCATION';
+      });
+      if (locs.length > 0 && locs[0].id != ant.location) {
+        ant.location = locs[0].id;
+        ant.task = locs[0].task;
+        ant.taskIndex = 0;
+        ant.taskStack = [];
+      }
 
       ant.calories -= 1;
       // ant starvation
@@ -1274,7 +1292,7 @@ var updateFoWVision = function updateFoWVision(game) {
 };
 
 module.exports = { tickReducer: tickReducer };
-},{"../config":1,"../entities/ant":2,"../entities/egg":6,"../entities/larva":9,"../entities/pupa":13,"../selectors/selectors":20,"../simulation/performTask":21,"../state/tasks":24,"../utils/errors":42,"../utils/helpers":43,"../utils/stateHelpers":44,"../utils/vectors":45}],20:[function(require,module,exports){
+},{"../config":1,"../entities/ant":2,"../entities/egg":6,"../entities/larva":9,"../entities/pupa":13,"../selectors/selectors":20,"../simulation/performTask":23,"../state/tasks":27,"../utils/errors":45,"../utils/helpers":46,"../utils/stateHelpers":47,"../utils/vectors":48}],20:[function(require,module,exports){
 'use strict';
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
@@ -1401,11 +1419,11 @@ var fastCollidesWith = function fastCollidesWith(game, entity) {
       height = entity.height;
 
   if (width == null) {
-    console.error("checking collision on non-entity");
+    console.error("checking collision on non-entity", entity);
     width = 1;
   }
   if (height == null) {
-    console.error("checking collision on non-entity");
+    console.error("checking collision on non-entity", entity);
     height = 1;
   }
   var collisions = [];
@@ -1633,7 +1651,7 @@ var selectors = {
 window.selectors = selectors; // for testing
 
 module.exports = selectors;
-},{"../config":1,"../utils/errors":42,"../utils/vectors":45}],21:[function(require,module,exports){
+},{"../config":1,"../utils/errors":45,"../utils/vectors":48}],21:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -1692,120 +1710,412 @@ var _require7 = require('../selectors/selectors'),
 var _require8 = require('../entities/egg'),
     makeEgg = _require8.makeEgg;
 
-var _require9 = require('../entities/larva'),
-    makeLarva = _require9.makeLarva;
+var doAction = function doAction(game, ant, action) {
+  var payload = action.payload;
+  var object = payload.object,
+      constraint = payload.constraint;
 
-var _require10 = require('../entities/pupa'),
-    makePupa = _require10.makePupa;
+  var actionType = action.type;
 
-var _require11 = require('../entities/ant'),
-    makeAnt = _require11.makeAnt;
+  // first handle ants that are holding a big entity
+  if (ant.holding != null && ant.holding.toLift > 1) {
+    var bigEntity = ant.holding;
 
-///////////////////////////////////////////////////////////////////////////////
-// PERFORM TASK
-///////////////////////////////////////////////////////////////////////////////
-// Update the world based on the ant (attempting) performing its task.
-// In place.
-var performTask = function performTask(game, ant) {
-  if (ant.task == null) {
-    return;
+    // if (bigEntity.toLift > bigEntity.heldBy.length) {
+    //   // if the ant is assigned something else to do, drop it
+    //   if (action.type !== 'PUTDOWN' && action.type !== 'IDLE') {
+    //     putDownEntity(game, ant);
+    //   }
+    // }
   }
-  var task = ant.task,
-      taskIndex = ant.taskIndex;
-  // if run off the end of the behavior queue, then repeat or pop back to parent
 
-  if (taskIndex >= task.behaviorQueue.length) {
-    if (task.repeating) {
-      ant.taskIndex = 0;
-    } else {
-      var parentTask = ant.taskStack.pop();
-      if (parentTask == null) {
-        ant.taskIndex = 0;
-        ant.task = createIdleTask();
-      } else {
-        ant.taskIndex = parentTask.index;
-        ant.task = game.tasks.filter(function (t) {
-          return t.name === parentTask.name;
-        })[0];
-      }
-    }
-    return;
-  }
-  var behavior = task.behaviorQueue[taskIndex];
-  var done = performBehavior(game, ant, behavior);
-
-  // if the behavior is done, advance the task index
-  if (done) {
-    ant.taskIndex += 1;
-    if (task.repeating) {
-      ant.taskIndex = ant.taskIndex % task.behaviorQueue.length;
-    }
-    // HACK to deal with switching tasks in a nested behavior
-  } else if (ant.taskIndex == -1) {
-    ant.taskIndex = 0;
-  }
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// PERFORM BEHAVIOR
-///////////////////////////////////////////////////////////////////////////////
-// behaviors can be recursive, so use this
-var performBehavior = function performBehavior(game, ant, behavior) {
-  var done = false;
-  switch (behavior.type) {
-    case 'DO_ACTION':
+  // then handle the actually-assigned action
+  switch (actionType) {
+    case 'IDLE':
       {
-        performAction(game, ant, behavior.action);
-        done = true;
-        break;
-      }
-    case 'IF':
-      {
-        var childBehavior = behavior.behavior;
-        if (evaluateCondition(game, ant, behavior.condition)) {
-          performBehavior(game, ant, childBehavior);
-        } else if (behavior.elseBehavior != null) {
-          performBehavior(game, ant, behavior.elseBehavior);
-        }
-        // TODO support nested execution
-        // if (childBehavior.done) {
-        done = true;
-        // }
-        break;
-      }
-    case 'WHILE':
-      {
-        var _childBehavior = behavior.behavior;
-        if (evaluateCondition(game, ant, behavior.condition)) {
-          performBehavior(game, ant, _childBehavior);
-        } else {
-          done = true;
-        }
-        break;
-      }
-    case 'SWITCH_TASK':
-      {
-        var parentTask = ant.task;
-        ant.task = game.tasks.filter(function (t) {
-          return t.name === behavior.task;
-        })[0];
-        ant.taskStack.push({
-          name: parentTask.name,
-          index: ant.taskIndex
+        // unstack, similar to moving out of the way of placed dirt
+        var stackedAnts = fastCollidesWith(game, ant).filter(function (e) {
+          return config.antBlockingEntities.includes(e.type) || e.type == 'ANT';
         });
-        // HACK: this sucks. done doesn't always propagate up particularly if
-        // you switch tasks from inside a do-while
-        ant.taskIndex = -1; // it's about to +1 in performTask
-        done = true;
+        if (stackedAnts.length > 0) {
+          var freePositions = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities);
+          if (freePositions.length > 0) {
+            moveEntity(game, ant, oneOf(freePositions));
+          }
+        } else {
+          if (Math.random() < 0.05) {
+            var factor = Math.random() < 0.5 ? 1 : -1;
+            ant.theta += factor * Math.PI / 2;
+          } else {
+            ant.calories += 1; // calories don't go down if you fully idle
+          }
+        }
+        ant.prevPosition = _extends({}, ant.position);
+        break;
+      }
+    case 'MOVE':
+      {
+        var loc = object;
+        var obj = object;
+        if (obj === 'TRAIL') {
+          var pheromone = lookupInGrid(game.grid, ant.position).map(function (id) {
+            return game.entities[id];
+          }).filter(function (e) {
+            return e.type === 'PHEROMONE';
+          })[0];
+          if (pheromone != null) {
+            loc = { position: add(ant.position, makeVector(pheromone.theta, 1)) };
+          } else {
+            obj = 'RANDOM';
+          }
+        }
+        if (obj === 'RANDOM') {
+          // randomly select loc based on free neighbors
+          var _freePositions = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities).filter(function (pos) {
+            return insideWorld(game, pos);
+          });
+          if (_freePositions.length == 0) {
+            break; // can't move
+          }
+          // don't select previous position
+          _freePositions = _freePositions.filter(function (pos) {
+            return pos.x != ant.prevPosition.x || pos.y != ant.prevPosition.y;
+          });
+          // don't cross colonyEntrance boundary
+          // const colEnt = game.entities[config.colonyEntrance].position;
+          // freePositions = freePositions.filter(pos => !equals(pos, colEnt));
+          if (_freePositions.length == 0) {
+            // fall back to previous position
+            loc = { position: ant.prevPosition };
+          }
+          // if required, stay inside location boundary
+          if (constraint != null) {
+            _freePositions = _freePositions.filter(function (pos) {
+              var inGrid = lookupInGrid(game.grid, pos);
+              return inGrid.includes(constraint);
+            });
+          }
+          loc = { position: oneOf(_freePositions) };
+        } else if (obj != 'TRAIL' && typeof obj === 'string') {
+          loc = getEntitiesByType(game, ['LOCATION']).filter(function (l) {
+            return l.name === obj;
+          })[0];
+        }
+        var distVec = subtract(loc.position, ant.position);
+        if (distVec.x == 0 && distVec.y == 0) {
+          break; // you're there
+        }
+        var moveVec = { x: 0, y: 0 };
+        var moveAxis = 'y';
+        // different policies for choosing move direction
+        // if (Math.abs(distVec.x) > Math.abs(distVec.y)) {
+        if (distVec.y == 0 || distVec.x !== 0 && Math.random() < 0.5) {
+          moveAxis = 'x';
+        }
+        moveVec[moveAxis] += distVec[moveAxis] > 0 ? 1 : -1;
+        var nextPos = add(moveVec, ant.position);
+        var didMove = maybeMoveEntity(game, ant, nextPos);
+        if (didMove) {
+          ant.blocked = false;
+          ant.blockedBy = null;
+        } else {
+          // else try moving along the other axis
+          moveVec[moveAxis] = 0;
+          moveAxis = moveAxis === 'y' ? 'x' : 'y';
+          if (distVec[moveAxis] > 0) {
+            moveVec[moveAxis] += 1;
+          } else if (distVec[moveAxis] < 0) {
+            moveVec[moveAxis] -= 1;
+          } else {
+            // already axis-aligned with destination, but blocked
+            // TODO block is broken now
+            ant.blocked = true;
+            // ant.blockedBy = occupied[0];
+            break;
+          }
+          nextPos = add(moveVec, ant.position);
+          didMove = maybeMoveEntity(game, ant, nextPos);
+          if (didMove) {
+            ant.blocked = false;
+            ant.blockedBy = null;
+          } else {
+            // TODO block is broken now
+            // } else if (occpied.length > 0) {
+            ant.blocked = true;
+            // ant.blockedBy = occupied[0];
+          }
+        }
+        break;
+      }
+    case 'PICKUP':
+      {
+        var entityToPickup = object;
+        if (entityToPickup === 'BLOCKER') {
+          entityToPickup = ant.blockedBy;
+        } else if (entityToPickup === 'MARKED_DIRT') {
+          var neighbors = fastGetNeighbors(game, ant);
+          var pheromoneNeighbors = neighbors.filter(function (e) {
+            return e.type === 'PHEROMONE';
+          });
+          var dirtNeighbors = neighbors.filter(function (e) {
+            return e.type === 'DIRT';
+          });
+          var markedDirt = [];
+          var _iteratorNormalCompletion = true;
+          var _didIteratorError = false;
+          var _iteratorError = undefined;
+
+          try {
+            for (var _iterator = dirtNeighbors[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+              var dirt = _step.value;
+              var _iteratorNormalCompletion2 = true;
+              var _didIteratorError2 = false;
+              var _iteratorError2 = undefined;
+
+              try {
+                for (var _iterator2 = pheromoneNeighbors[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                  var _pheromone = _step2.value;
+
+                  if (equals(dirt.position, _pheromone.position)) {
+                    markedDirt.push(dirt);
+                  }
+                }
+              } catch (err) {
+                _didIteratorError2 = true;
+                _iteratorError2 = err;
+              } finally {
+                try {
+                  if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                    _iterator2.return();
+                  }
+                } finally {
+                  if (_didIteratorError2) {
+                    throw _iteratorError2;
+                  }
+                }
+              }
+            }
+          } catch (err) {
+            _didIteratorError = true;
+            _iteratorError = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion && _iterator.return) {
+                _iterator.return();
+              }
+            } finally {
+              if (_didIteratorError) {
+                throw _iteratorError;
+              }
+            }
+          }
+
+          entityToPickup = oneOf(markedDirt);
+        } else if (entityToPickup === 'DIRT' || entityToPickup === 'FOOD' || entityToPickup === 'EGG' || entityToPickup === 'LARVA' || entityToPickup === 'PUPA' || entityToPickup === 'DEAD_ANT') {
+          entityToPickup = oneOf(fastGetNeighbors(game, ant).filter(function (e) {
+            return e.type == entityToPickup;
+          }));
+        } else if (entityToPickup != null && entityToPickup.position != null) {
+          entityToPickup = fastGetNeighbors(game, ant).filter(function (e) {
+            return e.id === entityToPickup.id;
+          })[0];
+        }
+        if (entityToPickup == null || entityToPickup.position == null) {
+          break;
+        }
+        if (ant.holding == null) {
+          pickUpEntity(game, ant, entityToPickup);
+          if (entityToPickup.toLift > 1) {
+            var _bigEntity = entityToPickup;
+            var targetLoc = {
+              position: {
+                x: Math.round(_bigEntity.position.x + _bigEntity.width / 2),
+                y: _bigEntity.lifted ? _bigEntity.position.y - 1 : _bigEntity.position.y
+              },
+              width: 1,
+              height: 1
+            };
+            ant.taskStack = [];
+            ant.taskIndex = -1; // HACK to switch tasks inside a task
+            var goToLocationBehavior = createGoToLocationBehavior(targetLoc);
+            ant.task = {
+              name: 'Picking up ' + _bigEntity.type,
+              repeating: false,
+              behaviorQueue: [goToLocationBehavior, {
+                type: 'SWITCH_TASK',
+                task: 'Holding and Idle'
+              }]
+            };
+          }
+        }
+        break;
+      }
+    case 'PUTDOWN':
+      {
+        var locationToPutdown = object;
+        if (locationToPutdown == null) {
+          locationToPutdown = { position: ant.position, width: 1, height: 1 };
+        }
+        var putDownFree = fastCollidesWith(game, locationToPutdown).filter(function (e) {
+          return config.antBlockingEntities.includes(e.type);
+        }).length === 0;
+        if (collides(ant, locationToPutdown) && ant.holding != null && putDownFree) {
+          putDownEntity(game, ant);
+          // move the ant out of the way
+          var _freePositions2 = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities);
+          if (_freePositions2.length > 0) {
+            moveEntity(game, ant, _freePositions2[0]);
+          }
+        }
+        break;
+      }
+    case 'EAT':
+      {
+        var entityToEat = object;
+        var neighborFood = fastGetNeighbors(game, ant).filter(function (e) {
+          return e.type === 'FOOD';
+        });
+        if (entityToEat == null) {
+          entityToEat = oneOf(neighborFood);
+        } else if (entityToEat.id != null) {
+          entityToEat = neighborFood.filter(function (f) {
+            return f.id == entityToEat.id;
+          })[0];
+        }
+        if (entityToEat == null) break;
+
+        var caloriesEaten = Math.min(config.antCaloriesPerEat, entityToEat.calories, config.antMaxCalories - ant.calories);
+        ant.calories += caloriesEaten;
+        entityToEat.calories -= caloriesEaten;
+        // remove the food item if it has no more calories
+        if (entityToEat.calories <= 0) {
+          removeEntity(game, entityToEat);
+        }
+        break;
+      }
+    case 'FEED':
+      {
+        var feedableEntities = fastGetNeighbors(game, ant).filter(function (e) {
+          return ['ANT', 'LARVA'].includes(e.type);
+        });
+        if (ant.holding != null && ant.holding.type === 'FOOD' && feedableEntities.length > 0) {
+          // prefer to feed larva if possible
+          var fedEntity = oneOf(feedableEntities);
+          var _iteratorNormalCompletion3 = true;
+          var _didIteratorError3 = false;
+          var _iteratorError3 = undefined;
+
+          try {
+            for (var _iterator3 = feedableEntities[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+              var e = _step3.value;
+
+              if (e.type === 'LARVA') {
+                fedEntity = e;
+                break;
+              }
+            }
+          } catch (err) {
+            _didIteratorError3 = true;
+            _iteratorError3 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                _iterator3.return();
+              }
+            } finally {
+              if (_didIteratorError3) {
+                throw _iteratorError3;
+              }
+            }
+          }
+
+          fedEntity.calories += ant.holding.calories;
+          removeEntity(game, ant.holding);
+          ant.holding = null;
+        }
+        break;
+      }
+    case 'MARK':
+      {
+        // TODO
+        break;
+      }
+    case 'LAY':
+      {
+        if (ant.subType != 'QUEEN') {
+          break; // only queen lays eggs
+        }
+        var nothingInTheWay = fastCollidesWith(game, ant).filter(function (e) {
+          return config.antBlockingEntities.includes(e.type);
+        }).length === 0;
+        var dirtBelow = lookupInGrid(game.grid, add(ant.position, { x: 0, y: -1 })).filter(function (id) {
+          return game.entities[id].type === 'DIRT';
+        }).length > 0;
+        if (nothingInTheWay && dirtBelow) {
+          var egg = makeEgg(ant.position, 'WORKER'); // TODO
+          addEntity(game, egg);
+          // move the ant out of the way
+          var _freePositions3 = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities);
+          if (_freePositions3.length > 0) {
+            moveEntity(game, ant, _freePositions3[0]);
+          }
+        }
+        break;
+      }
+    case 'COMMUNICATE':
+      {
+        // TODO
         break;
       }
   }
-  return done;
 };
+
+var doHighLevelAction = function doHighLevelAction(game, ant, action) {
+  var payload = action.payload;
+  var object = payload.object;
+
+  var actionType = action.type;
+
+  switch (actionType) {
+    // high level move is a random move inside a location
+    case 'MOVE':
+      {
+        doAction(game, ant, {
+          type: 'MOVE',
+          payload: { object: 'RANDOM', constraint: action.payload.object }
+        });
+        break;
+      }
+  }
+};
+
+module.exports = { doAction: doAction, doHighLevelAction: doHighLevelAction };
+},{"../config":1,"../entities/egg":6,"../selectors/selectors":20,"../state/tasks":27,"../utils/errors":45,"../utils/helpers":46,"../utils/stateHelpers":47,"../utils/vectors":48}],22:[function(require,module,exports){
+'use strict';
+
+var _require = require('../utils/vectors'),
+    add = _require.add,
+    equals = _require.equals,
+    subtract = _require.subtract,
+    distance = _require.distance,
+    makeVector = _require.makeVector,
+    vectorTheta = _require.vectorTheta;
+
+var _require2 = require('../selectors/selectors'),
+    fastCollidesWith = _require2.fastCollidesWith,
+    fastGetEmptyNeighborPositions = _require2.fastGetEmptyNeighborPositions,
+    fastGetNeighbors = _require2.fastGetNeighbors,
+    collides = _require2.collides,
+    getEntitiesByType = _require2.getEntitiesByType,
+    filterEntitiesByType = _require2.filterEntitiesByType,
+    insideWorld = _require2.insideWorld,
+    getEntitiesInRadius = _require2.getEntitiesInRadius;
 
 ///////////////////////////////////////////////////////////////////////////////
 // EVALUATE CONDITION
 ///////////////////////////////////////////////////////////////////////////////
+
+
 var evaluateCondition = function evaluateCondition(game, ant, condition) {
   var isTrue = false;
   var not = condition.not,
@@ -1974,370 +2284,244 @@ var evaluateCondition = function evaluateCondition(game, ant, condition) {
   return not ? !isTrue : isTrue;
 };
 
+module.exports = { evaluateCondition: evaluateCondition };
+},{"../selectors/selectors":20,"../utils/vectors":48}],23:[function(require,module,exports){
+'use strict';
+
+var _require = require('../utils/vectors'),
+    add = _require.add,
+    equals = _require.equals,
+    subtract = _require.subtract,
+    distance = _require.distance,
+    makeVector = _require.makeVector,
+    vectorTheta = _require.vectorTheta;
+
+var _require2 = require('../config'),
+    config = _require2.config;
+
+var sin = Math.sin,
+    cos = Math.cos,
+    abs = Math.abs,
+    sqrt = Math.sqrt;
+
+var _require3 = require('../state/tasks'),
+    createIdleTask = _require3.createIdleTask,
+    createGoToLocationBehavior = _require3.createGoToLocationBehavior;
+
+var _require4 = require('../utils/errors'),
+    invariant = _require4.invariant;
+
+var _require5 = require('../utils/helpers'),
+    randomIn = _require5.randomIn,
+    normalIn = _require5.normalIn,
+    oneOf = _require5.oneOf,
+    deleteFromArray = _require5.deleteFromArray;
+
+var _require6 = require('../utils/stateHelpers'),
+    insertInGrid = _require6.insertInGrid,
+    deleteFromGrid = _require6.deleteFromGrid,
+    lookupInGrid = _require6.lookupInGrid,
+    addEntity = _require6.addEntity,
+    removeEntity = _require6.removeEntity,
+    moveEntity = _require6.moveEntity,
+    changeEntityType = _require6.changeEntityType,
+    pickUpEntity = _require6.pickUpEntity,
+    putDownEntity = _require6.putDownEntity,
+    maybeMoveEntity = _require6.maybeMoveEntity;
+
+var _require7 = require('../selectors/selectors'),
+    fastCollidesWith = _require7.fastCollidesWith,
+    fastGetEmptyNeighborPositions = _require7.fastGetEmptyNeighborPositions,
+    fastGetNeighbors = _require7.fastGetNeighbors,
+    collides = _require7.collides,
+    getEntitiesByType = _require7.getEntitiesByType,
+    filterEntitiesByType = _require7.filterEntitiesByType,
+    insideWorld = _require7.insideWorld,
+    getEntitiesInRadius = _require7.getEntitiesInRadius;
+
+var _require8 = require('../simulation/doAction'),
+    doAction = _require8.doAction,
+    doHighLevelAction = _require8.doHighLevelAction;
+
+var _require9 = require('../simulation/evaluateCondition'),
+    evaluateCondition = _require9.evaluateCondition;
+
 ///////////////////////////////////////////////////////////////////////////////
-// PERFORM ACTION
+// PERFORM TASK
 ///////////////////////////////////////////////////////////////////////////////
-var performAction = function performAction(game, ant, action) {
-  var payload = action.payload;
-  var object = payload.object;
-
-  var actionType = action.type;
-
-  // first handle ants that are holding a big entity
-  if (ant.holding != null && ant.holding.toLift > 1) {
-    var bigEntity = ant.holding;
-
-    // if (bigEntity.toLift > bigEntity.heldBy.length) {
-    //   // if the ant is assigned something else to do, drop it
-    //   if (action.type !== 'PUTDOWN' && action.type !== 'IDLE') {
-    //     putDownEntity(game, ant);
-    //   }
-    // }
+// Update the world based on the ant (attempting) performing its task.
+// In place.
+var performTask = function performTask(game, ant) {
+  if (ant.task == null) {
+    return;
   }
+  var task = ant.task,
+      taskIndex = ant.taskIndex;
+  // if run off the end of the behavior queue, then repeat or pop back to parent
 
-  // then handle the actually-assigned action
-  switch (actionType) {
-    case 'IDLE':
-      {
-        // unstack, similar to moving out of the way of placed dirt
-        var stackedAnts = fastCollidesWith(game, ant).filter(function (e) {
-          return config.antBlockingEntities.includes(e.type) || e.type == 'ANT';
-        });
-        if (stackedAnts.length > 0) {
-          var freePositions = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities);
-          if (freePositions.length > 0) {
-            moveEntity(game, ant, oneOf(freePositions));
-          }
-        } else {
-          if (Math.random() < 0.05) {
-            var factor = Math.random() < 0.5 ? 1 : -1;
-            ant.theta += factor * Math.PI / 2;
-          } else {
-            ant.calories += 1; // calories don't go down if you fully idle
-          }
-        }
-        ant.prevPosition = _extends({}, ant.position);
-        break;
+  if (taskIndex >= task.behaviorQueue.length) {
+    if (task.repeating) {
+      ant.taskIndex = 0;
+    } else {
+      var parentTask = ant.taskStack.pop();
+      if (parentTask == null) {
+        ant.taskIndex = 0;
+        ant.task = createIdleTask();
+      } else {
+        ant.taskIndex = parentTask.index;
+        ant.task = game.tasks.filter(function (t) {
+          return t.name === parentTask.name;
+        })[0];
       }
-    case 'MOVE':
-      {
-        var loc = object;
-        var obj = object;
-        if (obj === 'TRAIL') {
-          var pheromone = lookupInGrid(game.grid, ant.position).map(function (id) {
-            return game.entities[id];
-          }).filter(function (e) {
-            return e.type === 'PHEROMONE';
-          })[0];
-          if (pheromone != null) {
-            loc = { position: add(ant.position, makeVector(pheromone.theta, 1)) };
-          } else {
-            obj = 'RANDOM';
-          }
-        }
-        if (obj === 'RANDOM') {
-          // randomly select loc based on free neighbors
-          var _freePositions = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities).filter(function (pos) {
-            return insideWorld(game, pos);
-          });
-          if (_freePositions.length == 0) {
-            break; // can't move
-          }
-          // don't select previous position
-          _freePositions = _freePositions.filter(function (pos) {
-            return pos.x != ant.prevPosition.x || pos.y != ant.prevPosition.y;
-          });
-          if (_freePositions.length == 0) {
-            // then previous position was removed, so fall back to it
-            loc = { position: ant.prevPosition };
-          } else {
-            // don't cross colonyEntrance boundary
-            var colEnt = game.entities[config.colonyEntrance].position;
-            _freePositions = _freePositions.filter(function (pos) {
-              return !equals(pos, colEnt);
-            });
-            if (_freePositions.length == 0) {
-              // fall back to previous position
-              loc = { position: ant.prevPosition };
-            }
-            loc = { position: oneOf(_freePositions) };
-          }
-        } else if (obj != 'TRAIL' && typeof obj === 'string') {
-          loc = getEntitiesByType(game, ['LOCATION']).filter(function (l) {
-            return l.name === obj;
-          })[0];
-        }
-        var distVec = subtract(loc.position, ant.position);
-        if (distVec.x == 0 && distVec.y == 0) {
-          break; // you're there
-        }
-        var moveVec = { x: 0, y: 0 };
-        var moveAxis = 'y';
-        // different policies for choosing move direction
-        // if (Math.abs(distVec.x) > Math.abs(distVec.y)) {
-        if (distVec.y == 0 || distVec.x !== 0 && Math.random() < 0.5) {
-          moveAxis = 'x';
-        }
-        moveVec[moveAxis] += distVec[moveAxis] > 0 ? 1 : -1;
-        var nextPos = add(moveVec, ant.position);
-        var didMove = maybeMoveEntity(game, ant, nextPos);
-        if (didMove) {
-          ant.blocked = false;
-          ant.blockedBy = null;
-        } else {
-          // else try moving along the other axis
-          moveVec[moveAxis] = 0;
-          moveAxis = moveAxis === 'y' ? 'x' : 'y';
-          if (distVec[moveAxis] > 0) {
-            moveVec[moveAxis] += 1;
-          } else if (distVec[moveAxis] < 0) {
-            moveVec[moveAxis] -= 1;
-          } else {
-            // already axis-aligned with destination, but blocked
-            // TODO block is broken now
-            ant.blocked = true;
-            // ant.blockedBy = occupied[0];
-            break;
-          }
-          nextPos = add(moveVec, ant.position);
-          didMove = maybeMoveEntity(game, ant, nextPos);
-          if (didMove) {
-            ant.blocked = false;
-            ant.blockedBy = null;
-          } else {
-            // TODO block is broken now
-            // } else if (occpied.length > 0) {
-            ant.blocked = true;
-            // ant.blockedBy = occupied[0];
-          }
-        }
-        break;
-      }
-    case 'PICKUP':
-      {
-        var entityToPickup = object;
-        if (entityToPickup === 'BLOCKER') {
-          entityToPickup = ant.blockedBy;
-        } else if (entityToPickup === 'MARKED_DIRT') {
-          var neighbors = fastGetNeighbors(game, ant);
-          var pheromoneNeighbors = neighbors.filter(function (e) {
-            return e.type === 'PHEROMONE';
-          });
-          var dirtNeighbors = neighbors.filter(function (e) {
-            return e.type === 'DIRT';
-          });
-          var markedDirt = [];
-          var _iteratorNormalCompletion3 = true;
-          var _didIteratorError3 = false;
-          var _iteratorError3 = undefined;
+    }
+    return;
+  }
+  var behavior = task.behaviorQueue[taskIndex];
+  var done = performBehavior(game, ant, behavior);
 
-          try {
-            for (var _iterator3 = dirtNeighbors[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-              var dirt = _step3.value;
-              var _iteratorNormalCompletion4 = true;
-              var _didIteratorError4 = false;
-              var _iteratorError4 = undefined;
-
-              try {
-                for (var _iterator4 = pheromoneNeighbors[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-                  var _pheromone = _step4.value;
-
-                  if (equals(dirt.position, _pheromone.position)) {
-                    markedDirt.push(dirt);
-                  }
-                }
-              } catch (err) {
-                _didIteratorError4 = true;
-                _iteratorError4 = err;
-              } finally {
-                try {
-                  if (!_iteratorNormalCompletion4 && _iterator4.return) {
-                    _iterator4.return();
-                  }
-                } finally {
-                  if (_didIteratorError4) {
-                    throw _iteratorError4;
-                  }
-                }
-              }
-            }
-          } catch (err) {
-            _didIteratorError3 = true;
-            _iteratorError3 = err;
-          } finally {
-            try {
-              if (!_iteratorNormalCompletion3 && _iterator3.return) {
-                _iterator3.return();
-              }
-            } finally {
-              if (_didIteratorError3) {
-                throw _iteratorError3;
-              }
-            }
-          }
-
-          entityToPickup = oneOf(markedDirt);
-        } else if (entityToPickup === 'DIRT' || entityToPickup === 'FOOD' || entityToPickup === 'EGG' || entityToPickup === 'LARVA' || entityToPickup === 'PUPA' || entityToPickup === 'DEAD_ANT') {
-          entityToPickup = oneOf(fastGetNeighbors(game, ant).filter(function (e) {
-            return e.type == entityToPickup;
-          }));
-        } else if (entityToPickup != null && entityToPickup.position != null) {
-          entityToPickup = fastGetNeighbors(game, ant).filter(function (e) {
-            return e.id === entityToPickup.id;
-          })[0];
-        }
-        if (entityToPickup == null || entityToPickup.position == null) {
-          break;
-        }
-        if (ant.holding == null) {
-          pickUpEntity(game, ant, entityToPickup);
-          if (entityToPickup.toLift > 1) {
-            var _bigEntity = entityToPickup;
-            var targetLoc = {
-              position: {
-                x: Math.round(_bigEntity.position.x + _bigEntity.width / 2),
-                y: _bigEntity.lifted ? _bigEntity.position.y - 1 : _bigEntity.position.y
-              },
-              width: 1,
-              height: 1
-            };
-            ant.taskStack = [];
-            ant.taskIndex = -1; // HACK to switch tasks inside a task
-            var goToLocationBehavior = createGoToLocationBehavior(targetLoc);
-            ant.task = {
-              name: 'Picking up ' + _bigEntity.type,
-              repeating: false,
-              behaviorQueue: [goToLocationBehavior, {
-                type: 'SWITCH_TASK',
-                task: 'Holding and Idle'
-              }]
-            };
-          }
-        }
-        break;
-      }
-    case 'PUTDOWN':
-      {
-        var locationToPutdown = object;
-        if (locationToPutdown == null) {
-          locationToPutdown = { position: ant.position, width: 1, height: 1 };
-        }
-        var putDownFree = fastCollidesWith(game, locationToPutdown).filter(function (e) {
-          return config.antBlockingEntities.includes(e.type);
-        }).length === 0;
-        if (collides(ant, locationToPutdown) && ant.holding != null && putDownFree) {
-          putDownEntity(game, ant);
-          // move the ant out of the way
-          var _freePositions2 = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities);
-          if (_freePositions2.length > 0) {
-            moveEntity(game, ant, _freePositions2[0]);
-          }
-        }
-        break;
-      }
-    case 'EAT':
-      {
-        var entityToEat = object;
-        var neighborFood = fastGetNeighbors(game, ant).filter(function (e) {
-          return e.type === 'FOOD';
-        });
-        if (entityToEat == null) {
-          entityToEat = oneOf(neighborFood);
-        } else if (entityToEat.id != null) {
-          entityToEat = neighborFood.filter(function (f) {
-            return f.id == entityToEat.id;
-          })[0];
-        }
-        if (entityToEat == null) break;
-
-        var caloriesEaten = Math.min(config.antCaloriesPerEat, entityToEat.calories, config.antMaxCalories - ant.calories);
-        ant.calories += caloriesEaten;
-        entityToEat.calories -= caloriesEaten;
-        // remove the food item if it has no more calories
-        if (entityToEat.calories <= 0) {
-          removeEntity(game, entityToEat);
-        }
-        break;
-      }
-    case 'FEED':
-      {
-        var feedableEntities = fastGetNeighbors(game, ant).filter(function (e) {
-          return ['ANT', 'LARVA'].includes(e.type);
-        });
-        if (ant.holding != null && ant.holding.type === 'FOOD' && feedableEntities.length > 0) {
-          // prefer to feed larva if possible
-          var fedEntity = oneOf(feedableEntities);
-          var _iteratorNormalCompletion5 = true;
-          var _didIteratorError5 = false;
-          var _iteratorError5 = undefined;
-
-          try {
-            for (var _iterator5 = feedableEntities[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-              var e = _step5.value;
-
-              if (e.type === 'LARVA') {
-                fedEntity = e;
-                break;
-              }
-            }
-          } catch (err) {
-            _didIteratorError5 = true;
-            _iteratorError5 = err;
-          } finally {
-            try {
-              if (!_iteratorNormalCompletion5 && _iterator5.return) {
-                _iterator5.return();
-              }
-            } finally {
-              if (_didIteratorError5) {
-                throw _iteratorError5;
-              }
-            }
-          }
-
-          fedEntity.calories += ant.holding.calories;
-          removeEntity(game, ant.holding);
-          ant.holding = null;
-        }
-        break;
-      }
-    case 'MARK':
-      {
-        // TODO
-        break;
-      }
-    case 'LAY':
-      {
-        if (ant.subType != 'QUEEN') {
-          break; // only queen lays eggs
-        }
-        var nothingInTheWay = fastCollidesWith(game, ant).filter(function (e) {
-          return config.antBlockingEntities.includes(e.type);
-        }).length === 0;
-        var dirtBelow = lookupInGrid(game.grid, add(ant.position, { x: 0, y: -1 })).filter(function (id) {
-          return game.entities[id].type === 'DIRT';
-        }).length > 0;
-        if (nothingInTheWay && dirtBelow) {
-          var egg = makeEgg(ant.position, 'WORKER'); // TODO
-          addEntity(game, egg);
-          // move the ant out of the way
-          var _freePositions3 = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities);
-          if (_freePositions3.length > 0) {
-            moveEntity(game, ant, _freePositions3[0]);
-          }
-        }
-        break;
-      }
-    case 'COMMUNICATE':
-      {
-        // TODO
-        break;
-      }
+  // if the behavior is done, advance the task index
+  if (done) {
+    ant.taskIndex += 1;
+    if (task.repeating) {
+      ant.taskIndex = ant.taskIndex % task.behaviorQueue.length;
+    }
+    // HACK to deal with switching tasks in a nested behavior
+  } else if (ant.taskIndex == -1) {
+    ant.taskIndex = 0;
   }
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// PERFORM BEHAVIOR
+///////////////////////////////////////////////////////////////////////////////
+// behaviors can be recursive, so use this
+var performBehavior = function performBehavior(game, ant, behavior) {
+  var done = false;
+  switch (behavior.type) {
+    case 'DO_ACTION':
+      {
+        doAction(game, ant, behavior.action);
+        done = true;
+        break;
+      }
+    case 'IF':
+      {
+        var childBehavior = behavior.behavior;
+        if (evaluateCondition(game, ant, behavior.condition)) {
+          performBehavior(game, ant, childBehavior);
+        } else if (behavior.elseBehavior != null) {
+          performBehavior(game, ant, behavior.elseBehavior);
+        }
+        // TODO support nested execution
+        // if (childBehavior.done) {
+        done = true;
+        // }
+        break;
+      }
+    case 'WHILE':
+      {
+        var _childBehavior = behavior.behavior;
+        if (evaluateCondition(game, ant, behavior.condition)) {
+          performBehavior(game, ant, _childBehavior);
+        } else {
+          done = true;
+        }
+        break;
+      }
+    case 'SWITCH_TASK':
+      {
+        var parentTask = ant.task;
+        ant.task = game.tasks.filter(function (t) {
+          return t.name === behavior.task;
+        })[0];
+        ant.taskStack.push({
+          name: parentTask.name,
+          index: ant.taskIndex
+        });
+        // HACK: this sucks. done doesn't always propagate up particularly if
+        // you switch tasks from inside a do-while
+        ant.taskIndex = -1; // it's about to +1 in performTask
+        done = true;
+        break;
+      }
+    case 'HIGH_LEVEL_DO_ACTION':
+      {
+        doHighLevelAction(game, ant, behavior.action);
+        done = true;
+        break;
+      }
+  }
+  return done;
+};
+
 module.exports = { performTask: performTask };
-},{"../config":1,"../entities/ant":2,"../entities/egg":6,"../entities/larva":9,"../entities/pupa":13,"../selectors/selectors":20,"../state/tasks":24,"../utils/errors":42,"../utils/helpers":43,"../utils/stateHelpers":44,"../utils/vectors":45}],22:[function(require,module,exports){
+},{"../config":1,"../selectors/selectors":20,"../simulation/doAction":21,"../simulation/evaluateCondition":22,"../state/tasks":27,"../utils/errors":45,"../utils/helpers":46,"../utils/stateHelpers":47,"../utils/vectors":48}],24:[function(require,module,exports){
+'use strict';
+
+///////////////////////////////////////////////////////////////////
+// Building Blocks
+///////////////////////////////////////////////////////////////////
+
+var createDoAction = function createDoAction(type, object) {
+  return {
+    type: 'DO_ACTION',
+    action: {
+      type: type,
+      payload: { object: object }
+    }
+  };
+};
+
+var createMoveBehavior = function createMoveBehavior(locOrType) {
+  return createDoAction('MOVE', locOrType);
+};
+
+var createRandomMoveInLocationBehavior = function createRandomMoveInLocationBehavior(locID) {
+  return {
+    type: 'HIGH_LEVEL_DO_ACTION',
+    action: {
+      type: 'MOVE',
+      payload: {
+        object: locID
+      }
+    }
+  };
+};
+
+///////////////////////////////////////////////////////////////////
+// Tasks
+///////////////////////////////////////////////////////////////////
+
+var createRandomMoveInLocationTask = function createRandomMoveInLocationTask(locID) {
+  return {
+    name: 'Move in Location',
+    repeating: true, // TODO ?
+    behaviorQueue: [createRandomMoveInLocationBehavior(locID)]
+  };
+};
+
+var followTrail = function followTrail() {
+  return {
+    name: 'Follow Trail',
+    repeating: false,
+    behaviorQueue: [{
+      type: 'WHILE',
+      condition: {
+        type: 'NEIGHBORING',
+        not: false,
+        comparator: 'EQUALS',
+        payload: { object: 'TRAIL' }
+      },
+      behavior: createMoveBehavior('TRAIL')
+    }]
+  };
+};
+
+module.exports = {
+  createRandomMoveInLocationTask: createRandomMoveInLocationTask,
+  followTrail: followTrail
+};
+},{}],25:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -2402,8 +2586,9 @@ var level1 = function level1() {
 
 var level0 = function level0() {
   var game = baseState(500, 100);
-  var colonyEntrance = _extends({}, makeLocation('Colony Entrance', 5, 5, { x: 25, y: 29 }), { id: config.colonyEntrance
-  });
+  var colonyEntrance = makeLocation('Colony Entrance', 5, 5, { x: 25, y: 29 });
+  // ...makeLocation('Colony Entrance', 5, 5, {x: 25, y: 29}), id: config.colonyEntrance,
+  // };
   addEntity(game, colonyEntrance);
 
   var locationTwo = makeLocation('Location Two', 5, 5, { x: 40, y: 20 });
@@ -2560,7 +2745,7 @@ var baseState = function baseState(worldWidth, worldHeight) {
 };
 
 module.exports = { initGameState: initGameState };
-},{"../config":1,"../entities/ant":2,"../entities/background":3,"../entities/dirt":4,"../entities/entity":7,"../entities/food":8,"../entities/location":10,"../entities/obelisk":11,"../entities/stone":14,"../state/tasks":24,"../utils/helpers":43,"../utils/stateHelpers":44}],23:[function(require,module,exports){
+},{"../config":1,"../entities/ant":2,"../entities/background":3,"../entities/dirt":4,"../entities/entity":7,"../entities/food":8,"../entities/location":10,"../entities/obelisk":11,"../entities/stone":14,"../state/tasks":27,"../utils/helpers":46,"../utils/stateHelpers":47}],26:[function(require,module,exports){
 'use strict';
 
 var initState = function initState() {
@@ -2571,7 +2756,7 @@ var initState = function initState() {
 };
 
 module.exports = { initState: initState };
-},{}],24:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 'use strict';
 
 ///////////////////////////////////////////////////////////////
@@ -2889,7 +3074,7 @@ var tasks = {
 window.tasks = tasks;
 
 module.exports = tasks;
-},{}],25:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 'use strict';
 
 // no flow checking cuz it's annoying
@@ -2933,7 +3118,7 @@ var initFoodSpawnSystem = function initFoodSpawnSystem(store) {
 };
 
 module.exports = { initFoodSpawnSystem: initFoodSpawnSystem };
-},{"../config":1,"../entities/food":8,"../selectors/selectors":20,"../utils/helpers":43}],26:[function(require,module,exports){
+},{"../config":1,"../entities/food":8,"../selectors/selectors":20,"../utils/helpers":46}],29:[function(require,module,exports){
 'use strict';
 
 // a system for starting up the other systems
@@ -2954,7 +3139,7 @@ var initSystems = function initSystems(store) {
 };
 
 module.exports = { initSystems: initSystems };
-},{"./foodSpawnSystem":25,"./mouseControlsSystem":27,"./renderSystem":28}],27:[function(require,module,exports){
+},{"./foodSpawnSystem":28,"./mouseControlsSystem":30,"./renderSystem":31}],30:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -3396,7 +3581,7 @@ var getMousePixel = function getMousePixel(ev) {
 };
 
 module.exports = { initMouseControlsSystem: initMouseControlsSystem };
-},{"../config":1,"../entities/location":10,"../entities/pheromone":12,"../selectors/selectors":20,"../state/tasks":24,"../utils/canvasHelpers":41,"../utils/stateHelpers":44,"../utils/vectors":45}],28:[function(require,module,exports){
+},{"../config":1,"../entities/location":10,"../entities/pheromone":12,"../selectors/selectors":20,"../state/tasks":27,"../utils/canvasHelpers":44,"../utils/stateHelpers":47,"../utils/vectors":48}],31:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -3847,7 +4032,7 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
 };
 
 module.exports = { initRenderSystem: initRenderSystem };
-},{"../config":1,"../selectors/selectors":20,"../utils/stateHelpers":44,"../utils/vectors":45}],29:[function(require,module,exports){
+},{"../config":1,"../selectors/selectors":20,"../utils/stateHelpers":47,"../utils/vectors":48}],32:[function(require,module,exports){
 'use strict';
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
@@ -4174,7 +4359,7 @@ function DoActionCard(props) {
 }
 
 module.exports = BehaviorCard;
-},{"../config":1,"../selectors/selectors":20,"./components/Button.react":37,"./components/Checkbox.react":38,"./components/Dropdown.react":39,"react":57}],30:[function(require,module,exports){
+},{"../config":1,"../selectors/selectors":20,"./components/Button.react":40,"./components/Checkbox.react":41,"./components/Dropdown.react":42,"react":60}],33:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -4201,7 +4386,7 @@ function Canvas(props) {
 }
 
 module.exports = Canvas;
-},{"react":57}],31:[function(require,module,exports){
+},{"react":60}],34:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -4221,7 +4406,7 @@ function Game(props) {
 }
 
 module.exports = Game;
-},{"./Canvas.react":30,"./Sidebar.react":34,"react":57}],32:[function(require,module,exports){
+},{"./Canvas.react":33,"./Sidebar.react":37,"react":60}],35:[function(require,module,exports){
 'use strict';
 
 function _objectDestructuringEmpty(obj) { if (obj == null) throw new TypeError("Cannot destructure undefined"); }
@@ -4259,7 +4444,7 @@ function Lobby(props) {
 }
 
 module.exports = Lobby;
-},{"../selectors/selectors":20,"./components/Button.react":37,"react":57}],33:[function(require,module,exports){
+},{"../selectors/selectors":20,"./components/Button.react":40,"react":60}],36:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -4344,7 +4529,7 @@ function getModal(props) {
 }
 
 module.exports = Main;
-},{"../config":1,"./Game.react":31,"./Lobby.react":32,"./components/Button.react":37,"react":57}],34:[function(require,module,exports){
+},{"../config":1,"./Game.react":34,"./Lobby.react":35,"./components/Button.react":40,"react":60}],37:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -4466,7 +4651,7 @@ function Sidebar(props) {
 }
 
 module.exports = Sidebar;
-},{"../config":1,"../selectors/selectors":20,"./StatusCard.react":35,"./components/Button.react":37,"./components/Dropdown.react":39,"./components/RadioPicker.react":40,"react":57}],35:[function(require,module,exports){
+},{"../config":1,"../selectors/selectors":20,"./StatusCard.react":38,"./components/Button.react":40,"./components/Dropdown.react":42,"./components/RadioPicker.react":43,"react":60}],38:[function(require,module,exports){
 'use strict';
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
@@ -4932,7 +5117,7 @@ function TaskEditor(props) {
 }
 
 module.exports = StatusCard;
-},{"../config":1,"./TaskCard.react":36,"./components/Button.react":37,"./components/Dropdown.react":39,"react":57}],36:[function(require,module,exports){
+},{"../config":1,"./TaskCard.react":39,"./components/Button.react":40,"./components/Dropdown.react":42,"react":60}],39:[function(require,module,exports){
 'use strict';
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
@@ -5082,7 +5267,7 @@ function TaskCard(props) {
 }
 
 module.exports = TaskCard;
-},{"../config":1,"./BehaviorCard.react":29,"./components/Button.react":37,"./components/Checkbox.react":38,"./components/Dropdown.react":39,"react":57}],37:[function(require,module,exports){
+},{"../config":1,"./BehaviorCard.react":32,"./components/Button.react":40,"./components/Checkbox.react":41,"./components/Dropdown.react":42,"react":60}],40:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -5149,7 +5334,7 @@ var Button = function (_React$Component) {
 }(React.Component);
 
 module.exports = Button;
-},{"React":48}],38:[function(require,module,exports){
+},{"React":51}],41:[function(require,module,exports){
 'use strict';
 
 var React = require('React');
@@ -5173,7 +5358,7 @@ function Checkbox(props) {
 }
 
 module.exports = Checkbox;
-},{"React":48}],39:[function(require,module,exports){
+},{"React":51}],42:[function(require,module,exports){
 'use strict';
 
 var React = require('React');
@@ -5222,7 +5407,7 @@ var Dropdown = function Dropdown(props) {
 };
 
 module.exports = Dropdown;
-},{"React":48}],40:[function(require,module,exports){
+},{"React":51}],43:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -5311,7 +5496,7 @@ var RadioPicker = function (_React$Component) {
 }(React.Component);
 
 module.exports = RadioPicker;
-},{"React":48}],41:[function(require,module,exports){
+},{"React":51}],44:[function(require,module,exports){
 'use strict';
 
 var _require = require('../config'),
@@ -5355,7 +5540,7 @@ module.exports = {
   canvasToGrid: canvasToGrid,
   gridToCanvas: gridToCanvas
 };
-},{"../config":1,"../utils/vectors":45}],42:[function(require,module,exports){
+},{"../config":1,"../utils/vectors":48}],45:[function(require,module,exports){
 "use strict";
 
 var invariant = function invariant(condition, message) {
@@ -5365,7 +5550,7 @@ var invariant = function invariant(condition, message) {
 };
 
 module.exports = { invariant: invariant };
-},{}],43:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 "use strict";
 
 var floor = Math.floor,
@@ -5456,7 +5641,7 @@ module.exports = {
   deleteFromGrid: deleteFromGrid,
   clamp: clamp
 };
-},{}],44:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -5672,7 +5857,7 @@ module.exports = {
 
   maybeMoveEntity: maybeMoveEntity
 };
-},{"../config":1,"../selectors/selectors":20,"../utils/vectors":45}],45:[function(require,module,exports){
+},{"../config":1,"../selectors/selectors":20,"../utils/vectors":48}],48:[function(require,module,exports){
 "use strict";
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -5801,7 +5986,7 @@ module.exports = {
   round: round,
   ceil: ceil
 };
-},{}],46:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 (function (process){
 /** @license React v16.12.0
  * react.development.js
@@ -8125,7 +8310,7 @@ module.exports = react;
 }
 
 }).call(this,require('_process'))
-},{"_process":67,"object-assign":49,"prop-types/checkPropTypes":50}],47:[function(require,module,exports){
+},{"_process":70,"object-assign":52,"prop-types/checkPropTypes":53}],50:[function(require,module,exports){
 /** @license React v16.12.0
  * react.production.min.js
  *
@@ -8152,7 +8337,7 @@ b,c){return W().useImperativeHandle(a,b,c)},useDebugValue:function(){},useLayout
 if(null!=b){void 0!==b.ref&&(g=b.ref,l=J.current);void 0!==b.key&&(d=""+b.key);if(a.type&&a.type.defaultProps)var f=a.type.defaultProps;for(k in b)K.call(b,k)&&!L.hasOwnProperty(k)&&(e[k]=void 0===b[k]&&void 0!==f?f[k]:b[k])}var k=arguments.length-2;if(1===k)e.children=c;else if(1<k){f=Array(k);for(var m=0;m<k;m++)f[m]=arguments[m+2];e.children=f}return{$$typeof:p,type:a.type,key:d,ref:g,props:e,_owner:l}},createFactory:function(a){var b=M.bind(null,a);b.type=a;return b},isValidElement:N,version:"16.12.0",
 __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED:{ReactCurrentDispatcher:I,ReactCurrentBatchConfig:{suspense:null},ReactCurrentOwner:J,IsSomeRendererActing:{current:!1},assign:h}},Y={default:X},Z=Y&&X||Y;module.exports=Z.default||Z;
 
-},{"object-assign":49}],48:[function(require,module,exports){
+},{"object-assign":52}],51:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -8163,7 +8348,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 }).call(this,require('_process'))
-},{"./cjs/react.development.js":46,"./cjs/react.production.min.js":47,"_process":67}],49:[function(require,module,exports){
+},{"./cjs/react.development.js":49,"./cjs/react.production.min.js":50,"_process":70}],52:[function(require,module,exports){
 /*
 object-assign
 (c) Sindre Sorhus
@@ -8255,7 +8440,7 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 	return to;
 };
 
-},{}],50:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -8361,7 +8546,7 @@ checkPropTypes.resetWarningCache = function() {
 module.exports = checkPropTypes;
 
 }).call(this,require('_process'))
-},{"./lib/ReactPropTypesSecret":51,"_process":67}],51:[function(require,module,exports){
+},{"./lib/ReactPropTypesSecret":54,"_process":70}],54:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -8375,7 +8560,7 @@ var ReactPropTypesSecret = 'SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED';
 
 module.exports = ReactPropTypesSecret;
 
-},{}],52:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 (function (process){
 /** @license React v16.12.0
  * react-dom.development.js
@@ -36174,7 +36359,7 @@ module.exports = reactDom;
 }
 
 }).call(this,require('_process'))
-},{"_process":67,"object-assign":49,"prop-types/checkPropTypes":50,"react":57,"scheduler":63,"scheduler/tracing":64}],53:[function(require,module,exports){
+},{"_process":70,"object-assign":52,"prop-types/checkPropTypes":53,"react":60,"scheduler":66,"scheduler/tracing":67}],56:[function(require,module,exports){
 /** @license React v16.12.0
  * react-dom.production.min.js
  *
@@ -36466,7 +36651,7 @@ xe,ye,Ca.injectEventPluginsByName,fa,Sc,function(a){ya(a,Rc)},cb,db,Pd,Ba,Sj,{cu
 (function(a){var b=a.findFiberByHostInstance;return ok(n({},a,{overrideHookState:null,overrideProps:null,setSuspenseHandler:null,scheduleUpdate:null,currentDispatcherRef:Ea.ReactCurrentDispatcher,findHostInstanceByFiber:function(a){a=ic(a);return null===a?null:a.stateNode},findFiberByHostInstance:function(a){return b?b(a):null},findHostInstancesForRefresh:null,scheduleRefresh:null,scheduleRoot:null,setRefreshHandler:null,getCurrentFiber:null}))})({findFiberByHostInstance:Fc,bundleType:0,version:"16.12.0",
 rendererPackageName:"react-dom"});var Dk={default:Ck},Ek=Dk&&Ck||Dk;module.exports=Ek.default||Ek;
 
-},{"object-assign":49,"react":57,"scheduler":63}],54:[function(require,module,exports){
+},{"object-assign":52,"react":60,"scheduler":66}],57:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -36508,13 +36693,13 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 }).call(this,require('_process'))
-},{"./cjs/react-dom.development.js":52,"./cjs/react-dom.production.min.js":53,"_process":67}],55:[function(require,module,exports){
-arguments[4][46][0].apply(exports,arguments)
-},{"_process":67,"dup":46,"object-assign":49,"prop-types/checkPropTypes":50}],56:[function(require,module,exports){
-arguments[4][47][0].apply(exports,arguments)
-},{"dup":47,"object-assign":49}],57:[function(require,module,exports){
-arguments[4][48][0].apply(exports,arguments)
-},{"./cjs/react.development.js":55,"./cjs/react.production.min.js":56,"_process":67,"dup":48}],58:[function(require,module,exports){
+},{"./cjs/react-dom.development.js":55,"./cjs/react-dom.production.min.js":56,"_process":70}],58:[function(require,module,exports){
+arguments[4][49][0].apply(exports,arguments)
+},{"_process":70,"dup":49,"object-assign":52,"prop-types/checkPropTypes":53}],59:[function(require,module,exports){
+arguments[4][50][0].apply(exports,arguments)
+},{"dup":50,"object-assign":52}],60:[function(require,module,exports){
+arguments[4][51][0].apply(exports,arguments)
+},{"./cjs/react.development.js":58,"./cjs/react.production.min.js":59,"_process":70,"dup":51}],61:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -37190,7 +37375,7 @@ exports.compose = compose;
 exports.createStore = createStore;
 
 }).call(this,require('_process'))
-},{"_process":67,"symbol-observable":65}],59:[function(require,module,exports){
+},{"_process":70,"symbol-observable":68}],62:[function(require,module,exports){
 (function (process){
 /** @license React v0.18.0
  * scheduler-tracing.development.js
@@ -37617,7 +37802,7 @@ exports.unstable_unsubscribe = unstable_unsubscribe;
 }
 
 }).call(this,require('_process'))
-},{"_process":67}],60:[function(require,module,exports){
+},{"_process":70}],63:[function(require,module,exports){
 /** @license React v0.18.0
  * scheduler-tracing.production.min.js
  *
@@ -37629,7 +37814,7 @@ exports.unstable_unsubscribe = unstable_unsubscribe;
 
 'use strict';Object.defineProperty(exports,"__esModule",{value:!0});var b=0;exports.__interactionsRef=null;exports.__subscriberRef=null;exports.unstable_clear=function(a){return a()};exports.unstable_getCurrent=function(){return null};exports.unstable_getThreadID=function(){return++b};exports.unstable_trace=function(a,d,c){return c()};exports.unstable_wrap=function(a){return a};exports.unstable_subscribe=function(){};exports.unstable_unsubscribe=function(){};
 
-},{}],61:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 (function (process){
 /** @license React v0.18.0
  * scheduler.development.js
@@ -38537,7 +38722,7 @@ exports.unstable_Profiling = unstable_Profiling;
 }
 
 }).call(this,require('_process'))
-},{"_process":67}],62:[function(require,module,exports){
+},{"_process":70}],65:[function(require,module,exports){
 /** @license React v0.18.0
  * scheduler.production.min.js
  *
@@ -38561,7 +38746,7 @@ exports.unstable_scheduleCallback=function(a,b,c){var d=exports.unstable_now();i
 exports.unstable_wrapCallback=function(a){var b=R;return function(){var c=R;R=b;try{return a.apply(this,arguments)}finally{R=c}}};exports.unstable_getCurrentPriorityLevel=function(){return R};exports.unstable_shouldYield=function(){var a=exports.unstable_now();V(a);var b=L(N);return b!==Q&&null!==Q&&null!==b&&null!==b.callback&&b.startTime<=a&&b.expirationTime<Q.expirationTime||k()};exports.unstable_requestPaint=Z;exports.unstable_continueExecution=function(){T||S||(T=!0,f(X))};
 exports.unstable_pauseExecution=function(){};exports.unstable_getFirstCallbackNode=function(){return L(N)};exports.unstable_Profiling=null;
 
-},{}],63:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -38572,7 +38757,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 }).call(this,require('_process'))
-},{"./cjs/scheduler.development.js":61,"./cjs/scheduler.production.min.js":62,"_process":67}],64:[function(require,module,exports){
+},{"./cjs/scheduler.development.js":64,"./cjs/scheduler.production.min.js":65,"_process":70}],67:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -38583,7 +38768,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 }).call(this,require('_process'))
-},{"./cjs/scheduler-tracing.development.js":59,"./cjs/scheduler-tracing.production.min.js":60,"_process":67}],65:[function(require,module,exports){
+},{"./cjs/scheduler-tracing.development.js":62,"./cjs/scheduler-tracing.production.min.js":63,"_process":70}],68:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -38615,7 +38800,7 @@ if (typeof self !== 'undefined') {
 var result = (0, _ponyfill2['default'])(root);
 exports['default'] = result;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./ponyfill.js":66}],66:[function(require,module,exports){
+},{"./ponyfill.js":69}],69:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -38639,7 +38824,7 @@ function symbolObservablePonyfill(root) {
 
 	return result;
 };
-},{}],67:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 

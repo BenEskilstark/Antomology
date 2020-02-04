@@ -27,6 +27,7 @@ var makeAnt = function makeAnt(position, subType) {
     }],
     blocked: false,
     blockedBy: null,
+    location: null,
     alive: true,
     visible: true
   });

@@ -115,6 +115,17 @@ var handleTick = function handleTick(game) {
       ant.age += 1;
       performTask(game, ant);
 
+      // if ant just arrived at a location, switch task to that
+      var locs = fastCollidesWith(game, ant).filter(function (e) {
+        return e.type === 'LOCATION';
+      });
+      if (locs.length > 0 && locs[0].id != ant.location) {
+        ant.location = locs[0].id;
+        ant.task = locs[0].task;
+        ant.taskIndex = 0;
+        ant.taskStack = [];
+      }
+
       ant.calories -= 1;
       // ant starvation
       if (ant.calories <= 0) {

@@ -143,6 +143,7 @@ export type Location = Entity & {
   name: string,
   incomingEdges: Array<EdgeID>,
   outgoingEdges: Array<EdgeID>,
+  task: Task,
 };
 
 export type Dirt = Entity;
@@ -182,6 +183,7 @@ export type Ant = Entity & {
   calories: number,
   blocked: boolean, // is this ant blocked from where it's going
   blockedBy: ?entity, // entity that is blocking it
+  location: ?EntityID, // location the ant thinks it's at
   task: ?Task,
   taskIndex: number,
   // whenever you switch tasks, push old task as parent onto taskStack
@@ -198,15 +200,7 @@ export type AntActionType =
   'HATCH' | 'COMMUNICATE' | 'IDLE';
 
 // -------------------------------------------------------------------------------
-// Graph-based Tasks
-// -------------------------------------------------------------------------------
-
-export type LocationTask = {
-  behaviors: Array<ConditionalBehavior | DoActionBehavior>,
-};
-
-// -------------------------------------------------------------------------------
-// Original tasks
+// Low-level Tasks
 // -------------------------------------------------------------------------------
 export type AntAction = {
   type: AntActionType,
@@ -242,6 +236,15 @@ export type DoActionBehavior = {
   type: 'DO_ACTION',
   action: AntAction,
 };
+export type HighLevelDoActionBehavior = {
+  type: 'HIGH_LEVEL_DO_ACTION',
+  action: {
+    type: AntActionType,
+    payload: {
+      object: Entity | Location | string,
+    },
+  },
+};
 export type ConditionalBehavior = {
   type: 'IF',
   condition: Condition,
@@ -261,12 +264,12 @@ export type Behavior =
   DoActionBehavior |
   SwitchToTaskBehavior |
   ConditionalBehavior |
-  DoWhileBehavior;
+  DoWhileBehavior |
+  HighLevelDoActionBehavior;
 
 export type Task = {
   name: string,
   behaviorQueue: Array<Behavior>,
-  index: number,
   repeating: boolean,
 };
 

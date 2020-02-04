@@ -124,11 +124,11 @@ var fastCollidesWith = function fastCollidesWith(game, entity) {
       height = entity.height;
 
   if (width == null) {
-    console.error("checking collision on non-entity");
+    console.error("checking collision on non-entity", entity);
     width = 1;
   }
   if (height == null) {
-    console.error("checking collision on non-entity");
+    console.error("checking collision on non-entity", entity);
     height = 1;
   }
   var collisions = [];

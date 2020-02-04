@@ -1,7 +1,5 @@
 
  - - - - - - PHEROMONE GRAPH - - - - - -
- - refactor
-    - still need to support manually selected ant actions
  - ant behavior
     - moving randomly, following trails they pick up
     - ants do the task of the location they're at
@@ -128,6 +126,7 @@
  - antBlockingEntities should be renamed to moveBlockingEntities
  - fix or remove the concept of "blockers"
  - passing around location names instead of ids is V dangerous
+ - common function for ant switching tasks
 
 
  - - - - - - BUGS - - - - - -

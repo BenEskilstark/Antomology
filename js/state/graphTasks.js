@@ -22,6 +22,32 @@ const createMoveBehavior = (locOrType: string): Behavior => {
   return createDoAction('MOVE', locOrType);
 };
 
+const createRandomMoveInLocationBehavior = (locID: EntityID): Behavior => {
+  return {
+    type: 'HIGH_LEVEL_DO_ACTION',
+    action: {
+      type: 'MOVE',
+      payload: {
+        object: locID,
+      },
+    }
+  };
+};
+
+///////////////////////////////////////////////////////////////////
+// Tasks
+///////////////////////////////////////////////////////////////////
+
+const createRandomMoveInLocationTask = (locID: EntityID): Task => {
+  return {
+    name: 'Move in Location',
+    repeating: true, // TODO ?
+    behaviorQueue: [
+      createRandomMoveInLocationBehavior(locID),
+    ],
+  };
+};
+
 const followTrail = (): Behavior => {
   return {
     name: 'Follow Trail',
@@ -42,5 +68,6 @@ const followTrail = (): Behavior => {
 };
 
 module.exports = {
+  createRandomMoveInLocationTask,
   followTrail,
 }

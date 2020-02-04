@@ -43,7 +43,7 @@ const {
   insideWorld,
   getEntitiesInRadius,
 } = require('../selectors/selectors');
-const {doAction} = require('../simulation/doAction');
+const {doAction, doHighLevelAction} = require('../simulation/doAction');
 const {evaluateCondition} = require('../simulation/evaluateCondition');
 
 import type {
@@ -135,6 +135,11 @@ const performBehavior = (game: GameState, ant: Ant, behavior: Behavior): boolean
       // HACK: this sucks. done doesn't always propagate up particularly if
       // you switch tasks from inside a do-while
       ant.taskIndex = -1; // it's about to +1 in performTask
+      done = true;
+      break;
+    }
+    case 'HIGH_LEVEL_DO_ACTION': {
+      doHighLevelAction(game, ant, behavior.action);
       done = true;
       break;
     }

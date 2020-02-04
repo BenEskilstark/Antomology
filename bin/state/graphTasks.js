@@ -18,6 +18,30 @@ var createMoveBehavior = function createMoveBehavior(locOrType) {
   return createDoAction('MOVE', locOrType);
 };
 
+var createRandomMoveInLocationBehavior = function createRandomMoveInLocationBehavior(locID) {
+  return {
+    type: 'HIGH_LEVEL_DO_ACTION',
+    action: {
+      type: 'MOVE',
+      payload: {
+        object: locID
+      }
+    }
+  };
+};
+
+///////////////////////////////////////////////////////////////////
+// Tasks
+///////////////////////////////////////////////////////////////////
+
+var createRandomMoveInLocationTask = function createRandomMoveInLocationTask(locID) {
+  return {
+    name: 'Move in Location',
+    repeating: true, // TODO ?
+    behaviorQueue: [createRandomMoveInLocationBehavior(locID)]
+  };
+};
+
 var followTrail = function followTrail() {
   return {
     name: 'Follow Trail',
@@ -36,5 +60,6 @@ var followTrail = function followTrail() {
 };
 
 module.exports = {
+  createRandomMoveInLocationTask: createRandomMoveInLocationTask,
   followTrail: followTrail
 };
