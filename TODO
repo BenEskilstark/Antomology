@@ -1,7 +1,6 @@
 
  - - - - - - PHEROMONE GRAPH - - - - - -
  - refactor
-    - surgically remove ant task DSL so it can be easily re-added
     - still need to support manually selected ant actions
  - ant behavior
     - moving randomly, following trails they pick up

@@ -185,7 +185,7 @@ export type Ant = Entity & {
   task: ?Task,
   taskIndex: number,
   // whenever you switch tasks, push old task as parent onto taskStack
-  // whenever you finish a task, pop of the end to resume
+  // whenever you finish a task, pop off the end to resume
   taskStack: Array<{
     name: string,
     index: number, // your index in the parent task
@@ -196,6 +196,18 @@ export type Ant = Entity & {
 export type AntActionType =
   'MOVE' | 'PICKUP' | 'PUTDOWN' | 'ATTACK' | 'EAT' | 'FEED' | 'MARK' | 'LAY' |
   'HATCH' | 'COMMUNICATE' | 'IDLE';
+
+// -------------------------------------------------------------------------------
+// Graph-based Tasks
+// -------------------------------------------------------------------------------
+
+export type LocationTask = {
+  behaviors: Array<ConditionalBehavior | DoActionBehavior>,
+};
+
+// -------------------------------------------------------------------------------
+// Original tasks
+// -------------------------------------------------------------------------------
 export type AntAction = {
   type: AntActionType,
   payload: {

@@ -47,7 +47,9 @@ const initMouseControlsSystem = (store) => {
     const {game} = state;
 
     if (ev.button == 0) { // left click
-      dispatch({type: 'SET_MOUSE_DOWN', isLeft: true, isDown: true, downPos: gridPos});
+      dispatch(
+        {type: 'SET_MOUSE_DOWN', isLeft: true, isDown: true, downPos: gridPos}
+      );
       if (game.userMode == 'MARK_TRAIL') {
         const clickedEntities = lookupInGrid(game.grid, gridPos)
           .map(i => game.entities[i]);
