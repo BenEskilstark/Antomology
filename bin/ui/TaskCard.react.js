@@ -19,7 +19,11 @@ function TaskCard(props) {
   var state = props.state,
       dispatch = props.dispatch,
       task = props.task,
-      newTask = props.newTask;
+      newTask = props.newTask,
+      entityID = props.entityID,
+      disableRename = props.disableRename,
+      disableImportExport = props.disableImportExport,
+      isLocationTask = props.isLocationTask;
 
   var _useState = useState(task.repeating),
       _useState2 = _slicedToArray(_useState, 2),
@@ -60,23 +64,51 @@ function TaskCard(props) {
       React.createElement(BehaviorCard, { state: state, behavior: b })
     );
   });
+
+  var nameEditor = React.createElement(
+    'div',
+    null,
+    'Name:',
+    React.createElement('input', { type: 'text',
+      placeholder: 'Task Name',
+      onChange: function onChange(ev) {
+        setTaskName(ev.target.value);
+      },
+      value: taskName })
+  );
+
+  var importExportButtons = React.createElement(
+    'span',
+    null,
+    React.createElement(Button, {
+      label: 'Export Task as JSON',
+      onClick: function onClick() {
+        console.log(JSON.stringify({ name: taskName, repeating: repeating, behaviorQueue: behaviorQueue }));
+      }
+    }),
+    React.createElement(Button, {
+      label: 'Import Pasted Task from JSON',
+      onClick: function onClick() {
+        if (importedTask != '') {
+          setTaskName(importedTask.name);
+          setRepeating(importedTask.repeating);
+          setBehaviorQueue(importedTask.behaviorQueue);
+        }
+      }
+    }),
+    React.createElement('input', { type: 'text', style: { width: '25px' },
+      value: JSON.stringify(importedTask), onChange: function onChange(ev) {
+        setImportedTask(JSON.parse(ev.target.value));
+      }
+    })
+  );
   return React.createElement(
     'div',
     {
       className: 'taskCard',
       style: {}
     },
-    React.createElement(
-      'div',
-      null,
-      'Name:',
-      React.createElement('input', { type: 'text',
-        placeholder: 'Task Name',
-        onChange: function onChange(ev) {
-          setTaskName(ev.target.value);
-        },
-        value: taskName })
-    ),
+    !disableRename ? nameEditor : null,
     React.createElement(
       'div',
       null,
@@ -117,32 +149,14 @@ function TaskCard(props) {
         if (newTask || taskName != task.name) {
           dispatch({ type: 'CREATE_TASK', task: editedTask });
           props.setTaskName(taskName);
-        } else {
+        } else if (!isLocationTask) {
           dispatch({ type: 'UPDATE_TASK', task: editedTask });
+        } else if (entityID != null) {
+          dispatch({ type: 'UPDATE_LOCATION_TASK', id: entityID, task: editedTask });
         }
       }
     }),
-    React.createElement(Button, {
-      label: 'Export Task as JSON',
-      onClick: function onClick() {
-        return console.log(JSON.stringify({ name: taskName, repeating: repeating, behaviorQueue: behaviorQueue }));
-      }
-    }),
-    React.createElement(Button, {
-      label: 'Import Pasted Task from JSON',
-      onClick: function onClick() {
-        if (importedTask != '') {
-          setTaskName(importedTask.name);
-          setRepeating(importedTask.repeating);
-          setBehaviorQueue(importedTask.behaviorQueue);
-        }
-      }
-    }),
-    React.createElement('input', { type: 'text', style: { width: '25px' },
-      value: JSON.stringify(importedTask), onChange: function onChange(ev) {
-        setImportedTask(JSON.parse(ev.target.value));
-      }
-    })
+    !disableImportExport ? importExportButtons : null
   );
 }
 

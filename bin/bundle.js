@@ -245,7 +245,8 @@ var makeLocation = function makeLocation(name, width, height, position) {
     task: null,
     visible: true
   });
-  loc.task = createRandomMoveInLocationTask(loc.id);
+  // TODO update name on location name update
+  loc.task = _extends({}, createRandomMoveInLocationTask(loc.id), { name: loc.name });
   return loc;
 };
 
@@ -475,9 +476,20 @@ var gameReducer = function gameReducer(game, action) {
           nextLocationName: name
         });
       }
-    case 'ASSIGN_TASK':
+    case 'UPDATE_LOCATION_TASK':
       {
         var _task2 = action.task,
+            _id3 = action.id;
+
+        var loc = game.entities[_id3];
+        var _oldTask = loc.task;
+        _oldTask.repeating = _task2.repeating;
+        _oldTask.behaviorQueue = _task2.behaviorQueue;
+        return game;
+      }
+    case 'ASSIGN_TASK':
+      {
+        var _task3 = action.task,
             ants = action.ants;
         var _iteratorNormalCompletion = true;
         var _didIteratorError = false;
@@ -485,11 +497,11 @@ var gameReducer = function gameReducer(game, action) {
 
         try {
           for (var _iterator = ants[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-            var _id3 = _step.value;
+            var _id4 = _step.value;
 
-            game.entities[_id3].task = _task2;
-            game.entities[_id3].taskStack = [];
-            game.entities[_id3].taskIndex = 0;
+            game.entities[_id4].task = _task3;
+            game.entities[_id4].taskStack = [];
+            game.entities[_id4].taskIndex = 0;
           }
           // add the task to the task array
         } catch (err) {
@@ -508,10 +520,10 @@ var gameReducer = function gameReducer(game, action) {
         }
 
         var taskAdded = game.tasks.filter(function (t) {
-          return t.name === _task2.name;
+          return t.name === _task3.name;
         }).length > 0;
         if (!taskAdded) {
-          game.tasks.push(_task2);
+          game.tasks.push(_task3);
         }
         return game;
       }
@@ -533,20 +545,20 @@ var gameReducer = function gameReducer(game, action) {
       }
     case 'UPDATE_THETA':
       {
-        var _id4 = action.id,
+        var _id5 = action.id,
             theta = action.theta;
 
-        if (game.entities[_id4] != null) {
-          game.entities[_id4].theta = theta;
+        if (game.entities[_id5] != null) {
+          game.entities[_id5].theta = theta;
         }
         return game;
       }
     case 'SET_PREV_PHEROMONE':
       {
-        var _id5 = action.id;
+        var _id6 = action.id;
 
         return _extends({}, game, {
-          prevPheromone: _id5
+          prevPheromone: _id6
         });
       }
     case 'SET_MOUSE_DOWN':
@@ -697,6 +709,7 @@ var rootReducer = function rootReducer(state, action) {
     case 'UPDATE_TASK':
     case 'UPDATE_LOCATION_NAME':
     case 'UPDATE_NEXT_LOCATION_NAME':
+    case 'UPDATE_LOCATION_TASK':
     case 'ASSIGN_TASK':
     case 'SET_USER_MODE':
     case 'SET_ANT_MODE':
@@ -1784,10 +1797,6 @@ var doAction = function doAction(game, ant, action) {
           // don't cross colonyEntrance boundary
           // const colEnt = game.entities[config.colonyEntrance].position;
           // freePositions = freePositions.filter(pos => !equals(pos, colEnt));
-          if (_freePositions.length == 0) {
-            // fall back to previous position
-            loc = { position: ant.prevPosition };
-          }
           // if required, stay inside location boundary
           if (constraint != null) {
             _freePositions = _freePositions.filter(function (pos) {
@@ -1796,6 +1805,10 @@ var doAction = function doAction(game, ant, action) {
             });
           }
           loc = { position: oneOf(_freePositions) };
+          if (_freePositions.length == 0) {
+            // fall back to previous position
+            loc = { position: ant.prevPosition };
+          }
         } else if (obj != 'TRAIL' && typeof obj === 'string') {
           loc = getEntitiesByType(game, ['LOCATION']).filter(function (l) {
             return l.name === obj;
@@ -2075,6 +2088,7 @@ var doHighLevelAction = function doHighLevelAction(game, ant, action) {
   var object = payload.object;
 
   var actionType = action.type;
+  var done = false;
 
   switch (actionType) {
     // high level move is a random move inside a location
@@ -2086,7 +2100,23 @@ var doHighLevelAction = function doHighLevelAction(game, ant, action) {
         });
         break;
       }
+    // high level pickup moves around randomly inside location until
+    // item type you want to pickup is encountered
+    case 'PICKUP':
+      {
+        doAction(game, ant, { type: 'PICKUP', payload: { object: object } });
+        if (!ant.holding) {
+          doAction(game, ant, {
+            type: 'MOVE',
+            payload: { object: 'RANDOM', constraint: ant.location }
+          });
+        } else {
+          done = true;
+        }
+        break;
+      }
   }
+  return done;
 };
 
 module.exports = { doAction: doAction, doHighLevelAction: doHighLevelAction };
@@ -2444,10 +2474,9 @@ var performBehavior = function performBehavior(game, ant, behavior) {
         done = true;
         break;
       }
-    case 'HIGH_LEVEL_DO_ACTION':
+    case 'DO_HIGH_LEVEL_ACTION':
       {
-        doHighLevelAction(game, ant, behavior.action);
-        done = true;
+        done = doHighLevelAction(game, ant, behavior.action);
         break;
       }
   }
@@ -2478,7 +2507,7 @@ var createMoveBehavior = function createMoveBehavior(locOrType) {
 
 var createRandomMoveInLocationBehavior = function createRandomMoveInLocationBehavior(locID) {
   return {
-    type: 'HIGH_LEVEL_DO_ACTION',
+    type: 'DO_HIGH_LEVEL_ACTION',
     action: {
       type: 'MOVE',
       payload: {
@@ -4035,6 +4064,8 @@ module.exports = { initRenderSystem: initRenderSystem };
 },{"../config":1,"../selectors/selectors":20,"../utils/stateHelpers":47,"../utils/vectors":48}],32:[function(require,module,exports){
 'use strict';
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var React = require('react');
@@ -4078,11 +4109,14 @@ function BehaviorCard(props) {
   } else if (behavior.type == 'IF' || behavior.type == 'WHILE') {
     subjects = ['LOCATION', 'RANDOM', 'HOLDING', 'NEIGHBORING', 'BLOCKED', 'CALORIES', 'AGE'];
     selectedSubject = behavior.condition.type;
-  } else {
+  } else if (behavior.type == 'SWITCH_TASK') {
     subjects = state.game.tasks.map(function (t) {
       return t.name;
     });
     selectedSubject = behavior.task;
+  } else if (behavior.type == 'DO_HIGH_LEVEL_ACTION') {
+    subjects = ['MOVE', 'PICKUP', 'PUTDOWN', 'EAT', 'FEED', 'LAY'];
+    selectedSubject = behavior.action.type;
   }
   return React.createElement(
     'div',
@@ -4091,70 +4125,10 @@ function BehaviorCard(props) {
       style: {}
     },
     React.createElement(Dropdown, {
-      options: ['DO_ACTION', 'IF', 'WHILE', 'SWITCH_TASK'],
+      options: ['DO_ACTION', 'DO_HIGH_LEVEL_ACTION', 'IF', 'WHILE', 'SWITCH_TASK'],
       selected: behavior.type,
       onChange: function onChange(newType) {
-        var newBehavior = behavior;
-        delete newBehavior.action;
-        delete newBehavior.condition;
-        delete newBehavior.task;
-        delete newBehavior.elseBehavior;
-        newBehavior.type = newType;
-        if (newType === 'DO_ACTION') {
-          newBehavior.action = {
-            type: 'IDLE',
-            payload: {
-              object: null
-            }
-          };
-        } else if (newType === 'IF') {
-          newBehavior.condition = {
-            type: 'RANDOM',
-            comparator: 'EQUALS',
-            not: false,
-            payload: {
-              object: 1
-            }
-          };
-          newBehavior.behavior = {
-            type: 'DO_ACTION',
-            action: {
-              type: 'IDLE',
-              payload: {
-                object: null
-              }
-            }
-          };
-          newBehavior.elseBehavior = {
-            type: 'DO_ACTION',
-            action: {
-              type: 'IDLE',
-              payload: {
-                object: null
-              }
-            }
-          };
-        } else if (newType === 'WHILE') {
-          newBehavior.condition = {
-            type: 'RANDOM',
-            comparator: 'EQUALS',
-            not: false,
-            payload: {
-              object: 1
-            }
-          };
-          newBehavior.behavior = {
-            type: 'DO_ACTION',
-            action: {
-              type: 'IDLE',
-              payload: {
-                object: null
-              }
-            }
-          };
-        } else if (newType === 'SWITCH_TASK') {
-          newBehavior.task = 'Idle';
-        }
+        var newBehavior = transitionBehavior(behavior, newType);
         setBehavior(newBehavior);
       }
     }),
@@ -4162,7 +4136,7 @@ function BehaviorCard(props) {
       options: subjects,
       selected: selectedSubject,
       onChange: function onChange(nextSubject) {
-        if (behavior.type === 'DO_ACTION') {
+        if (behavior.type == 'DO_ACTION' || behavior.type == 'DO_HIGH_LEVEL_ACTION') {
           behavior.action.type = nextSubject;
         } else if (behavior.type === 'IF' || behavior.type === 'WHILE') {
           behavior.condition.type = nextSubject;
@@ -4172,7 +4146,7 @@ function BehaviorCard(props) {
         setBehavior(behavior);
       }
     }),
-    behavior.type === 'DO_ACTION' ? React.createElement(DoActionCard, {
+    behavior.type == 'DO_ACTION' || behavior.type == 'DO_HIGH_LEVEL_ACTION' ? React.createElement(DoActionCard, {
       state: state,
       behavior: behavior,
       setBehavior: setBehavior
@@ -4218,6 +4192,90 @@ function BehaviorCard(props) {
   );
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// Behavior Transition
+//////////////////////////////////////////////////////////////////////////////
+function transitionBehavior(behavior, newType) {
+  var newBehavior = _extends({}, behavior);
+  delete newBehavior.action;
+  delete newBehavior.condition;
+  delete newBehavior.task;
+  delete newBehavior.elseBehavior;
+  newBehavior.type = newType;
+  switch (newType) {
+    case 'DO_ACTION':
+      {
+        newBehavior.action = {
+          type: 'IDLE',
+          payload: {
+            object: null
+          }
+        };
+        break;
+      }
+    case 'IF':
+      {
+        newBehavior.condition = {
+          type: 'RANDOM',
+          comparator: 'EQUALS',
+          not: false,
+          payload: {
+            object: 1
+          }
+        };
+        newBehavior.behavior = {
+          type: 'DO_ACTION',
+          action: {
+            type: 'IDLE',
+            payload: {
+              object: null
+            }
+          }
+        };
+        newBehavior.elseBehavior = {
+          type: 'DO_ACTION',
+          action: {
+            type: 'IDLE',
+            payload: {
+              object: null
+            }
+          }
+        };
+        break;
+      }
+    case 'WHILE':
+      {
+        newBehavior.condition = {
+          type: 'RANDOM',
+          comparator: 'EQUALS',
+          not: false,
+          payload: {
+            object: 1
+          }
+        };
+        newBehavior.behavior = {
+          type: 'DO_ACTION',
+          action: {
+            type: 'IDLE',
+            payload: {
+              object: null
+            }
+          }
+        };
+        break;
+      }
+    case 'SWITCH_TASK':
+      {
+        newBehavior.task = 'Idle';
+        break;
+      }
+  }
+  return newBehavior;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Conditional
+//////////////////////////////////////////////////////////////////////////////
 function Conditional(props) {
   var condition = props.condition,
       state = props.state,
@@ -4307,6 +4365,9 @@ function Conditional(props) {
   );
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// Do Action
+//////////////////////////////////////////////////////////////////////////////
 function DoActionCard(props) {
   var state = props.state,
       behavior = props.behavior,
@@ -5003,6 +5064,22 @@ function LocationCard(props) {
     React.createElement(
       'div',
       null,
+      'TASK:',
+      React.createElement(TaskCard, {
+        state: state,
+        dispatch: dispatch,
+        setTaskName: function setTaskName() {},
+        newTask: false,
+        task: loc.task,
+        disableRename: true,
+        disableImportExport: true,
+        isLocationTask: true,
+        entityID: loc.id
+      })
+    ),
+    React.createElement(
+      'div',
+      null,
       'Incoming Trails:',
       React.createElement(
         'div',
@@ -5111,7 +5188,11 @@ function TaskEditor(props) {
       dispatch: dispatch,
       setTaskName: setTaskName,
       newTask: taskName === 'New Task',
-      task: editingTask
+      task: editingTask,
+      disableRename: false,
+      disableImportExport: false,
+      isLocationTask: false,
+      entityID: null
     })
   );
 }
@@ -5139,7 +5220,11 @@ function TaskCard(props) {
   var state = props.state,
       dispatch = props.dispatch,
       task = props.task,
-      newTask = props.newTask;
+      newTask = props.newTask,
+      entityID = props.entityID,
+      disableRename = props.disableRename,
+      disableImportExport = props.disableImportExport,
+      isLocationTask = props.isLocationTask;
 
   var _useState = useState(task.repeating),
       _useState2 = _slicedToArray(_useState, 2),
@@ -5180,23 +5265,51 @@ function TaskCard(props) {
       React.createElement(BehaviorCard, { state: state, behavior: b })
     );
   });
+
+  var nameEditor = React.createElement(
+    'div',
+    null,
+    'Name:',
+    React.createElement('input', { type: 'text',
+      placeholder: 'Task Name',
+      onChange: function onChange(ev) {
+        setTaskName(ev.target.value);
+      },
+      value: taskName })
+  );
+
+  var importExportButtons = React.createElement(
+    'span',
+    null,
+    React.createElement(Button, {
+      label: 'Export Task as JSON',
+      onClick: function onClick() {
+        console.log(JSON.stringify({ name: taskName, repeating: repeating, behaviorQueue: behaviorQueue }));
+      }
+    }),
+    React.createElement(Button, {
+      label: 'Import Pasted Task from JSON',
+      onClick: function onClick() {
+        if (importedTask != '') {
+          setTaskName(importedTask.name);
+          setRepeating(importedTask.repeating);
+          setBehaviorQueue(importedTask.behaviorQueue);
+        }
+      }
+    }),
+    React.createElement('input', { type: 'text', style: { width: '25px' },
+      value: JSON.stringify(importedTask), onChange: function onChange(ev) {
+        setImportedTask(JSON.parse(ev.target.value));
+      }
+    })
+  );
   return React.createElement(
     'div',
     {
       className: 'taskCard',
       style: {}
     },
-    React.createElement(
-      'div',
-      null,
-      'Name:',
-      React.createElement('input', { type: 'text',
-        placeholder: 'Task Name',
-        onChange: function onChange(ev) {
-          setTaskName(ev.target.value);
-        },
-        value: taskName })
-    ),
+    !disableRename ? nameEditor : null,
     React.createElement(
       'div',
       null,
@@ -5237,32 +5350,14 @@ function TaskCard(props) {
         if (newTask || taskName != task.name) {
           dispatch({ type: 'CREATE_TASK', task: editedTask });
           props.setTaskName(taskName);
-        } else {
+        } else if (!isLocationTask) {
           dispatch({ type: 'UPDATE_TASK', task: editedTask });
+        } else if (entityID != null) {
+          dispatch({ type: 'UPDATE_LOCATION_TASK', id: entityID, task: editedTask });
         }
       }
     }),
-    React.createElement(Button, {
-      label: 'Export Task as JSON',
-      onClick: function onClick() {
-        return console.log(JSON.stringify({ name: taskName, repeating: repeating, behaviorQueue: behaviorQueue }));
-      }
-    }),
-    React.createElement(Button, {
-      label: 'Import Pasted Task from JSON',
-      onClick: function onClick() {
-        if (importedTask != '') {
-          setTaskName(importedTask.name);
-          setRepeating(importedTask.repeating);
-          setBehaviorQueue(importedTask.behaviorQueue);
-        }
-      }
-    }),
-    React.createElement('input', { type: 'text', style: { width: '25px' },
-      value: JSON.stringify(importedTask), onChange: function onChange(ev) {
-        setImportedTask(JSON.parse(ev.target.value));
-      }
-    })
+    !disableImportExport ? importExportButtons : null
   );
 }
 

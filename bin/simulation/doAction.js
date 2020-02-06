@@ -130,10 +130,6 @@ var doAction = function doAction(game, ant, action) {
           // don't cross colonyEntrance boundary
           // const colEnt = game.entities[config.colonyEntrance].position;
           // freePositions = freePositions.filter(pos => !equals(pos, colEnt));
-          if (_freePositions.length == 0) {
-            // fall back to previous position
-            loc = { position: ant.prevPosition };
-          }
           // if required, stay inside location boundary
           if (constraint != null) {
             _freePositions = _freePositions.filter(function (pos) {
@@ -142,6 +138,10 @@ var doAction = function doAction(game, ant, action) {
             });
           }
           loc = { position: oneOf(_freePositions) };
+          if (_freePositions.length == 0) {
+            // fall back to previous position
+            loc = { position: ant.prevPosition };
+          }
         } else if (obj != 'TRAIL' && typeof obj === 'string') {
           loc = getEntitiesByType(game, ['LOCATION']).filter(function (l) {
             return l.name === obj;
@@ -421,6 +421,7 @@ var doHighLevelAction = function doHighLevelAction(game, ant, action) {
   var object = payload.object;
 
   var actionType = action.type;
+  var done = false;
 
   switch (actionType) {
     // high level move is a random move inside a location
@@ -432,7 +433,23 @@ var doHighLevelAction = function doHighLevelAction(game, ant, action) {
         });
         break;
       }
+    // high level pickup moves around randomly inside location until
+    // item type you want to pickup is encountered
+    case 'PICKUP':
+      {
+        doAction(game, ant, { type: 'PICKUP', payload: { object: object } });
+        if (!ant.holding) {
+          doAction(game, ant, {
+            type: 'MOVE',
+            payload: { object: 'RANDOM', constraint: ant.location }
+          });
+        } else {
+          done = true;
+        }
+        break;
+      }
   }
+  return done;
 };
 
 module.exports = { doAction: doAction, doHighLevelAction: doHighLevelAction };

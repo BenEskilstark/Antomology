@@ -1,19 +1,15 @@
 
  - - - - - - PHEROMONE GRAPH - - - - - -
- - ant behavior
-    - moving randomly, following trails they pick up
-    - ants do the task of the location they're at
  - sidebar UI
+    - task editor for what ants do there
     - conditionals that are addable/editable
     - edges listed for locations should be selectable from there
     - locations listed for edges should be selectable
-    - also giving task editor for what ants do there
  - pheromone brush
     - picking up trails in the middle should cause 50/50 split
     - how to handle split trails in UI? As new location at split point?
  - simulation
     - distinguish "base" case of ants born at a location vs arriving there
-    - ants do the task of the location they're at
     - sensible base task for locations -- move randomly until X or for Y steps
     - initially just randomly select outgoing edge to take
     - locate start of selected outgoing edge
@@ -134,3 +130,4 @@
  - ants that are falling and trying to go to a clicked location above them
    will hover in air
  - picked-up pupa never hatch and then die on putdown. Should probably just wait to hatch
+ - ants moving back and forth on arrival at clicked position

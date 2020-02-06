@@ -102,6 +102,8 @@ const handleTick = (game: GameState): GameState => {
       ant.task = locs[0].task;
       ant.taskIndex = 0;
       ant.taskStack = [];
+    } else if (locs.length == 0 && ant.location != null) {
+      ant.location = null;
     }
 
     ant.calories -=1;

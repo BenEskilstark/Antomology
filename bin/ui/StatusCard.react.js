@@ -349,6 +349,22 @@ function LocationCard(props) {
     React.createElement(
       'div',
       null,
+      'TASK:',
+      React.createElement(TaskCard, {
+        state: state,
+        dispatch: dispatch,
+        setTaskName: function setTaskName() {},
+        newTask: false,
+        task: loc.task,
+        disableRename: true,
+        disableImportExport: true,
+        isLocationTask: true,
+        entityID: loc.id
+      })
+    ),
+    React.createElement(
+      'div',
+      null,
       'Incoming Trails:',
       React.createElement(
         'div',
@@ -457,7 +473,11 @@ function TaskEditor(props) {
       dispatch: dispatch,
       setTaskName: setTaskName,
       newTask: taskName === 'New Task',
-      task: editingTask
+      task: editingTask,
+      disableRename: false,
+      disableImportExport: false,
+      isLocationTask: false,
+      entityID: null
     })
   );
 }

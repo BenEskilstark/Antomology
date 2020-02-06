@@ -16,7 +16,8 @@ var makeLocation = function makeLocation(name, width, height, position) {
     task: null,
     visible: true
   });
-  loc.task = createRandomMoveInLocationTask(loc.id);
+  // TODO update name on location name update
+  loc.task = _extends({}, createRandomMoveInLocationTask(loc.id), { name: loc.name });
   return loc;
 };
 

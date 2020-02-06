@@ -138,9 +138,8 @@ const performBehavior = (game: GameState, ant: Ant, behavior: Behavior): boolean
       done = true;
       break;
     }
-    case 'HIGH_LEVEL_DO_ACTION': {
-      doHighLevelAction(game, ant, behavior.action);
-      done = true;
+    case 'DO_HIGH_LEVEL_ACTION': {
+      done = doHighLevelAction(game, ant, behavior.action);
       break;
     }
   }

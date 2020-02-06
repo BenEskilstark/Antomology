@@ -156,10 +156,9 @@ var performBehavior = function performBehavior(game, ant, behavior) {
         done = true;
         break;
       }
-    case 'HIGH_LEVEL_DO_ACTION':
+    case 'DO_HIGH_LEVEL_ACTION':
       {
-        doHighLevelAction(game, ant, behavior.action);
-        done = true;
+        done = doHighLevelAction(game, ant, behavior.action);
         break;
       }
   }

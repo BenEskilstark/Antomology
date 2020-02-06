@@ -24,7 +24,7 @@ const createMoveBehavior = (locOrType: string): Behavior => {
 
 const createRandomMoveInLocationBehavior = (locID: EntityID): Behavior => {
   return {
-    type: 'HIGH_LEVEL_DO_ACTION',
+    type: 'DO_HIGH_LEVEL_ACTION',
     action: {
       type: 'MOVE',
       payload: {

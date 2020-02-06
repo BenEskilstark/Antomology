@@ -34,9 +34,12 @@ function BehaviorCard(props: Props): React.Node {
   } else if (behavior.type == 'IF' || behavior.type == 'WHILE') {
     subjects = ['LOCATION', 'RANDOM', 'HOLDING', 'NEIGHBORING', 'BLOCKED', 'CALORIES', 'AGE'];
     selectedSubject = behavior.condition.type;
-  } else {
+  } else if (behavior.type == 'SWITCH_TASK') {
     subjects = state.game.tasks.map(t => t.name);
     selectedSubject = behavior.task;
+  } else if (behavior.type == 'DO_HIGH_LEVEL_ACTION') {
+    subjects = ['MOVE', 'PICKUP', 'PUTDOWN', 'EAT', 'FEED', 'LAY'];
+    selectedSubject = behavior.action.type;
   }
   return (
     <div
@@ -44,70 +47,10 @@ function BehaviorCard(props: Props): React.Node {
       style={{}}
     >
       <Dropdown
-        options={['DO_ACTION', 'IF', 'WHILE', 'SWITCH_TASK']}
+        options={['DO_ACTION', 'DO_HIGH_LEVEL_ACTION', 'IF', 'WHILE', 'SWITCH_TASK']}
         selected={behavior.type}
         onChange={(newType) => {
-          const newBehavior = behavior;
-          delete newBehavior.action;
-          delete newBehavior.condition;
-          delete newBehavior.task;
-          delete newBehavior.elseBehavior;
-          newBehavior.type = newType;
-          if (newType === 'DO_ACTION') {
-            newBehavior.action = {
-              type: 'IDLE',
-              payload: {
-                object: null,
-              },
-            };
-          } else if (newType === 'IF') {
-            newBehavior.condition = {
-              type: 'RANDOM',
-              comparator: 'EQUALS',
-              not: false,
-              payload: {
-                object: 1,
-              },
-            }
-            newBehavior.behavior = {
-              type: 'DO_ACTION',
-              action: {
-                type: 'IDLE',
-                payload: {
-                  object: null,
-                },
-              },
-            }
-            newBehavior.elseBehavior = {
-              type: 'DO_ACTION',
-              action: {
-                type: 'IDLE',
-                payload: {
-                  object: null,
-                },
-              },
-            }
-          } else if (newType === 'WHILE') {
-            newBehavior.condition = {
-              type: 'RANDOM',
-              comparator: 'EQUALS',
-              not: false,
-              payload: {
-                object: 1,
-              },
-            }
-            newBehavior.behavior = {
-              type: 'DO_ACTION',
-              action: {
-                type: 'IDLE',
-                payload: {
-                  object: null,
-                },
-              },
-            }
-          } else if (newType === 'SWITCH_TASK') {
-            newBehavior.task = 'Idle';
-          }
+          const newBehavior = transitionBehavior(behavior, newType);
           setBehavior(newBehavior);
         }}
       />
@@ -115,7 +58,9 @@ function BehaviorCard(props: Props): React.Node {
         options={subjects}
         selected={selectedSubject}
         onChange={(nextSubject) => {
-          if (behavior.type === 'DO_ACTION') {
+          if (
+            behavior.type == 'DO_ACTION' || behavior.type == 'DO_HIGH_LEVEL_ACTION'
+          ) {
             behavior.action.type = nextSubject;
           } else if (behavior.type === 'IF' || behavior.type === 'WHILE') {
             behavior.condition.type = nextSubject;
@@ -126,7 +71,7 @@ function BehaviorCard(props: Props): React.Node {
         }}
       />
       {
-        behavior.type === 'DO_ACTION'
+        behavior.type == 'DO_ACTION' || behavior.type == 'DO_HIGH_LEVEL_ACTION'
           ? <DoActionCard
               state={state}
               behavior={behavior}
@@ -169,8 +114,93 @@ function BehaviorCard(props: Props): React.Node {
   );
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// Behavior Transition
+//////////////////////////////////////////////////////////////////////////////
+function transitionBehavior(behavior: Behavior, newType: string): Behavior {
+  const newBehavior = {...behavior};
+  delete newBehavior.action;
+  delete newBehavior.condition;
+  delete newBehavior.task;
+  delete newBehavior.elseBehavior;
+  newBehavior.type = newType;
+  switch (newType) {
+    case 'DO_ACTION': {
+      newBehavior.action = {
+        type: 'IDLE',
+        payload: {
+          object: null,
+        },
+      };
+      break;
+    }
+    case 'IF': {
+      newBehavior.condition = {
+        type: 'RANDOM',
+        comparator: 'EQUALS',
+        not: false,
+        payload: {
+          object: 1,
+        },
+      }
+      newBehavior.behavior = {
+        type: 'DO_ACTION',
+        action: {
+          type: 'IDLE',
+          payload: {
+            object: null,
+          },
+        },
+      }
+      newBehavior.elseBehavior = {
+        type: 'DO_ACTION',
+        action: {
+          type: 'IDLE',
+          payload: {
+            object: null,
+          },
+        },
+      }
+      break;
+    }
+    case 'WHILE': {
+      newBehavior.condition = {
+        type: 'RANDOM',
+        comparator: 'EQUALS',
+        not: false,
+        payload: {
+          object: 1,
+        },
+      }
+      newBehavior.behavior = {
+        type: 'DO_ACTION',
+        action: {
+          type: 'IDLE',
+          payload: {
+            object: null,
+          },
+        },
+      }
+      break;
+    }
+    case 'SWITCH_TASK': {
+      newBehavior.task = 'Idle';
+      break;
+    }
+  }
+  return newBehavior;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Conditional
+//////////////////////////////////////////////////////////////////////////////
 function Conditional(
-  props: {state: State, condition: Condition, behavior: mixed, setBehavior: mixed => void},
+  props: {
+    state: State,
+    condition: Condition,
+    behavior: mixed,
+    setBehavior: mixed => void,
+  },
 ): React.Node {
   const {condition, state, behavior, setBehavior} = props;
   const typeName = condition.type;
@@ -257,6 +287,9 @@ function Conditional(
   );
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// Do Action
+//////////////////////////////////////////////////////////////////////////////
 function DoActionCard(props: mixed): React.Node {
   const {state, behavior, setBehavior} = props;
   const actionType = behavior.action.type;

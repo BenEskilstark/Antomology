@@ -215,6 +215,20 @@ function LocationCard(props: Props): React.Node {
           }} />
       </div>
       <div>
+        TASK:
+        <TaskCard
+          state={state}
+          dispatch={dispatch}
+          setTaskName={() => {}}
+          newTask={false}
+          task={loc.task}
+          disableRename={true}
+          disableImportExport={true}
+          isLocationTask={true}
+          entityID={loc.id}
+        />
+      </div>
+      <div>
         Incoming Trails:
         <div>
           {incomingEdgeInfos}
@@ -283,6 +297,10 @@ function TaskEditor(props: Props): React.Node {
         setTaskName={setTaskName}
         newTask={taskName === 'New Task'}
         task={editingTask}
+        disableRename={false}
+        disableImportExport={false}
+        isLocationTask={false}
+        entityID={null}
       />
     </div>
   );

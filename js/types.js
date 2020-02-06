@@ -237,7 +237,7 @@ export type DoActionBehavior = {
   action: AntAction,
 };
 export type HighLevelDoActionBehavior = {
-  type: 'HIGH_LEVEL_DO_ACTION',
+  type: 'DO_HIGH_LEVEL_ACTION',
   action: {
     type: AntActionType,
     payload: {
@@ -291,6 +291,7 @@ export type Action =
   {type: 'CREATE_TASK', task: Task} |
   {type: 'UPDATE_LOCATION_NAME', id: EntityID, newName: string} |
   {type: 'UPDATE_NEXT_LOCATION_NAME', name: string} |
+  {type: 'UPDATE_LOCATION_TASK', task: Task, id: EntityID} |
   {type: 'ASSIGN_TASK', task: Task, ants: Array<EntityID>} |
   {type: 'SET_USER_MODE', userMode: UserMode} |
   {type: 'SET_ANT_MODE', antMode: AntMode} |

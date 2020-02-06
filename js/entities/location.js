@@ -23,7 +23,8 @@ const makeLocation = (
     task: null,
     visible: true,
   };
-  loc.task = createRandomMoveInLocationTask(loc.id);
+  // TODO update name on location name update
+  loc.task = {...createRandomMoveInLocationTask(loc.id), name: loc.name};
   return loc;
 };
 

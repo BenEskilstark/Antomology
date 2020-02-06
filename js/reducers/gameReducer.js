@@ -96,6 +96,13 @@ const gameReducer = (game: GameState, action: Action): GameState => {
         nextLocationName: name,
       };
     }
+    case 'UPDATE_LOCATION_TASK': {
+      const {task, id} = action;
+      const loc = game.entities[id];
+      loc.task.repeating = false;
+      loc.task.behaviorQueue = task.behaviorQueue;
+      return game;
+    }
     case 'ASSIGN_TASK': {
       const {task, ants} = action;
       for (const id of ants) {

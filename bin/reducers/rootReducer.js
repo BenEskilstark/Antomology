@@ -46,6 +46,7 @@ var rootReducer = function rootReducer(state, action) {
     case 'UPDATE_TASK':
     case 'UPDATE_LOCATION_NAME':
     case 'UPDATE_NEXT_LOCATION_NAME':
+    case 'UPDATE_LOCATION_TASK':
     case 'ASSIGN_TASK':
     case 'SET_USER_MODE':
     case 'SET_ANT_MODE':

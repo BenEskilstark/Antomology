@@ -16,10 +16,17 @@ type Props = {
   task: Task,
   setTaskName: (string) => void, // so the parent knows which task is being edited
   newTask: boolean,
+  disableRename: boolean,
+  disableImportExport: boolean,
+  isLocationTask: boolean,
+  entityID: ?EntityID,
 };
 
 function TaskCard(props: Props): React.Node {
-  const {state, dispatch, task, newTask} = props;
+  const {
+    state, dispatch, task, newTask, entityID,
+    disableRename, disableImportExport, isLocationTask,
+  } = props;
   const [repeating, setRepeating] = useState(task.repeating);
   const [taskName, setTaskName] = useState(task.name);
   // "deep-copy" behaviorQueue so that BehaviorCards can mutate it
@@ -43,26 +50,62 @@ function TaskCard(props: Props): React.Node {
       </div>
     );
   });
+
+  const nameEditor = (
+    <div>
+      Name:
+      <input type='text'
+        placeholder='Task Name'
+        onChange={(ev) => {
+          setTaskName(ev.target.value)
+        }}
+        value={taskName}>
+      </input>
+    </div>
+  );
+
+  const importExportButtons = (
+    <span>
+      <Button
+        label="Export Task as JSON"
+        onClick={
+          () => {
+            console.log(JSON.stringify({name: taskName, repeating, behaviorQueue}))
+          }
+        }
+      />
+      <Button
+        label="Import Pasted Task from JSON"
+        onClick={() => {
+          if (importedTask != '') {
+            setTaskName(importedTask.name);
+            setRepeating(importedTask.repeating);
+            setBehaviorQueue(importedTask.behaviorQueue);
+          }
+        }}
+      />
+      <input type="text" style={{width: '25px'}}
+        value={JSON.stringify(importedTask)} onChange={(ev) => {
+          setImportedTask(JSON.parse(ev.target.value));
+        }}
+      />
+    </span>
+  );
+
+  const repeating = (
+    <div>
+      Repeating:
+      <Checkbox checked={repeating} onChange={setRepeating} />
+    </div>
+  );
   return (
     <div
       className="taskCard"
       style={{
       }}
     >
-      <div>
-        Name:
-        <input type='text'
-          placeholder='Task Name'
-          onChange={(ev) => {
-            setTaskName(ev.target.value)
-          }}
-          value={taskName}>
-        </input>
-      </div>
-      <div>
-        Repeating:
-        <Checkbox checked={repeating} onChange={setRepeating} />
-      </div>
+      {!disableRename ? nameEditor : null}
+      {!isLocationTask ? repeating : null}
       <div>
         BehaviorQueue:
         <div>{behaviors}</div>
@@ -91,33 +134,15 @@ function TaskCard(props: Props): React.Node {
           if (newTask || taskName != task.name) {
             dispatch({type: 'CREATE_TASK', task: editedTask});
             props.setTaskName(taskName);
-          } else {
+          } else if (!isLocationTask) {
             dispatch({type: 'UPDATE_TASK', task: editedTask});
+          } else if (entityID != null) {
+            dispatch({type: 'UPDATE_LOCATION_TASK', id: entityID, task: editedTask});
           }
         }}
       />
-      <Button
-        label="Export Task as JSON"
-        onClick={
-          () => console.log(JSON.stringify({name: taskName, repeating, behaviorQueue}))
-        }
-      />
-      <Button
-        label="Import Pasted Task from JSON"
-        onClick={() => {
-          if (importedTask != '') {
-            setTaskName(importedTask.name);
-            setRepeating(importedTask.repeating);
-            setBehaviorQueue(importedTask.behaviorQueue);
-          }
-        }}
-      />
-      <input type="text" style={{width: '25px'}}
-        value={JSON.stringify(importedTask)} onChange={(ev) => {
-          setImportedTask(JSON.parse(ev.target.value));
-        }}
-      />
-    </div>
+      {!disableImportExport ? importExportButtons : null}
+      </div>
   );
 }
 

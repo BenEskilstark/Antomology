@@ -122,9 +122,20 @@ var gameReducer = function gameReducer(game, action) {
           nextLocationName: name
         });
       }
-    case 'ASSIGN_TASK':
+    case 'UPDATE_LOCATION_TASK':
       {
         var _task2 = action.task,
+            _id3 = action.id;
+
+        var loc = game.entities[_id3];
+        var _oldTask = loc.task;
+        _oldTask.repeating = _task2.repeating;
+        _oldTask.behaviorQueue = _task2.behaviorQueue;
+        return game;
+      }
+    case 'ASSIGN_TASK':
+      {
+        var _task3 = action.task,
             ants = action.ants;
         var _iteratorNormalCompletion = true;
         var _didIteratorError = false;
@@ -132,11 +143,11 @@ var gameReducer = function gameReducer(game, action) {
 
         try {
           for (var _iterator = ants[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-            var _id3 = _step.value;
+            var _id4 = _step.value;
 
-            game.entities[_id3].task = _task2;
-            game.entities[_id3].taskStack = [];
-            game.entities[_id3].taskIndex = 0;
+            game.entities[_id4].task = _task3;
+            game.entities[_id4].taskStack = [];
+            game.entities[_id4].taskIndex = 0;
           }
           // add the task to the task array
         } catch (err) {
@@ -155,10 +166,10 @@ var gameReducer = function gameReducer(game, action) {
         }
 
         var taskAdded = game.tasks.filter(function (t) {
-          return t.name === _task2.name;
+          return t.name === _task3.name;
         }).length > 0;
         if (!taskAdded) {
-          game.tasks.push(_task2);
+          game.tasks.push(_task3);
         }
         return game;
       }
@@ -180,20 +191,20 @@ var gameReducer = function gameReducer(game, action) {
       }
     case 'UPDATE_THETA':
       {
-        var _id4 = action.id,
+        var _id5 = action.id,
             theta = action.theta;
 
-        if (game.entities[_id4] != null) {
-          game.entities[_id4].theta = theta;
+        if (game.entities[_id5] != null) {
+          game.entities[_id5].theta = theta;
         }
         return game;
       }
     case 'SET_PREV_PHEROMONE':
       {
-        var _id5 = action.id;
+        var _id6 = action.id;
 
         return _extends({}, game, {
-          prevPheromone: _id5
+          prevPheromone: _id6
         });
       }
     case 'SET_MOUSE_DOWN':

@@ -116,10 +116,6 @@ const doAction = (
         // don't cross colonyEntrance boundary
         // const colEnt = game.entities[config.colonyEntrance].position;
         // freePositions = freePositions.filter(pos => !equals(pos, colEnt));
-        if (freePositions.length == 0) {
-          // fall back to previous position
-          loc = {position: ant.prevPosition};
-        }
         // if required, stay inside location boundary
         if (constraint != null) {
           freePositions = freePositions.filter(pos => {
@@ -128,6 +124,10 @@ const doAction = (
           });
         }
         loc = {position: oneOf(freePositions)};
+        if (freePositions.length == 0) {
+          // fall back to previous position
+          loc = {position: ant.prevPosition};
+        }
       } else if (obj != 'TRAIL' && typeof obj === 'string') {
         loc = getEntitiesByType(game, ['LOCATION']).filter(l => l.name === obj)[0];
       }
@@ -245,7 +245,10 @@ const doAction = (
         locationToPutdown = {position: ant.position, width: 1, height: 1};
       }
       const putDownFree = fastCollidesWith(game, locationToPutdown)
-        .filter(e => config.antBlockingEntities.includes(e.type))
+        .filter(e => {
+          return config.antBlockingEntities.includes(e.type) ||
+            e.type === 'PHEROMONE';
+        })
         .length === 0;
       if (collides(ant, locationToPutdown) && ant.holding != null && putDownFree) {
         putDownEntity(game, ant);
@@ -341,10 +344,11 @@ const doAction = (
 
 const doHighLevelAction = (
   game: GameState, ant: Ant, action: AntAction,
-): void => {
+): boolean => {
   const {payload} = action;
   let {object} = payload;
   let actionType = action.type;
+  let done = false;
 
   switch (actionType) {
     // high level move is a random move inside a location
@@ -358,7 +362,50 @@ const doHighLevelAction = (
       );
       break;
     }
+    // high level pickup moves around randomly inside location until
+    // item type you want to pickup is encountered
+    case 'PICKUP': {
+      doAction(
+        game, ant, {type: 'PICKUP', payload: {object}},
+      );
+      if (!ant.holding) {
+        doAction(
+          game, ant,
+          {
+            type: 'MOVE',
+            payload: {object: 'RANDOM', constraint: ant.location}
+          },
+        );
+      } else {
+        done = true;
+      }
+      break;
+    }
+    case 'PUTDOWN': {
+      if (ant.accumulator == null) {
+        ant.accumulator = Math.round(Math.random() * 10) + 10;
+      }
+      if (ant.accumulator <= 0) {
+        doAction(
+          game, ant, {type: 'PUTDOWN', payload: {object: null}},
+        );
+      } else {
+        doAction(
+          game, ant,
+          {
+            type: 'MOVE',
+            payload: {object: 'RANDOM', constraint: ant.location}
+          },
+        );
+        ant.accumulator--;
+      }
+      if (!ant.holding) {
+        done = true;
+      }
+      break;
+    }
   }
+  return done;
 };
 
 module.exports = {doAction, doHighLevelAction};
