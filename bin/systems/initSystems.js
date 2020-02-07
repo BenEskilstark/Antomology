@@ -15,6 +15,8 @@ var initSystems = function initSystems(store) {
   initRenderSystem(store);
   initMouseControlsSystem(store);
   initFoodSpawnSystem(store);
+  // const audio = document.getElementById('clayMusic1');
+  // audio.play();
 };
 
 module.exports = { initSystems: initSystems };

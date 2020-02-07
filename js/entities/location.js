@@ -2,7 +2,10 @@
 
 import type {Vector, Entity} from '../types';
 const {makeEntity} = require('./entity');
-const {createRandomMoveInLocationTask} = require('../state/graphTasks');
+const {
+  createRandomMoveInLocationTask,
+  createFindPheromoneTask,
+} = require('../state/graphTasks');
 
 const makeLocation = (
   name: string,
@@ -23,8 +26,9 @@ const makeLocation = (
     task: null,
     visible: true,
   };
+  loc.task = createFindPheromoneTask();
   // TODO update name on location name update
-  loc.task = {...createRandomMoveInLocationTask(loc.id), name: loc.name};
+  // loc.task = {...createRandomMoveInLocationTask(loc.id), name: loc.name};
   return loc;
 };
 

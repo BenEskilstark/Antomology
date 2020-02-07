@@ -48,7 +48,10 @@ const {makeLarva} = require('../entities/larva');
 const {makePupa} = require('../entities/pupa');
 const {makeAnt} = require('../entities/ant');
 const {performTask} = require('../simulation/performTask');
-const {createFindPheromoneTask, followTrail} = require('../state/graphTasks');
+const {
+  createFindPheromoneTask, createFollowTrailTask,
+  createFollowTrailInReverseTask, createPickupEntityTask,
+} = require('../state/graphTasks');
 
 import type {
   GameState, Entity, Action, Ant, Behavior, Condition, Task, AntAction, AntActionType
@@ -111,8 +114,22 @@ const handleTick = (game: GameState): GameState => {
     } else if (locs.length == 0 && ant.location != null) {
       ant.location = null;
     }
+    // if blocked on a trail, pick up blocker and reverse
+    if (ant.task != null && ant.task.name === 'Follow Trail' && ant.blocked) {
+      const blockingEntity = ant.blockedBy;
+      if (!blockingEntity) {
+        console.error("no blocking entity on pheromone trail", ant);
+        break;
+      }
+      ant.task = createPickupEntityTask(blockingEntity);
+      ant.taskIndex = 0;
+      ant.taskStack = [{name: 'Follow Trail In Reverse', index: 0}];
+    }
 
-    ant.calories -=1;
+    ant.calories -= 1;
+    if (ant.eggLayingCooldown > 0) {
+      ant.eggLayingCooldown -= 1;
+    }
     // ant starvation
     if (ant.calories <= 0) {
       ant.alive = false;

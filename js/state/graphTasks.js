@@ -60,6 +60,16 @@ const createRandomMoveInLocationTask = (locID: EntityID): Task => {
   };
 };
 
+const createPickupEntityTask = (entity:Entity): Task => {
+  return {
+    name: 'Pick Up Entity',
+    repeating: false,
+    behaviorQueue:[
+      createDoAction('PICKUP', entity),
+    ],
+  };
+};
+
 const createFindPheromoneTask = (): Task => {
   return {
     name: 'Find Pheromone Trail',
@@ -70,7 +80,7 @@ const createFindPheromoneTask = (): Task => {
   };
 }
 
-const followTrail = (): Task => {
+const createFollowTrailTask = (): Task => {
   return {
     name: 'Follow Trail',
     repeating: false,
@@ -89,8 +99,30 @@ const followTrail = (): Task => {
   };
 };
 
+const createFollowTrailInReverseTask = (): Task => {
+  return {
+    name: 'Follow Trail In Reverse',
+    repeating: false,
+    behaviorQueue: [
+      {
+        type: 'WHILE',
+        condition: {
+          type: 'NEIGHBORING',
+          not: false,
+          comparator: 'EQUALS',
+          payload: {object: 'TRAIL'},
+        },
+        behavior: createMoveBehavior('REVERSE_TRAIL'),
+      },
+    ],
+  };
+};
+
+
 module.exports = {
   createRandomMoveInLocationTask,
   createFindPheromoneTask,
-  followTrail,
+  createFollowTrailTask,
+  createFollowTrailInReverseTask,
+  createPickupEntityTask,
 }

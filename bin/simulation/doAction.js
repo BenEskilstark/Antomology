@@ -103,14 +103,15 @@ var doAction = function doAction(game, ant, action) {
       {
         var loc = object;
         var obj = object;
-        if (obj === 'TRAIL') {
+        if (obj === 'TRAIL' || obj === 'REVERSE_TRAIL') {
           var pheromone = lookupInGrid(game.grid, ant.position).map(function (id) {
             return game.entities[id];
           }).filter(function (e) {
             return e.type === 'PHEROMONE';
           })[0];
           if (pheromone != null) {
-            loc = { position: add(ant.position, makeVector(pheromone.theta, 1)) };
+            var dir = obj === 'TRAIL' ? makeVector(pheromone.theta, 1) : makeVector(pheromone.theta + Math.PI, 1);
+            loc = { position: add(ant.position, dir) };
           } else {
             obj = 'RANDOM';
           }
@@ -142,7 +143,7 @@ var doAction = function doAction(game, ant, action) {
             // fall back to previous position
             loc = { position: ant.prevPosition };
           }
-        } else if (obj != 'TRAIL' && typeof obj === 'string') {
+        } else if (obj != 'TRAIL' && obj != 'REVERSE_TRAIL' && typeof obj === 'string') {
           loc = getEntitiesByType(game, ['LOCATION']).filter(function (l) {
             return l.name === obj;
           })[0];
@@ -174,9 +175,13 @@ var doAction = function doAction(game, ant, action) {
             moveVec[moveAxis] -= 1;
           } else {
             // already axis-aligned with destination, but blocked
-            // TODO block is broken now
             ant.blocked = true;
-            // ant.blockedBy = occupied[0];
+            // TODO blockedBy requires ants to be 1x1
+            ant.blockedBy = lookupInGrid(game.grid, nextPos).map(function (i) {
+              return game.entities[i];
+            }).filter(function (e) {
+              return config.antBlockingEntities.includes(e.type);
+            })[0];
             break;
           }
           nextPos = add(moveVec, ant.position);
@@ -185,10 +190,13 @@ var doAction = function doAction(game, ant, action) {
             ant.blocked = false;
             ant.blockedBy = null;
           } else {
-            // TODO block is broken now
-            // } else if (occpied.length > 0) {
             ant.blocked = true;
-            // ant.blockedBy = occupied[0];
+            // TODO blockedBy requires ants to be 1x1
+            ant.blockedBy = lookupInGrid(game.grid, nextPos).map(function (i) {
+              return game.entities[i];
+            }).filter(function (e) {
+              return config.antBlockingEntities.includes(e.type);
+            })[0];
           }
         }
         break;
@@ -397,11 +405,12 @@ var doAction = function doAction(game, ant, action) {
         var dirtBelow = lookupInGrid(game.grid, add(ant.position, { x: 0, y: -1 })).filter(function (id) {
           return game.entities[id].type === 'DIRT';
         }).length > 0;
-        if (nothingInTheWay && dirtBelow) {
+        if (nothingInTheWay && dirtBelow && ant.eggLayingCooldown <= 0) {
           var egg = makeEgg(ant.position, 'WORKER'); // TODO
           addEntity(game, egg);
           // move the ant out of the way
           var _freePositions3 = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities);
+          ant.eggLayingCooldown = config.eggLayingCooldown;
           if (_freePositions3.length > 0) {
             moveEntity(game, ant, _freePositions3[0]);
           }
@@ -463,6 +472,7 @@ var doHighLevelAction = function doHighLevelAction(game, ant, action) {
           ant.accumulator--;
         }
         if (!ant.holding) {
+          ant.accumulator = null;
           done = true;
         }
         break;
@@ -483,6 +493,30 @@ var doHighLevelAction = function doHighLevelAction(game, ant, action) {
           });
         }
         break;
+      }
+    case 'FEED':
+      {
+        if (!ant.holding || ant.holding.type != 'FOOD') {
+          done = true;
+        } else {
+          doAction(game, ant, {
+            type: 'MOVE',
+            payload: { object: 'RANDOM', constraint: ant.location }
+          });
+          doAction(game, ant, { type: 'FEED', payload: { object: null } });
+        }
+      }
+    case 'EAT':
+      {
+        var startCalories = ant.calories;
+        doAction(game, ant, {
+          type: 'MOVE',
+          payload: { object: 'RANDOM', constraint: ant.location }
+        });
+        doAction(game, ant, { type: 'EAT', payload: { object: null } });
+        if (ant.calories > startCalories) {
+          done = true;
+        }
       }
   }
   return done;

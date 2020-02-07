@@ -1,28 +1,21 @@
 
  - - - - - - PHEROMONE GRAPH - - - - - -
- - implement cooldown for queen laying eggs
- - digging out areas
-    - if blocked on trail, turn back
- - location tasks
-    - fix high level action bug
-    - implement FEED high level action
-    - implement EAT high level action
-    - implement IS_QUEEN condition
-    - disallow DO_ACTION in location task editor
-    - remove "towards:" dropdown for MOVE high level action
  - sidebar UI
     - conditionals that are addable/editable
     - edges listed for locations should be selectable from there
     - locations listed for edges should be selectable
+ - simulation
+    - implement conditional checking for outgoing edges
  - pheromone brush
     - picking up trails in the middle should cause 50/50 split
     - how to handle split trails in UI? As new location at split point?
- - simulation
-    - implement conditional checking for outgoing edges
+ - location tasks UX
+    - disallow DO_ACTION in location task editor
+    - remove "towards:" dropdown for MOVE high level action
  - world UX
     - call out disconnected edges
+    - show pheromone level of trails
  - "edge" cases
-    - distinguish "base" case of ants born at a location vs arriving there
     - queen laying eggs
     - food search random walk
  - future features
@@ -34,13 +27,13 @@
 
 
  - - - - - - BUGS - - - - - -
- - can't update task to high level action
  - groups of ants can ignore gravity by climbing on each other
  - ants that are falling and trying to go to a clicked location above them
    will hover in air
  - picked-up pupa never hatch and then die on putdown. Should just wait to hatch
  - dragging pheromone trails doesn't always work
  - sending an ant through a location causes it to switch tasks to that location
+ - once pheromones are gone, remove them from the edges
 
 
  - - - - - - LIFTNG BIG ENTITIES - - - - - -
@@ -101,6 +94,7 @@
  - Call out ants near death of old age
  - saving with local storage
  - prevent accidental click-and-drag text selection
+ - audio system
 
 
  - - - - - - RENDERING - - - - - -

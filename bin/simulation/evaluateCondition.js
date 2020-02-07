@@ -146,6 +146,12 @@ var evaluateCondition = function evaluateCondition(game, ant, condition) {
         isTrue = ant.blocked;
         break;
       }
+    case 'IS_QUEEN':
+      {
+        // comparator must be EQUALS
+        isTrue = ant.subType === 'QUEEN';
+        break;
+      }
     case 'RANDOM':
       {
         var value = object;

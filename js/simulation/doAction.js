@@ -91,12 +91,15 @@ const doAction = (
     case 'MOVE': {
       let loc = object;
       let obj = object;
-      if (obj === 'TRAIL') {
+      if (obj === 'TRAIL' || obj === 'REVERSE_TRAIL') {
         const pheromone = lookupInGrid(game.grid, ant.position)
           .map(id => game.entities[id])
           .filter(e => e.type === 'PHEROMONE')[0];
         if (pheromone != null) {
-          loc = {position: add(ant.position, makeVector(pheromone.theta, 1))};
+          const dir = obj === 'TRAIL'
+           ? makeVector(pheromone.theta, 1)
+           : makeVector(pheromone.theta + Math.PI, 1);
+          loc = {position: add(ant.position, dir)};
         } else {
           obj = 'RANDOM';
         }
@@ -128,7 +131,9 @@ const doAction = (
           // fall back to previous position
           loc = {position: ant.prevPosition};
         }
-      } else if (obj != 'TRAIL' && typeof obj === 'string') {
+      } else if (
+        obj != 'TRAIL' && obj != 'REVERSE_TRAIL' && typeof obj === 'string'
+      ) {
         loc = getEntitiesByType(game, ['LOCATION']).filter(l => l.name === obj)[0];
       }
       const distVec = subtract(loc.position, ant.position);
@@ -157,9 +162,12 @@ const doAction = (
           moveVec[moveAxis] -= 1;
         } else {
           // already axis-aligned with destination, but blocked
-          // TODO block is broken now
           ant.blocked = true;
-          // ant.blockedBy = occupied[0];
+          // TODO blockedBy requires ants to be 1x1
+          ant.blockedBy = lookupInGrid(game.grid, nextPos)
+            .map(i => game.entities[i])
+            .filter(e => config.antBlockingEntities.includes(e.type))
+            [0];
           break;
         }
         nextPos = add(moveVec, ant.position);
@@ -167,10 +175,13 @@ const doAction = (
         if (didMove) {
           ant.blocked = false;
           ant.blockedBy = null;
-        } else { // TODO block is broken now
-        // } else if (occpied.length > 0) {
+        } else {
           ant.blocked = true;
-          // ant.blockedBy = occupied[0];
+          // TODO blockedBy requires ants to be 1x1
+          ant.blockedBy = lookupInGrid(game.grid, nextPos)
+            .map(i => game.entities[i])
+            .filter(e => config.antBlockingEntities.includes(e.type))
+            [0];
         }
       }
       break;
@@ -321,13 +332,14 @@ const doAction = (
       const dirtBelow = lookupInGrid(game.grid, add(ant.position, {x: 0, y: -1}))
         .filter(id => game.entities[id].type === 'DIRT')
         .length > 0;
-      if (nothingInTheWay && dirtBelow) {
+      if (nothingInTheWay && dirtBelow && ant.eggLayingCooldown <= 0) {
         const egg = makeEgg(ant.position, 'WORKER'); // TODO
         addEntity(game, egg);
         // move the ant out of the way
         const freePositions = fastGetEmptyNeighborPositions(
           game, ant, config.antBlockingEntities,
         );
+        ant.eggLayingCooldown = config.eggLayingCooldown;
         if (freePositions.length > 0) {
           moveEntity(game, ant, freePositions[0]);
         }
@@ -400,6 +412,7 @@ const doHighLevelAction = (
         ant.accumulator--;
       }
       if (!ant.holding) {
+        ant.accumulator = null;
         done = true;
       }
       break;
@@ -421,6 +434,34 @@ const doHighLevelAction = (
         );
       }
       break;
+    }
+    case 'FEED': {
+      if (!ant.holding || ant.holding.type != 'FOOD') {
+        done = true;
+      } else {
+        doAction(
+          game, ant,
+          {
+            type: 'MOVE',
+            payload: {object: 'RANDOM', constraint: ant.location}
+          },
+        );
+        doAction(game, ant, {type: 'FEED', payload: {object: null}});
+      }
+    }
+    case 'EAT': {
+      const startCalories = ant.calories;
+      doAction(
+        game, ant,
+        {
+          type: 'MOVE',
+          payload: {object: 'RANDOM', constraint: ant.location}
+        },
+      );
+      doAction(game, ant, {type: 'EAT', payload: {object: null}});
+      if (ant.calories > startCalories) {
+        done = true;
+      }
     }
   }
   return done;

@@ -54,6 +54,14 @@ var createRandomMoveInLocationTask = function createRandomMoveInLocationTask(loc
   };
 };
 
+var createPickupEntityTask = function createPickupEntityTask(entity) {
+  return {
+    name: 'Pick Up Entity',
+    repeating: false,
+    behaviorQueue: [createDoAction('PICKUP', entity)]
+  };
+};
+
 var createFindPheromoneTask = function createFindPheromoneTask() {
   return {
     name: 'Find Pheromone Trail',
@@ -62,7 +70,7 @@ var createFindPheromoneTask = function createFindPheromoneTask() {
   };
 };
 
-var followTrail = function followTrail() {
+var createFollowTrailTask = function createFollowTrailTask() {
   return {
     name: 'Follow Trail',
     repeating: false,
@@ -79,8 +87,27 @@ var followTrail = function followTrail() {
   };
 };
 
+var createFollowTrailInReverseTask = function createFollowTrailInReverseTask() {
+  return {
+    name: 'Follow Trail In Reverse',
+    repeating: false,
+    behaviorQueue: [{
+      type: 'WHILE',
+      condition: {
+        type: 'NEIGHBORING',
+        not: false,
+        comparator: 'EQUALS',
+        payload: { object: 'TRAIL' }
+      },
+      behavior: createMoveBehavior('REVERSE_TRAIL')
+    }]
+  };
+};
+
 module.exports = {
   createRandomMoveInLocationTask: createRandomMoveInLocationTask,
   createFindPheromoneTask: createFindPheromoneTask,
-  followTrail: followTrail
+  createFollowTrailTask: createFollowTrailTask,
+  createFollowTrailInReverseTask: createFollowTrailInReverseTask,
+  createPickupEntityTask: createPickupEntityTask
 };

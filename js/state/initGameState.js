@@ -53,51 +53,6 @@ const level0 = (): GameState => {
   const locationTwo = makeLocation('Location Two', 5, 5, {x: 40, y: 30});
   addEntity(game, locationTwo);
 
-  // initial tasks
-  game.tasks = [
-    tasks.createIdleTask(),
-    {...tasks.createGoToLocationTask(colonyEntrance), name: 'Go To Colony Entrance'},
-    tasks.createRandomMoveTask(),
-    tasks.createDigBlueprintTask(game),
-    tasks.createMoveBlockerTask(),
-    tasks.createGoToColonyEntranceWithBlockerTask(game),
-    tasks.createLayEggTask(),
-    tasks.createFollowTrailTask(),
-    tasks.createHoldingAndIdleTask(),
-    graphTasks.createFindPheromoneTask(),
-    {
-      name: 'Find Food',
-      repeating: false,
-      behaviorQueue: [
-        {
-          type: 'WHILE',
-          condition: {
-            type: 'NEIGHBORING',
-            comparator: 'EQUALS',
-            payload: {
-              object: 'FOOD',
-            },
-            not: true,
-          },
-          behavior: {
-            type: 'DO_ACTION',
-            action: {
-              type: 'MOVE',
-              payload: {object: 'RANDOM'},
-            },
-          },
-        },
-        {
-          type: 'DO_ACTION',
-          action: {
-            type: 'PICKUP',
-            payload: {object: 'FOOD'},
-          },
-        },
-      ],
-    },
-  ];
-
   // seed background
   for (let x = 0; x < game.worldWidth; x++) {
     for (let y = 0; y < game.worldHeight; y++) {
@@ -215,6 +170,51 @@ const baseState = (worldWidth: number, worldHeight: number): GameState => {
     ...makeLocation('Clicked Position', 1, 1, {x:0, y:0}), id: config.clickedPosition,
   }
   addEntity(game, clickedLocation);
+
+  // initial tasks
+  game.tasks = [
+    tasks.createIdleTask(),
+    tasks.createRandomMoveTask(),
+    tasks.createDigBlueprintTask(game),
+    tasks.createMoveBlockerTask(),
+    tasks.createGoToColonyEntranceWithBlockerTask(game),
+    tasks.createLayEggTask(),
+    tasks.createHoldingAndIdleTask(),
+    graphTasks.createFindPheromoneTask(),
+    graphTasks.createFollowTrailTask(),
+    graphTasks.createFollowTrailInReverseTask(),
+    {
+      name: 'Find Food',
+      repeating: false,
+      behaviorQueue: [
+        {
+          type: 'WHILE',
+          condition: {
+            type: 'NEIGHBORING',
+            comparator: 'EQUALS',
+            payload: {
+              object: 'FOOD',
+            },
+            not: true,
+          },
+          behavior: {
+            type: 'DO_ACTION',
+            action: {
+              type: 'MOVE',
+              payload: {object: 'RANDOM'},
+            },
+          },
+        },
+        {
+          type: 'DO_ACTION',
+          action: {
+            type: 'PICKUP',
+            payload: {object: 'FOOD'},
+          },
+        },
+      ],
+    },
+  ];
 
   return game;
 }

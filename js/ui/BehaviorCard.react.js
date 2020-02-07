@@ -32,13 +32,16 @@ function BehaviorCard(props: Props): React.Node {
     subjects = ['MOVE', 'PICKUP', 'PUTDOWN', 'IDLE', 'EAT', 'FEED', 'LAY'];
     selectedSubject = behavior.action.type;
   } else if (behavior.type == 'IF' || behavior.type == 'WHILE') {
-    subjects = ['LOCATION', 'RANDOM', 'HOLDING', 'NEIGHBORING', 'BLOCKED', 'CALORIES', 'AGE'];
+    subjects = [
+      'LOCATION', 'RANDOM', 'HOLDING', 'NEIGHBORING', 'BLOCKED',
+      'CALORIES', 'AGE', 'IS_QUEEN',
+    ];
     selectedSubject = behavior.condition.type;
   } else if (behavior.type == 'SWITCH_TASK') {
     subjects = state.game.tasks.map(t => t.name);
     selectedSubject = behavior.task;
   } else if (behavior.type == 'DO_HIGH_LEVEL_ACTION') {
-    subjects = ['MOVE', 'PICKUP', 'PUTDOWN', 'EAT', 'FEED', 'LAY'];
+    subjects = ['MOVE', 'PICKUP', 'PUTDOWN', 'EAT', 'FEED', 'LAY', 'FIND_PHEROMONE'];
     selectedSubject = behavior.action.type;
   }
   return (
@@ -118,7 +121,7 @@ function BehaviorCard(props: Props): React.Node {
 // Behavior Transition
 //////////////////////////////////////////////////////////////////////////////
 function transitionBehavior(behavior: Behavior, newType: string): Behavior {
-  const newBehavior = {...behavior};
+  const newBehavior = behavior;
   delete newBehavior.action;
   delete newBehavior.condition;
   delete newBehavior.task;

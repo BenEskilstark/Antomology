@@ -70,7 +70,9 @@ var _require12 = require('../simulation/performTask'),
 
 var _require13 = require('../state/graphTasks'),
     createFindPheromoneTask = _require13.createFindPheromoneTask,
-    followTrail = _require13.followTrail;
+    createFollowTrailTask = _require13.createFollowTrailTask,
+    createFollowTrailInReverseTask = _require13.createFollowTrailInReverseTask,
+    createPickupEntityTask = _require13.createPickupEntityTask;
 
 var tickReducer = function tickReducer(game, action) {
   switch (action.type) {
@@ -133,8 +135,22 @@ var handleTick = function handleTick(game) {
       } else if (locs.length == 0 && ant.location != null) {
         ant.location = null;
       }
+      // if blocked on a trail, pick up blocker and reverse
+      if (ant.task != null && ant.task.name === 'Follow Trail' && ant.blocked) {
+        var blockingEntity = ant.blockedBy;
+        if (!blockingEntity) {
+          console.error("no blocking entity on pheromone trail", ant);
+          break;
+        }
+        ant.task = createPickupEntityTask(blockingEntity);
+        ant.taskIndex = 0;
+        ant.taskStack = [{ name: 'Follow Trail In Reverse', index: 0 }];
+      }
 
       ant.calories -= 1;
+      if (ant.eggLayingCooldown > 0) {
+        ant.eggLayingCooldown -= 1;
+      }
       // ant starvation
       if (ant.calories <= 0) {
         ant.alive = false;

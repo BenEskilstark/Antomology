@@ -14,7 +14,7 @@ var config = {
 
   // hardcoded location ids:
   clickedPosition: -1,
-  colonyEntrance: 0,
+  colonyEntrance: 0, // DEPRECATED
 
   // fog-of-war
   entitiesInFog: ['DIRT', 'FOOD', 'DEAD_ANT', 'BACKGROUND', 'STONE'],
@@ -45,7 +45,8 @@ var config = {
   antMaxCalories: 6000,
   antStarvationWarningThreshold: 0.3,
 
-  // life-cycle related
+  // life-cycle relatedA
+  eggLayingCooldown: 50,
   antMaxAge: 10000,
   eggHatchAge: 300,
   larvaStartingCalories: 3000,
@@ -53,8 +54,8 @@ var config = {
   pupaHatchAge: 200,
 
   // pheromones
-  pheromoneStartingQuantity: 600,
-  pheromoneMaxQuantity: 1200
+  pheromoneStartingQuantity: 1200,
+  pheromoneMaxQuantity: 1800
 };
 
 module.exports = { config: config };
@@ -90,7 +91,8 @@ var makeAnt = function makeAnt(position, subType) {
     blockedBy: null,
     location: null,
     alive: true,
-    visible: true
+    visible: true,
+    eggLayingCooldown: 0
   });
 };
 
@@ -235,7 +237,8 @@ var _require = require('./entity'),
     makeEntity = _require.makeEntity;
 
 var _require2 = require('../state/graphTasks'),
-    createRandomMoveInLocationTask = _require2.createRandomMoveInLocationTask;
+    createRandomMoveInLocationTask = _require2.createRandomMoveInLocationTask,
+    createFindPheromoneTask = _require2.createFindPheromoneTask;
 
 var makeLocation = function makeLocation(name, width, height, position) {
   var loc = _extends({}, makeEntity('LOCATION', width, height, position), {
@@ -245,8 +248,9 @@ var makeLocation = function makeLocation(name, width, height, position) {
     task: null,
     visible: true
   });
+  loc.task = createFindPheromoneTask();
   // TODO update name on location name update
-  loc.task = _extends({}, createRandomMoveInLocationTask(loc.id), { name: loc.name });
+  // loc.task = {...createRandomMoveInLocationTask(loc.id), name: loc.name};
   return loc;
 };
 
@@ -803,7 +807,9 @@ var _require12 = require('../simulation/performTask'),
 
 var _require13 = require('../state/graphTasks'),
     createFindPheromoneTask = _require13.createFindPheromoneTask,
-    followTrail = _require13.followTrail;
+    createFollowTrailTask = _require13.createFollowTrailTask,
+    createFollowTrailInReverseTask = _require13.createFollowTrailInReverseTask,
+    createPickupEntityTask = _require13.createPickupEntityTask;
 
 var tickReducer = function tickReducer(game, action) {
   switch (action.type) {
@@ -866,8 +872,22 @@ var handleTick = function handleTick(game) {
       } else if (locs.length == 0 && ant.location != null) {
         ant.location = null;
       }
+      // if blocked on a trail, pick up blocker and reverse
+      if (ant.task != null && ant.task.name === 'Follow Trail' && ant.blocked) {
+        var blockingEntity = ant.blockedBy;
+        if (!blockingEntity) {
+          console.error("no blocking entity on pheromone trail", ant);
+          break;
+        }
+        ant.task = createPickupEntityTask(blockingEntity);
+        ant.taskIndex = 0;
+        ant.taskStack = [{ name: 'Follow Trail In Reverse', index: 0 }];
+      }
 
       ant.calories -= 1;
+      if (ant.eggLayingCooldown > 0) {
+        ant.eggLayingCooldown -= 1;
+      }
       // ant starvation
       if (ant.calories <= 0) {
         ant.alive = false;
@@ -1777,14 +1797,15 @@ var doAction = function doAction(game, ant, action) {
       {
         var loc = object;
         var obj = object;
-        if (obj === 'TRAIL') {
+        if (obj === 'TRAIL' || obj === 'REVERSE_TRAIL') {
           var pheromone = lookupInGrid(game.grid, ant.position).map(function (id) {
             return game.entities[id];
           }).filter(function (e) {
             return e.type === 'PHEROMONE';
           })[0];
           if (pheromone != null) {
-            loc = { position: add(ant.position, makeVector(pheromone.theta, 1)) };
+            var dir = obj === 'TRAIL' ? makeVector(pheromone.theta, 1) : makeVector(pheromone.theta + Math.PI, 1);
+            loc = { position: add(ant.position, dir) };
           } else {
             obj = 'RANDOM';
           }
@@ -1816,7 +1837,7 @@ var doAction = function doAction(game, ant, action) {
             // fall back to previous position
             loc = { position: ant.prevPosition };
           }
-        } else if (obj != 'TRAIL' && typeof obj === 'string') {
+        } else if (obj != 'TRAIL' && obj != 'REVERSE_TRAIL' && typeof obj === 'string') {
           loc = getEntitiesByType(game, ['LOCATION']).filter(function (l) {
             return l.name === obj;
           })[0];
@@ -1848,9 +1869,13 @@ var doAction = function doAction(game, ant, action) {
             moveVec[moveAxis] -= 1;
           } else {
             // already axis-aligned with destination, but blocked
-            // TODO block is broken now
             ant.blocked = true;
-            // ant.blockedBy = occupied[0];
+            // TODO blockedBy requires ants to be 1x1
+            ant.blockedBy = lookupInGrid(game.grid, nextPos).map(function (i) {
+              return game.entities[i];
+            }).filter(function (e) {
+              return config.antBlockingEntities.includes(e.type);
+            })[0];
             break;
           }
           nextPos = add(moveVec, ant.position);
@@ -1859,10 +1884,13 @@ var doAction = function doAction(game, ant, action) {
             ant.blocked = false;
             ant.blockedBy = null;
           } else {
-            // TODO block is broken now
-            // } else if (occpied.length > 0) {
             ant.blocked = true;
-            // ant.blockedBy = occupied[0];
+            // TODO blockedBy requires ants to be 1x1
+            ant.blockedBy = lookupInGrid(game.grid, nextPos).map(function (i) {
+              return game.entities[i];
+            }).filter(function (e) {
+              return config.antBlockingEntities.includes(e.type);
+            })[0];
           }
         }
         break;
@@ -2071,11 +2099,12 @@ var doAction = function doAction(game, ant, action) {
         var dirtBelow = lookupInGrid(game.grid, add(ant.position, { x: 0, y: -1 })).filter(function (id) {
           return game.entities[id].type === 'DIRT';
         }).length > 0;
-        if (nothingInTheWay && dirtBelow) {
+        if (nothingInTheWay && dirtBelow && ant.eggLayingCooldown <= 0) {
           var egg = makeEgg(ant.position, 'WORKER'); // TODO
           addEntity(game, egg);
           // move the ant out of the way
           var _freePositions3 = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities);
+          ant.eggLayingCooldown = config.eggLayingCooldown;
           if (_freePositions3.length > 0) {
             moveEntity(game, ant, _freePositions3[0]);
           }
@@ -2137,6 +2166,7 @@ var doHighLevelAction = function doHighLevelAction(game, ant, action) {
           ant.accumulator--;
         }
         if (!ant.holding) {
+          ant.accumulator = null;
           done = true;
         }
         break;
@@ -2157,6 +2187,30 @@ var doHighLevelAction = function doHighLevelAction(game, ant, action) {
           });
         }
         break;
+      }
+    case 'FEED':
+      {
+        if (!ant.holding || ant.holding.type != 'FOOD') {
+          done = true;
+        } else {
+          doAction(game, ant, {
+            type: 'MOVE',
+            payload: { object: 'RANDOM', constraint: ant.location }
+          });
+          doAction(game, ant, { type: 'FEED', payload: { object: null } });
+        }
+      }
+    case 'EAT':
+      {
+        var startCalories = ant.calories;
+        doAction(game, ant, {
+          type: 'MOVE',
+          payload: { object: 'RANDOM', constraint: ant.location }
+        });
+        doAction(game, ant, { type: 'EAT', payload: { object: null } });
+        if (ant.calories > startCalories) {
+          done = true;
+        }
       }
   }
   return done;
@@ -2310,6 +2364,12 @@ var evaluateCondition = function evaluateCondition(game, ant, condition) {
       {
         // comparator must be EQUALS
         isTrue = ant.blocked;
+        break;
+      }
+    case 'IS_QUEEN':
+      {
+        // comparator must be EQUALS
+        isTrue = ant.subType === 'QUEEN';
         break;
       }
     case 'RANDOM':
@@ -2584,6 +2644,14 @@ var createRandomMoveInLocationTask = function createRandomMoveInLocationTask(loc
   };
 };
 
+var createPickupEntityTask = function createPickupEntityTask(entity) {
+  return {
+    name: 'Pick Up Entity',
+    repeating: false,
+    behaviorQueue: [createDoAction('PICKUP', entity)]
+  };
+};
+
 var createFindPheromoneTask = function createFindPheromoneTask() {
   return {
     name: 'Find Pheromone Trail',
@@ -2592,7 +2660,7 @@ var createFindPheromoneTask = function createFindPheromoneTask() {
   };
 };
 
-var followTrail = function followTrail() {
+var createFollowTrailTask = function createFollowTrailTask() {
   return {
     name: 'Follow Trail',
     repeating: false,
@@ -2609,10 +2677,29 @@ var followTrail = function followTrail() {
   };
 };
 
+var createFollowTrailInReverseTask = function createFollowTrailInReverseTask() {
+  return {
+    name: 'Follow Trail In Reverse',
+    repeating: false,
+    behaviorQueue: [{
+      type: 'WHILE',
+      condition: {
+        type: 'NEIGHBORING',
+        not: false,
+        comparator: 'EQUALS',
+        payload: { object: 'TRAIL' }
+      },
+      behavior: createMoveBehavior('REVERSE_TRAIL')
+    }]
+  };
+};
+
 module.exports = {
   createRandomMoveInLocationTask: createRandomMoveInLocationTask,
   createFindPheromoneTask: createFindPheromoneTask,
-  followTrail: followTrail
+  createFollowTrailTask: createFollowTrailTask,
+  createFollowTrailInReverseTask: createFollowTrailInReverseTask,
+  createPickupEntityTask: createPickupEntityTask
 };
 },{}],25:[function(require,module,exports){
 'use strict';
@@ -2687,36 +2774,6 @@ var level0 = function level0() {
 
   var locationTwo = makeLocation('Location Two', 5, 5, { x: 40, y: 30 });
   addEntity(game, locationTwo);
-
-  // initial tasks
-  game.tasks = [tasks.createIdleTask(), _extends({}, tasks.createGoToLocationTask(colonyEntrance), { name: 'Go To Colony Entrance' }), tasks.createRandomMoveTask(), tasks.createDigBlueprintTask(game), tasks.createMoveBlockerTask(), tasks.createGoToColonyEntranceWithBlockerTask(game), tasks.createLayEggTask(), tasks.createFollowTrailTask(), tasks.createHoldingAndIdleTask(), graphTasks.createFindPheromoneTask(), {
-    name: 'Find Food',
-    repeating: false,
-    behaviorQueue: [{
-      type: 'WHILE',
-      condition: {
-        type: 'NEIGHBORING',
-        comparator: 'EQUALS',
-        payload: {
-          object: 'FOOD'
-        },
-        not: true
-      },
-      behavior: {
-        type: 'DO_ACTION',
-        action: {
-          type: 'MOVE',
-          payload: { object: 'RANDOM' }
-        }
-      }
-    }, {
-      type: 'DO_ACTION',
-      action: {
-        type: 'PICKUP',
-        payload: { object: 'FOOD' }
-      }
-    }]
-  }];
 
   // seed background
   for (var x = 0; x < game.worldWidth; x++) {
@@ -2834,6 +2891,36 @@ var baseState = function baseState(worldWidth, worldHeight) {
   var clickedLocation = _extends({}, makeLocation('Clicked Position', 1, 1, { x: 0, y: 0 }), { id: config.clickedPosition
   });
   addEntity(game, clickedLocation);
+
+  // initial tasks
+  game.tasks = [tasks.createIdleTask(), tasks.createRandomMoveTask(), tasks.createDigBlueprintTask(game), tasks.createMoveBlockerTask(), tasks.createGoToColonyEntranceWithBlockerTask(game), tasks.createLayEggTask(), tasks.createHoldingAndIdleTask(), graphTasks.createFindPheromoneTask(), graphTasks.createFollowTrailTask(), graphTasks.createFollowTrailInReverseTask(), {
+    name: 'Find Food',
+    repeating: false,
+    behaviorQueue: [{
+      type: 'WHILE',
+      condition: {
+        type: 'NEIGHBORING',
+        comparator: 'EQUALS',
+        payload: {
+          object: 'FOOD'
+        },
+        not: true
+      },
+      behavior: {
+        type: 'DO_ACTION',
+        action: {
+          type: 'MOVE',
+          payload: { object: 'RANDOM' }
+        }
+      }
+    }, {
+      type: 'DO_ACTION',
+      action: {
+        type: 'PICKUP',
+        payload: { object: 'FOOD' }
+      }
+    }]
+  }];
 
   return game;
 };
@@ -3230,6 +3317,8 @@ var initSystems = function initSystems(store) {
   initRenderSystem(store);
   initMouseControlsSystem(store);
   initFoodSpawnSystem(store);
+  // const audio = document.getElementById('clayMusic1');
+  // audio.play();
 };
 
 module.exports = { initSystems: initSystems };
@@ -4130,8 +4219,6 @@ module.exports = { initRenderSystem: initRenderSystem };
 },{"../config":1,"../selectors/selectors":20,"../utils/stateHelpers":47,"../utils/vectors":48}],32:[function(require,module,exports){
 'use strict';
 
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var React = require('react');
@@ -4173,7 +4260,7 @@ function BehaviorCard(props) {
     subjects = ['MOVE', 'PICKUP', 'PUTDOWN', 'IDLE', 'EAT', 'FEED', 'LAY'];
     selectedSubject = behavior.action.type;
   } else if (behavior.type == 'IF' || behavior.type == 'WHILE') {
-    subjects = ['LOCATION', 'RANDOM', 'HOLDING', 'NEIGHBORING', 'BLOCKED', 'CALORIES', 'AGE'];
+    subjects = ['LOCATION', 'RANDOM', 'HOLDING', 'NEIGHBORING', 'BLOCKED', 'CALORIES', 'AGE', 'IS_QUEEN'];
     selectedSubject = behavior.condition.type;
   } else if (behavior.type == 'SWITCH_TASK') {
     subjects = state.game.tasks.map(function (t) {
@@ -4181,7 +4268,7 @@ function BehaviorCard(props) {
     });
     selectedSubject = behavior.task;
   } else if (behavior.type == 'DO_HIGH_LEVEL_ACTION') {
-    subjects = ['MOVE', 'PICKUP', 'PUTDOWN', 'EAT', 'FEED', 'LAY'];
+    subjects = ['MOVE', 'PICKUP', 'PUTDOWN', 'EAT', 'FEED', 'LAY', 'FIND_PHEROMONE'];
     selectedSubject = behavior.action.type;
   }
   return React.createElement(
@@ -4262,7 +4349,7 @@ function BehaviorCard(props) {
 // Behavior Transition
 //////////////////////////////////////////////////////////////////////////////
 function transitionBehavior(behavior, newType) {
-  var newBehavior = _extends({}, behavior);
+  var newBehavior = behavior;
   delete newBehavior.action;
   delete newBehavior.condition;
   delete newBehavior.task;
@@ -4343,6 +4430,7 @@ function transitionBehavior(behavior, newType) {
             object: 'RANDOM'
           }
         };
+        break;
       }
   }
   return newBehavior;

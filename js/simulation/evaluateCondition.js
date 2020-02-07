@@ -99,6 +99,11 @@ const evaluateCondition = (
       isTrue = ant.blocked;
       break;
     }
+    case 'IS_QUEEN': {
+      // comparator must be EQUALS
+      isTrue = ant.subType === 'QUEEN';
+      break;
+    }
     case 'RANDOM': {
       const value = object;
       const rand = Math.random();

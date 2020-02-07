@@ -13,7 +13,7 @@ var config = {
 
   // hardcoded location ids:
   clickedPosition: -1,
-  colonyEntrance: 0,
+  colonyEntrance: 0, // DEPRECATED
 
   // fog-of-war
   entitiesInFog: ['DIRT', 'FOOD', 'DEAD_ANT', 'BACKGROUND', 'STONE'],
@@ -44,7 +44,8 @@ var config = {
   antMaxCalories: 6000,
   antStarvationWarningThreshold: 0.3,
 
-  // life-cycle related
+  // life-cycle relatedA
+  eggLayingCooldown: 50,
   antMaxAge: 10000,
   eggHatchAge: 300,
   larvaStartingCalories: 3000,
@@ -52,8 +53,8 @@ var config = {
   pupaHatchAge: 200,
 
   // pheromones
-  pheromoneStartingQuantity: 600,
-  pheromoneMaxQuantity: 1200
+  pheromoneStartingQuantity: 1200,
+  pheromoneMaxQuantity: 1800
 };
 
 module.exports = { config: config };

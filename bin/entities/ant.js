@@ -29,7 +29,8 @@ var makeAnt = function makeAnt(position, subType) {
     blockedBy: null,
     location: null,
     alive: true,
-    visible: true
+    visible: true,
+    eggLayingCooldown: 0
   });
 };
 

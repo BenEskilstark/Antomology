@@ -193,6 +193,7 @@ export type Ant = Entity & {
     index: number, // your index in the parent task
   }>,
   alive: boolean,
+  eggLayingCooldown: number, // for the queen
 };
 
 export type AntActionType =
@@ -216,7 +217,7 @@ export type AntAction = {
 
 export type ConditionType =
   'LOCATION' | 'HOLDING' | 'CALORIES' | 'AGE' | 'NEIGHBORING' | 'RANDOM' |
-  'BLOCKED';
+  'BLOCKED' | 'IS_QUEEN';
 export type ConditionComparator = 'EQUALS' | 'LESS_THAN' | 'GREATER_THAN';
 export type Pronoun = 'ANYTHING' | 'NOTHING';
 export type Condition = {
