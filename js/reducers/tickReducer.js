@@ -48,6 +48,7 @@ const {makeLarva} = require('../entities/larva');
 const {makePupa} = require('../entities/pupa');
 const {makeAnt} = require('../entities/ant');
 const {performTask} = require('../simulation/performTask');
+const {createFindPheromoneTask, followTrail} = require('../state/graphTasks');
 
 import type {
   GameState, Entity, Action, Ant, Behavior, Condition, Task, AntAction, AntActionType
@@ -98,10 +99,15 @@ const handleTick = (game: GameState): GameState => {
     const locs = fastCollidesWith(game, ant)
       .filter(e => e.type === 'LOCATION');
     if (locs.length > 0 && locs[0].id != ant.location) {
-      ant.location = locs[0].id;
-      ant.task = locs[0].task;
-      ant.taskIndex = 0;
-      ant.taskStack = [];
+      if (locs[0].id !== config.clickedPosition) {
+        ant.location = locs[0].id;
+        ant.task = locs[0].task;
+        ant.taskIndex = 0;
+        ant.taskStack = [
+          {name: 'Follow Trail', index: 0},
+          {name: 'Find Pheromone Trail', index: 0},
+        ];
+      }
     } else if (locs.length == 0 && ant.location != null) {
       ant.location = null;
     }

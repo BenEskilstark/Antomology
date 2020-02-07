@@ -30,6 +30,18 @@ var createRandomMoveInLocationBehavior = function createRandomMoveInLocationBeha
   };
 };
 
+var createFindPheromoneBehavior = function createFindPheromoneBehavior() {
+  return {
+    type: 'DO_HIGH_LEVEL_ACTION',
+    action: {
+      type: 'FIND_PHEROMONE',
+      payload: {
+        object: null
+      }
+    }
+  };
+};
+
 ///////////////////////////////////////////////////////////////////
 // Tasks
 ///////////////////////////////////////////////////////////////////
@@ -39,6 +51,14 @@ var createRandomMoveInLocationTask = function createRandomMoveInLocationTask(loc
     name: 'Move in Location',
     repeating: true, // TODO ?
     behaviorQueue: [createRandomMoveInLocationBehavior(locID)]
+  };
+};
+
+var createFindPheromoneTask = function createFindPheromoneTask() {
+  return {
+    name: 'Find Pheromone Trail',
+    repeating: false,
+    behaviorQueue: [createFindPheromoneBehavior()]
   };
 };
 
@@ -61,5 +81,6 @@ var followTrail = function followTrail() {
 
 module.exports = {
   createRandomMoveInLocationTask: createRandomMoveInLocationTask,
+  createFindPheromoneTask: createFindPheromoneTask,
   followTrail: followTrail
 };

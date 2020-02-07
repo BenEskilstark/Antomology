@@ -128,9 +128,8 @@ var gameReducer = function gameReducer(game, action) {
             _id3 = action.id;
 
         var loc = game.entities[_id3];
-        var _oldTask = loc.task;
-        _oldTask.repeating = _task2.repeating;
-        _oldTask.behaviorQueue = _task2.behaviorQueue;
+        loc.task.repeating = false;
+        loc.task.behaviorQueue = _task2.behaviorQueue;
         return game;
       }
     case 'ASSIGN_TASK':

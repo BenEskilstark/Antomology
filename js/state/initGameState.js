@@ -17,6 +17,7 @@ const {
   insertInGrid,
 } = require('../utils/stateHelpers');
 const tasks = require('../state/tasks');
+const graphTasks = require('../state/graphTasks');
 
 import type {GameState} from '../types';
 
@@ -43,13 +44,13 @@ const level1 = (): GameState => {
 }
 
 const level0 = (): GameState => {
-  const game = baseState(500, 100);
-  const colonyEntrance = makeLocation('Colony Entrance', 5, 5, {x: 25, y: 29});
+  const game = baseState(100, 100);
+  const colonyEntrance = makeLocation('Colony Entrance', 5, 5, {x: 25, y: 30});
     // ...makeLocation('Colony Entrance', 5, 5, {x: 25, y: 29}), id: config.colonyEntrance,
   // };
   addEntity(game, colonyEntrance);
 
-  const locationTwo = makeLocation('Location Two', 5, 5, {x: 40, y: 20});
+  const locationTwo = makeLocation('Location Two', 5, 5, {x: 40, y: 30});
   addEntity(game, locationTwo);
 
   // initial tasks
@@ -63,6 +64,7 @@ const level0 = (): GameState => {
     tasks.createLayEggTask(),
     tasks.createFollowTrailTask(),
     tasks.createHoldingAndIdleTask(),
+    graphTasks.createFindPheromoneTask(),
     {
       name: 'Find Food',
       repeating: false,
@@ -109,19 +111,19 @@ const level0 = (): GameState => {
   }
 
   // seed bottom 1/4's with dirt
-  // for (let x = 0; x < game.worldWidth; x++) {
-  //   for (let y = 0; y < game.worldHeight; y++) {
-  //     if (y < game.worldHeight * 0.3) {
-  //       if (x == colonyEntrance.position.x && y == colonyEntrance.position.y) {
-  //         continue;
-  //       }
-  //       if (x == colonyEntrance.position.x && y == colonyEntrance.position.y - 1) {
-  //         continue;
-  //       }
-  //       addEntity(game, makeDirt({x, y}));
-  //     }
-  //   }
-  // }
+  for (let x = 0; x < game.worldWidth; x++) {
+    for (let y = 0; y < game.worldHeight; y++) {
+      if (y < game.worldHeight * 0.3) {
+        if (x == colonyEntrance.position.x && y == colonyEntrance.position.y) {
+          continue;
+        }
+        if (x == colonyEntrance.position.x && y == colonyEntrance.position.y - 1) {
+          continue;
+        }
+        addEntity(game, makeDirt({x, y}));
+      }
+    }
+  }
 
   // seed ants
   // for (let i = 0; i < 1000; i++) {

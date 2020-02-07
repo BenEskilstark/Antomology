@@ -303,7 +303,7 @@ var doAction = function doAction(game, ant, action) {
           locationToPutdown = { position: ant.position, width: 1, height: 1 };
         }
         var putDownFree = fastCollidesWith(game, locationToPutdown).filter(function (e) {
-          return config.antBlockingEntities.includes(e.type);
+          return config.antBlockingEntities.includes(e.type) || e.type === 'PHEROMONE';
         }).length === 0;
         if (collides(ant, locationToPutdown) && ant.holding != null && putDownFree) {
           putDownEntity(game, ant);
@@ -445,6 +445,42 @@ var doHighLevelAction = function doHighLevelAction(game, ant, action) {
           });
         } else {
           done = true;
+        }
+        break;
+      }
+    case 'PUTDOWN':
+      {
+        if (ant.accumulator == null) {
+          ant.accumulator = Math.round(Math.random() * 10) + 10;
+        }
+        if (ant.accumulator <= 0) {
+          doAction(game, ant, { type: 'PUTDOWN', payload: { object: null } });
+        } else {
+          doAction(game, ant, {
+            type: 'MOVE',
+            payload: { object: 'RANDOM', constraint: ant.location }
+          });
+          ant.accumulator--;
+        }
+        if (!ant.holding) {
+          done = true;
+        }
+        break;
+      }
+    case 'FIND_PHEROMONE':
+      {
+        var onPheromone = fastCollidesWith(game, ant).filter(function (e) {
+          return e.type === 'PHEROMONE';
+        }).filter(function (p) {
+          return game.edges[p.edge].end != ant.location;
+        }).length > 0;
+        if (onPheromone) {
+          done = true;
+        } else {
+          doAction(game, ant, {
+            type: 'MOVE',
+            payload: { object: 'RANDOM', constraint: ant.location }
+          });
         }
         break;
       }

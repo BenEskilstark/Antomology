@@ -102,6 +102,13 @@ function TaskCard(props) {
       }
     })
   );
+
+  var repeatingCheckbox = React.createElement(
+    'div',
+    null,
+    'Repeating:',
+    React.createElement(Checkbox, { checked: repeating, onChange: setRepeating })
+  );
   return React.createElement(
     'div',
     {
@@ -109,12 +116,7 @@ function TaskCard(props) {
       style: {}
     },
     !disableRename ? nameEditor : null,
-    React.createElement(
-      'div',
-      null,
-      'Repeating:',
-      React.createElement(Checkbox, { checked: repeating, onChange: setRepeating })
-    ),
+    !isLocationTask ? repeatingCheckbox : null,
     React.createElement(
       'div',
       null,

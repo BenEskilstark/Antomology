@@ -86,7 +86,6 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
         });
 
         if (clickedLocations.length > 0) {
-          // TODO distinguish which location you're starting from/ending on
           var loc = clickedLocations[0];
           if (game.curEdge == null) {
             dispatch({ type: 'CREATE_EDGE', start: loc.id });
@@ -236,6 +235,8 @@ var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
     var marqueeLocation = { position: { x: x, y: y }, width: Math.abs(dims.x) + 1, height: Math.abs(dims.y) + 1 };
     var clickedEntities = entitiesInMarquee(game, marqueeLocation).filter(function (e) {
       return config.selectableEntities.includes(e.type);
+    }).filter(function (e) {
+      return e.id != config.clickedPosition;
     });
     // const obeliskID = game.OBELISK[0];
     // if (clickedEntities.includes(obeliskID)) {

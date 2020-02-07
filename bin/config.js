@@ -1,7 +1,7 @@
 'use strict';
 
 var config = {
-  msPerTick: 100,
+  msPerTick: 200,
 
   // screen sizes in grid cells and in pixels:
   // grid size

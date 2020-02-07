@@ -92,7 +92,7 @@ function TaskCard(props: Props): React.Node {
     </span>
   );
 
-  const repeating = (
+  const repeatingCheckbox = (
     <div>
       Repeating:
       <Checkbox checked={repeating} onChange={setRepeating} />
@@ -105,7 +105,7 @@ function TaskCard(props: Props): React.Node {
       }}
     >
       {!disableRename ? nameEditor : null}
-      {!isLocationTask ? repeating : null}
+      {!isLocationTask ? repeatingCheckbox : null}
       <div>
         BehaviorQueue:
         <div>{behaviors}</div>

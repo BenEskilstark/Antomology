@@ -59,7 +59,6 @@ const initMouseControlsSystem = (store) => {
           .filter(e => e.type === 'PHEROMONE');
 
         if (clickedLocations.length > 0) {
-          // TODO distinguish which location you're starting from/ending on
           const loc = clickedLocations[0];
           if (game.curEdge == null) {
             dispatch({type: 'CREATE_EDGE', start: loc.id});
@@ -227,6 +226,7 @@ const handleLeftClick = (
       {position: {x, y}, width: Math.abs(dims.x) + 1, height: Math.abs(dims.y) + 1};
     let clickedEntities = entitiesInMarquee(game, marqueeLocation)
       .filter(e => config.selectableEntities.includes(e.type))
+      .filter(e => e.id != config.clickedPosition);
     // const obeliskID = game.OBELISK[0];
     // if (clickedEntities.includes(obeliskID)) {
     //   clickedEntities = [obeliskID];

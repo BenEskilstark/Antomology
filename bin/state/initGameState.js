@@ -37,6 +37,7 @@ var _require11 = require('../utils/stateHelpers'),
     insertInGrid = _require11.insertInGrid;
 
 var tasks = require('../state/tasks');
+var graphTasks = require('../state/graphTasks');
 
 var initGameState = function initGameState(level) {
   switch (level) {
@@ -61,17 +62,17 @@ var level1 = function level1() {
 };
 
 var level0 = function level0() {
-  var game = baseState(500, 100);
-  var colonyEntrance = makeLocation('Colony Entrance', 5, 5, { x: 25, y: 29 });
+  var game = baseState(100, 100);
+  var colonyEntrance = makeLocation('Colony Entrance', 5, 5, { x: 25, y: 30 });
   // ...makeLocation('Colony Entrance', 5, 5, {x: 25, y: 29}), id: config.colonyEntrance,
   // };
   addEntity(game, colonyEntrance);
 
-  var locationTwo = makeLocation('Location Two', 5, 5, { x: 40, y: 20 });
+  var locationTwo = makeLocation('Location Two', 5, 5, { x: 40, y: 30 });
   addEntity(game, locationTwo);
 
   // initial tasks
-  game.tasks = [tasks.createIdleTask(), _extends({}, tasks.createGoToLocationTask(colonyEntrance), { name: 'Go To Colony Entrance' }), tasks.createRandomMoveTask(), tasks.createDigBlueprintTask(game), tasks.createMoveBlockerTask(), tasks.createGoToColonyEntranceWithBlockerTask(game), tasks.createLayEggTask(), tasks.createFollowTrailTask(), tasks.createHoldingAndIdleTask(), {
+  game.tasks = [tasks.createIdleTask(), _extends({}, tasks.createGoToLocationTask(colonyEntrance), { name: 'Go To Colony Entrance' }), tasks.createRandomMoveTask(), tasks.createDigBlueprintTask(game), tasks.createMoveBlockerTask(), tasks.createGoToColonyEntranceWithBlockerTask(game), tasks.createLayEggTask(), tasks.createFollowTrailTask(), tasks.createHoldingAndIdleTask(), graphTasks.createFindPheromoneTask(), {
     name: 'Find Food',
     repeating: false,
     behaviorQueue: [{
@@ -113,19 +114,19 @@ var level0 = function level0() {
   }
 
   // seed bottom 1/4's with dirt
-  // for (let x = 0; x < game.worldWidth; x++) {
-  //   for (let y = 0; y < game.worldHeight; y++) {
-  //     if (y < game.worldHeight * 0.3) {
-  //       if (x == colonyEntrance.position.x && y == colonyEntrance.position.y) {
-  //         continue;
-  //       }
-  //       if (x == colonyEntrance.position.x && y == colonyEntrance.position.y - 1) {
-  //         continue;
-  //       }
-  //       addEntity(game, makeDirt({x, y}));
-  //     }
-  //   }
-  // }
+  for (var _x = 0; _x < game.worldWidth; _x++) {
+    for (var _y = 0; _y < game.worldHeight; _y++) {
+      if (_y < game.worldHeight * 0.3) {
+        if (_x == colonyEntrance.position.x && _y == colonyEntrance.position.y) {
+          continue;
+        }
+        if (_x == colonyEntrance.position.x && _y == colonyEntrance.position.y - 1) {
+          continue;
+        }
+        addEntity(game, makeDirt({ x: _x, y: _y }));
+      }
+    }
+  }
 
   // seed ants
   // for (let i = 0; i < 1000; i++) {

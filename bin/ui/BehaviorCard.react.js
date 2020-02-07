@@ -205,6 +205,15 @@ function transitionBehavior(behavior, newType) {
         newBehavior.task = 'Idle';
         break;
       }
+    case 'DO_HIGH_LEVEL_ACTION':
+      {
+        newBehavior.action = {
+          type: 'MOVE',
+          payload: {
+            object: 'RANDOM'
+          }
+        };
+      }
   }
   return newBehavior;
 }

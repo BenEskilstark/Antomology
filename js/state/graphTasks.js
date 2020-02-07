@@ -34,6 +34,18 @@ const createRandomMoveInLocationBehavior = (locID: EntityID): Behavior => {
   };
 };
 
+const createFindPheromoneBehavior = (): Behavior => {
+  return {
+    type: 'DO_HIGH_LEVEL_ACTION',
+    action: {
+      type: 'FIND_PHEROMONE',
+      payload: {
+        object: null,
+      },
+    }
+  };
+};
+
 ///////////////////////////////////////////////////////////////////
 // Tasks
 ///////////////////////////////////////////////////////////////////
@@ -48,7 +60,17 @@ const createRandomMoveInLocationTask = (locID: EntityID): Task => {
   };
 };
 
-const followTrail = (): Behavior => {
+const createFindPheromoneTask = (): Task => {
+  return {
+    name: 'Find Pheromone Trail',
+    repeating: false,
+    behaviorQueue: [
+      createFindPheromoneBehavior(),
+    ],
+  };
+}
+
+const followTrail = (): Task => {
   return {
     name: 'Follow Trail',
     repeating: false,
@@ -69,5 +91,6 @@ const followTrail = (): Behavior => {
 
 module.exports = {
   createRandomMoveInLocationTask,
+  createFindPheromoneTask,
   followTrail,
 }

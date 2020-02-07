@@ -1,7 +1,16 @@
 
  - - - - - - PHEROMONE GRAPH - - - - - -
+ - implement cooldown for queen laying eggs
+ - digging out areas
+    - if blocked on trail, turn back
+ - location tasks
+    - fix high level action bug
+    - implement FEED high level action
+    - implement EAT high level action
+    - implement IS_QUEEN condition
+    - disallow DO_ACTION in location task editor
+    - remove "towards:" dropdown for MOVE high level action
  - sidebar UI
-    - task editor for what ants do there
     - conditionals that are addable/editable
     - edges listed for locations should be selectable from there
     - locations listed for edges should be selectable
@@ -9,24 +18,29 @@
     - picking up trails in the middle should cause 50/50 split
     - how to handle split trails in UI? As new location at split point?
  - simulation
-    - distinguish "base" case of ants born at a location vs arriving there
-    - sensible base task for locations -- move randomly until X or for Y steps
-    - initially just randomly select outgoing edge to take
-    - locate start of selected outgoing edge
     - implement conditional checking for outgoing edges
  - world UX
-    - handling attaching edges to co-located locations
     - call out disconnected edges
  - "edge" cases
+    - distinguish "base" case of ants born at a location vs arriving there
     - queen laying eggs
     - food search random walk
-    - digging out areas
  - future features
     - pheromones fading vs being permanent
     - clicking edge infos selects (and centers) that location
     - ants that lay trails themselves
     - tool for clearing pheromone
     - support categories of pheromone you can select and have different colors
+
+
+ - - - - - - BUGS - - - - - -
+ - can't update task to high level action
+ - groups of ants can ignore gravity by climbing on each other
+ - ants that are falling and trying to go to a clicked location above them
+   will hover in air
+ - picked-up pupa never hatch and then die on putdown. Should just wait to hatch
+ - dragging pheromone trails doesn't always work
+ - sending an ant through a location causes it to switch tasks to that location
 
 
  - - - - - - LIFTNG BIG ENTITIES - - - - - -
@@ -125,9 +139,3 @@
  - common function for ant switching tasks
 
 
- - - - - - - BUGS - - - - - -
- - groups of ants can ignore gravity by climbing on each other
- - ants that are falling and trying to go to a clicked location above them
-   will hover in air
- - picked-up pupa never hatch and then die on putdown. Should probably just wait to hatch
- - ants moving back and forth on arrival at clicked position

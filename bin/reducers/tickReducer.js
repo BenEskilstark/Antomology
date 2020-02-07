@@ -68,6 +68,10 @@ var _require11 = require('../entities/ant'),
 var _require12 = require('../simulation/performTask'),
     performTask = _require12.performTask;
 
+var _require13 = require('../state/graphTasks'),
+    createFindPheromoneTask = _require13.createFindPheromoneTask,
+    followTrail = _require13.followTrail;
+
 var tickReducer = function tickReducer(game, action) {
   switch (action.type) {
     case 'START_TICK':
@@ -120,10 +124,14 @@ var handleTick = function handleTick(game) {
         return e.type === 'LOCATION';
       });
       if (locs.length > 0 && locs[0].id != ant.location) {
-        ant.location = locs[0].id;
-        ant.task = locs[0].task;
-        ant.taskIndex = 0;
-        ant.taskStack = [];
+        if (locs[0].id !== config.clickedPosition) {
+          ant.location = locs[0].id;
+          ant.task = locs[0].task;
+          ant.taskIndex = 0;
+          ant.taskStack = [{ name: 'Follow Trail', index: 0 }, { name: 'Find Pheromone Trail', index: 0 }];
+        }
+      } else if (locs.length == 0 && ant.location != null) {
+        ant.location = null;
       }
 
       ant.calories -= 1;

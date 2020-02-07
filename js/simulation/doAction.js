@@ -404,6 +404,24 @@ const doHighLevelAction = (
       }
       break;
     }
+    case 'FIND_PHEROMONE': {
+      const onPheromone = fastCollidesWith(game, ant)
+        .filter(e => e.type === 'PHEROMONE')
+        .filter(p => game.edges[p.edge].end != ant.location)
+        .length > 0;
+      if (onPheromone) {
+        done = true;
+      } else {
+        doAction(
+          game, ant,
+          {
+            type: 'MOVE',
+            payload: {object: 'RANDOM', constraint: ant.location}
+          },
+        );
+      }
+      break;
+    }
   }
   return done;
 };

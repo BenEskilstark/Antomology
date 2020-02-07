@@ -2,7 +2,7 @@
 'use strict';
 
 var config = {
-  msPerTick: 100,
+  msPerTick: 200,
 
   // screen sizes in grid cells and in pixels:
   // grid size
@@ -482,9 +482,8 @@ var gameReducer = function gameReducer(game, action) {
             _id3 = action.id;
 
         var loc = game.entities[_id3];
-        var _oldTask = loc.task;
-        _oldTask.repeating = _task2.repeating;
-        _oldTask.behaviorQueue = _task2.behaviorQueue;
+        loc.task.repeating = false;
+        loc.task.behaviorQueue = _task2.behaviorQueue;
         return game;
       }
     case 'ASSIGN_TASK':
@@ -802,6 +801,10 @@ var _require11 = require('../entities/ant'),
 var _require12 = require('../simulation/performTask'),
     performTask = _require12.performTask;
 
+var _require13 = require('../state/graphTasks'),
+    createFindPheromoneTask = _require13.createFindPheromoneTask,
+    followTrail = _require13.followTrail;
+
 var tickReducer = function tickReducer(game, action) {
   switch (action.type) {
     case 'START_TICK':
@@ -854,10 +857,14 @@ var handleTick = function handleTick(game) {
         return e.type === 'LOCATION';
       });
       if (locs.length > 0 && locs[0].id != ant.location) {
-        ant.location = locs[0].id;
-        ant.task = locs[0].task;
-        ant.taskIndex = 0;
-        ant.taskStack = [];
+        if (locs[0].id !== config.clickedPosition) {
+          ant.location = locs[0].id;
+          ant.task = locs[0].task;
+          ant.taskIndex = 0;
+          ant.taskStack = [{ name: 'Follow Trail', index: 0 }, { name: 'Find Pheromone Trail', index: 0 }];
+        }
+      } else if (locs.length == 0 && ant.location != null) {
+        ant.location = null;
       }
 
       ant.calories -= 1;
@@ -1305,7 +1312,7 @@ var updateFoWVision = function updateFoWVision(game) {
 };
 
 module.exports = { tickReducer: tickReducer };
-},{"../config":1,"../entities/ant":2,"../entities/egg":6,"../entities/larva":9,"../entities/pupa":13,"../selectors/selectors":20,"../simulation/performTask":23,"../state/tasks":27,"../utils/errors":45,"../utils/helpers":46,"../utils/stateHelpers":47,"../utils/vectors":48}],20:[function(require,module,exports){
+},{"../config":1,"../entities/ant":2,"../entities/egg":6,"../entities/larva":9,"../entities/pupa":13,"../selectors/selectors":20,"../simulation/performTask":23,"../state/graphTasks":24,"../state/tasks":27,"../utils/errors":45,"../utils/helpers":46,"../utils/stateHelpers":47,"../utils/vectors":48}],20:[function(require,module,exports){
 'use strict';
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
@@ -1970,7 +1977,7 @@ var doAction = function doAction(game, ant, action) {
           locationToPutdown = { position: ant.position, width: 1, height: 1 };
         }
         var putDownFree = fastCollidesWith(game, locationToPutdown).filter(function (e) {
-          return config.antBlockingEntities.includes(e.type);
+          return config.antBlockingEntities.includes(e.type) || e.type === 'PHEROMONE';
         }).length === 0;
         if (collides(ant, locationToPutdown) && ant.holding != null && putDownFree) {
           putDownEntity(game, ant);
@@ -2112,6 +2119,42 @@ var doHighLevelAction = function doHighLevelAction(game, ant, action) {
           });
         } else {
           done = true;
+        }
+        break;
+      }
+    case 'PUTDOWN':
+      {
+        if (ant.accumulator == null) {
+          ant.accumulator = Math.round(Math.random() * 10) + 10;
+        }
+        if (ant.accumulator <= 0) {
+          doAction(game, ant, { type: 'PUTDOWN', payload: { object: null } });
+        } else {
+          doAction(game, ant, {
+            type: 'MOVE',
+            payload: { object: 'RANDOM', constraint: ant.location }
+          });
+          ant.accumulator--;
+        }
+        if (!ant.holding) {
+          done = true;
+        }
+        break;
+      }
+    case 'FIND_PHEROMONE':
+      {
+        var onPheromone = fastCollidesWith(game, ant).filter(function (e) {
+          return e.type === 'PHEROMONE';
+        }).filter(function (p) {
+          return game.edges[p.edge].end != ant.location;
+        }).length > 0;
+        if (onPheromone) {
+          done = true;
+        } else {
+          doAction(game, ant, {
+            type: 'MOVE',
+            payload: { object: 'RANDOM', constraint: ant.location }
+          });
         }
         break;
       }
@@ -2517,6 +2560,18 @@ var createRandomMoveInLocationBehavior = function createRandomMoveInLocationBeha
   };
 };
 
+var createFindPheromoneBehavior = function createFindPheromoneBehavior() {
+  return {
+    type: 'DO_HIGH_LEVEL_ACTION',
+    action: {
+      type: 'FIND_PHEROMONE',
+      payload: {
+        object: null
+      }
+    }
+  };
+};
+
 ///////////////////////////////////////////////////////////////////
 // Tasks
 ///////////////////////////////////////////////////////////////////
@@ -2526,6 +2581,14 @@ var createRandomMoveInLocationTask = function createRandomMoveInLocationTask(loc
     name: 'Move in Location',
     repeating: true, // TODO ?
     behaviorQueue: [createRandomMoveInLocationBehavior(locID)]
+  };
+};
+
+var createFindPheromoneTask = function createFindPheromoneTask() {
+  return {
+    name: 'Find Pheromone Trail',
+    repeating: false,
+    behaviorQueue: [createFindPheromoneBehavior()]
   };
 };
 
@@ -2548,6 +2611,7 @@ var followTrail = function followTrail() {
 
 module.exports = {
   createRandomMoveInLocationTask: createRandomMoveInLocationTask,
+  createFindPheromoneTask: createFindPheromoneTask,
   followTrail: followTrail
 };
 },{}],25:[function(require,module,exports){
@@ -2590,6 +2654,7 @@ var _require11 = require('../utils/stateHelpers'),
     insertInGrid = _require11.insertInGrid;
 
 var tasks = require('../state/tasks');
+var graphTasks = require('../state/graphTasks');
 
 var initGameState = function initGameState(level) {
   switch (level) {
@@ -2614,17 +2679,17 @@ var level1 = function level1() {
 };
 
 var level0 = function level0() {
-  var game = baseState(500, 100);
-  var colonyEntrance = makeLocation('Colony Entrance', 5, 5, { x: 25, y: 29 });
+  var game = baseState(100, 100);
+  var colonyEntrance = makeLocation('Colony Entrance', 5, 5, { x: 25, y: 30 });
   // ...makeLocation('Colony Entrance', 5, 5, {x: 25, y: 29}), id: config.colonyEntrance,
   // };
   addEntity(game, colonyEntrance);
 
-  var locationTwo = makeLocation('Location Two', 5, 5, { x: 40, y: 20 });
+  var locationTwo = makeLocation('Location Two', 5, 5, { x: 40, y: 30 });
   addEntity(game, locationTwo);
 
   // initial tasks
-  game.tasks = [tasks.createIdleTask(), _extends({}, tasks.createGoToLocationTask(colonyEntrance), { name: 'Go To Colony Entrance' }), tasks.createRandomMoveTask(), tasks.createDigBlueprintTask(game), tasks.createMoveBlockerTask(), tasks.createGoToColonyEntranceWithBlockerTask(game), tasks.createLayEggTask(), tasks.createFollowTrailTask(), tasks.createHoldingAndIdleTask(), {
+  game.tasks = [tasks.createIdleTask(), _extends({}, tasks.createGoToLocationTask(colonyEntrance), { name: 'Go To Colony Entrance' }), tasks.createRandomMoveTask(), tasks.createDigBlueprintTask(game), tasks.createMoveBlockerTask(), tasks.createGoToColonyEntranceWithBlockerTask(game), tasks.createLayEggTask(), tasks.createFollowTrailTask(), tasks.createHoldingAndIdleTask(), graphTasks.createFindPheromoneTask(), {
     name: 'Find Food',
     repeating: false,
     behaviorQueue: [{
@@ -2666,19 +2731,19 @@ var level0 = function level0() {
   }
 
   // seed bottom 1/4's with dirt
-  // for (let x = 0; x < game.worldWidth; x++) {
-  //   for (let y = 0; y < game.worldHeight; y++) {
-  //     if (y < game.worldHeight * 0.3) {
-  //       if (x == colonyEntrance.position.x && y == colonyEntrance.position.y) {
-  //         continue;
-  //       }
-  //       if (x == colonyEntrance.position.x && y == colonyEntrance.position.y - 1) {
-  //         continue;
-  //       }
-  //       addEntity(game, makeDirt({x, y}));
-  //     }
-  //   }
-  // }
+  for (var _x = 0; _x < game.worldWidth; _x++) {
+    for (var _y = 0; _y < game.worldHeight; _y++) {
+      if (_y < game.worldHeight * 0.3) {
+        if (_x == colonyEntrance.position.x && _y == colonyEntrance.position.y) {
+          continue;
+        }
+        if (_x == colonyEntrance.position.x && _y == colonyEntrance.position.y - 1) {
+          continue;
+        }
+        addEntity(game, makeDirt({ x: _x, y: _y }));
+      }
+    }
+  }
 
   // seed ants
   // for (let i = 0; i < 1000; i++) {
@@ -2774,7 +2839,7 @@ var baseState = function baseState(worldWidth, worldHeight) {
 };
 
 module.exports = { initGameState: initGameState };
-},{"../config":1,"../entities/ant":2,"../entities/background":3,"../entities/dirt":4,"../entities/entity":7,"../entities/food":8,"../entities/location":10,"../entities/obelisk":11,"../entities/stone":14,"../state/tasks":27,"../utils/helpers":46,"../utils/stateHelpers":47}],26:[function(require,module,exports){
+},{"../config":1,"../entities/ant":2,"../entities/background":3,"../entities/dirt":4,"../entities/entity":7,"../entities/food":8,"../entities/location":10,"../entities/obelisk":11,"../entities/stone":14,"../state/graphTasks":24,"../state/tasks":27,"../utils/helpers":46,"../utils/stateHelpers":47}],26:[function(require,module,exports){
 'use strict';
 
 var initState = function initState() {
@@ -3257,7 +3322,6 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
         });
 
         if (clickedLocations.length > 0) {
-          // TODO distinguish which location you're starting from/ending on
           var loc = clickedLocations[0];
           if (game.curEdge == null) {
             dispatch({ type: 'CREATE_EDGE', start: loc.id });
@@ -3407,6 +3471,8 @@ var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
     var marqueeLocation = { position: { x: x, y: y }, width: Math.abs(dims.x) + 1, height: Math.abs(dims.y) + 1 };
     var clickedEntities = entitiesInMarquee(game, marqueeLocation).filter(function (e) {
       return config.selectableEntities.includes(e.type);
+    }).filter(function (e) {
+      return e.id != config.clickedPosition;
     });
     // const obeliskID = game.OBELISK[0];
     // if (clickedEntities.includes(obeliskID)) {
@@ -4268,6 +4334,15 @@ function transitionBehavior(behavior, newType) {
       {
         newBehavior.task = 'Idle';
         break;
+      }
+    case 'DO_HIGH_LEVEL_ACTION':
+      {
+        newBehavior.action = {
+          type: 'MOVE',
+          payload: {
+            object: 'RANDOM'
+          }
+        };
       }
   }
   return newBehavior;
@@ -5303,6 +5378,13 @@ function TaskCard(props) {
       }
     })
   );
+
+  var repeatingCheckbox = React.createElement(
+    'div',
+    null,
+    'Repeating:',
+    React.createElement(Checkbox, { checked: repeating, onChange: setRepeating })
+  );
   return React.createElement(
     'div',
     {
@@ -5310,12 +5392,7 @@ function TaskCard(props) {
       style: {}
     },
     !disableRename ? nameEditor : null,
-    React.createElement(
-      'div',
-      null,
-      'Repeating:',
-      React.createElement(Checkbox, { checked: repeating, onChange: setRepeating })
-    ),
+    !isLocationTask ? repeatingCheckbox : null,
     React.createElement(
       'div',
       null,
