@@ -116,9 +116,6 @@ const doAction = (
         freePositions = freePositions.filter(pos => {
           return pos.x != ant.prevPosition.x || pos.y != ant.prevPosition.y;
         });
-        // don't cross colonyEntrance boundary
-        // const colEnt = game.entities[config.colonyEntrance].position;
-        // freePositions = freePositions.filter(pos => !equals(pos, colEnt));
         // if required, stay inside location boundary
         if (constraint != null) {
           freePositions = freePositions.filter(pos => {

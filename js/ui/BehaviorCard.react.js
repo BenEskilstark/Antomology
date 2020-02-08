@@ -13,10 +13,11 @@ import type {Ant, State, Action, Behavior, Task} from '../types';
 type Props = {
   state: State,
   behavior: Behavior,
+  isHighLevel: boolean,
 };
 
 function BehaviorCard(props: Props): React.Node {
-  const {state} = props;
+  const {state, isHighLevel} = props;
   if (props.behavior == null) {
     return null;
   }
@@ -44,13 +45,17 @@ function BehaviorCard(props: Props): React.Node {
     subjects = ['MOVE', 'PICKUP', 'PUTDOWN', 'EAT', 'FEED', 'LAY', 'FIND_PHEROMONE'];
     selectedSubject = behavior.action.type;
   }
+
+  const options = isHighLevel
+    ? ['DO_HIGH_LEVEL_ACTION', 'IF']
+    : ['DO_ACTION', 'DO_HIGH_LEVEL_ACTION', 'IF', 'WHILE', 'SWITCH_TASK'];
   return (
     <div
       className="behaviorCard"
       style={{}}
     >
       <Dropdown
-        options={['DO_ACTION', 'DO_HIGH_LEVEL_ACTION', 'IF', 'WHILE', 'SWITCH_TASK']}
+        options={options}
         selected={behavior.type}
         onChange={(newType) => {
           const newBehavior = transitionBehavior(behavior, newType);
@@ -96,10 +101,11 @@ function BehaviorCard(props: Props): React.Node {
         behavior.type === 'IF'
           ? <span>
               Then: <div style={{paddingLeft: 10}}><BehaviorCard
-                state={state} behavior={behavior.behavior}
+                state={state} behavior={behavior.behavior} isHighLevel={isHighLevel}
               /></div>
               Else: <div style={{paddingLeft: 10}}><BehaviorCard
                 state={state} behavior={behavior.elseBehavior}
+                isHighLevel={isHighLevel}
               /></div>
             </span>
           : null
@@ -108,7 +114,7 @@ function BehaviorCard(props: Props): React.Node {
         behavior.type === 'WHILE'
           ? <span>
               Do: <div style={{paddingLeft: 10}}><BehaviorCard
-                state={state} behavior={behavior.behavior}
+                state={state} behavior={behavior.behavior} isHighLevel={isHighLevel}
               /></div>
             </span>
           : null

@@ -46,7 +46,7 @@ function TaskCard(props: Props): React.Node {
   const behaviors = behaviorQueue.map((b, i) => {
     return (
       <div key={'behavior_' + i}>
-        <BehaviorCard state={state} behavior={b} />
+        <BehaviorCard state={state} behavior={b} isHighLevel={isLocationTask} />
       </div>
     );
   });

@@ -10,7 +10,6 @@
     - picking up trails in the middle should cause 50/50 split
     - how to handle split trails in UI? As new location at split point?
  - location tasks UX
-    - disallow DO_ACTION in location task editor
     - remove "towards:" dropdown for MOVE high level action
  - world UX
     - call out disconnected edges

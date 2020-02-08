@@ -1822,9 +1822,6 @@ var doAction = function doAction(game, ant, action) {
           _freePositions = _freePositions.filter(function (pos) {
             return pos.x != ant.prevPosition.x || pos.y != ant.prevPosition.y;
           });
-          // don't cross colonyEntrance boundary
-          // const colEnt = game.entities[config.colonyEntrance].position;
-          // freePositions = freePositions.filter(pos => !equals(pos, colEnt));
           // if required, stay inside location boundary
           if (constraint != null) {
             _freePositions = _freePositions.filter(function (pos) {
@@ -4238,7 +4235,8 @@ var useState = React.useState,
 
 
 function BehaviorCard(props) {
-  var state = props.state;
+  var state = props.state,
+      isHighLevel = props.isHighLevel;
 
   if (props.behavior == null) {
     return null;
@@ -4271,6 +4269,8 @@ function BehaviorCard(props) {
     subjects = ['MOVE', 'PICKUP', 'PUTDOWN', 'EAT', 'FEED', 'LAY', 'FIND_PHEROMONE'];
     selectedSubject = behavior.action.type;
   }
+
+  var options = isHighLevel ? ['DO_HIGH_LEVEL_ACTION', 'IF'] : ['DO_ACTION', 'DO_HIGH_LEVEL_ACTION', 'IF', 'WHILE', 'SWITCH_TASK'];
   return React.createElement(
     'div',
     {
@@ -4278,7 +4278,7 @@ function BehaviorCard(props) {
       style: {}
     },
     React.createElement(Dropdown, {
-      options: ['DO_ACTION', 'DO_HIGH_LEVEL_ACTION', 'IF', 'WHILE', 'SWITCH_TASK'],
+      options: options,
       selected: behavior.type,
       onChange: function onChange(newType) {
         var newBehavior = transitionBehavior(behavior, newType);
@@ -4318,7 +4318,7 @@ function BehaviorCard(props) {
         'div',
         { style: { paddingLeft: 10 } },
         React.createElement(BehaviorCard, {
-          state: state, behavior: behavior.behavior
+          state: state, behavior: behavior.behavior, isHighLevel: isHighLevel
         })
       ),
       'Else: ',
@@ -4326,7 +4326,8 @@ function BehaviorCard(props) {
         'div',
         { style: { paddingLeft: 10 } },
         React.createElement(BehaviorCard, {
-          state: state, behavior: behavior.elseBehavior
+          state: state, behavior: behavior.elseBehavior,
+          isHighLevel: isHighLevel
         })
       )
     ) : null,
@@ -4338,7 +4339,7 @@ function BehaviorCard(props) {
         'div',
         { style: { paddingLeft: 10 } },
         React.createElement(BehaviorCard, {
-          state: state, behavior: behavior.behavior
+          state: state, behavior: behavior.behavior, isHighLevel: isHighLevel
         })
       )
     ) : null
@@ -5425,7 +5426,7 @@ function TaskCard(props) {
     return React.createElement(
       'div',
       { key: 'behavior_' + i },
-      React.createElement(BehaviorCard, { state: state, behavior: b })
+      React.createElement(BehaviorCard, { state: state, behavior: b, isHighLevel: isLocationTask })
     );
   });
 

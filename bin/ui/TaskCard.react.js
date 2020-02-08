@@ -61,7 +61,7 @@ function TaskCard(props) {
     return React.createElement(
       'div',
       { key: 'behavior_' + i },
-      React.createElement(BehaviorCard, { state: state, behavior: b })
+      React.createElement(BehaviorCard, { state: state, behavior: b, isHighLevel: isLocationTask })
     );
   });
 
