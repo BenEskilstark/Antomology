@@ -4,6 +4,7 @@ const React = require('react');
 const {config} = require('../config');
 const Game = require('./Game.react');
 const Lobby = require('./Lobby.react');
+const LevelEditor = require('./LevelEditor.react');
 const Button = require('./components/Button.react');
 
 import type {State, Action} from '../types';
@@ -27,11 +28,19 @@ function Main(props: Props): React.Node {
     }
   }
   const content = React.useMemo(() => {
-    if (props.state.game == null) {
+    if (props.state.mode === 'MENU') {
       return <Lobby dispatch={props.dispatch} />;
-    } else {
+    } else if (props.state.mode === 'GAME') {
       return (
         <Game
+          state={props.state}
+          width={config.canvasWidth} height={config.canvasHeight}
+          dispatch={props.dispatch}
+        />
+      );
+    } else if (props.state.mode === 'EDITOR') {
+      return (
+        <LevelEditor
           state={props.state}
           width={config.canvasWidth} height={config.canvasHeight}
           dispatch={props.dispatch}

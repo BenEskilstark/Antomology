@@ -14,23 +14,31 @@ type Props = {
 function Lobby(props: Props): React.Node {
   const {dispatch} = props;
   return (
-    <span>
+    <div>
+      <span>
+        <Button
+          label="Start Test Level"
+          hotkey={13} // enter
+          onClick={() => {
+            dispatch({type: 'START', level: 0});
+            dispatch({type: 'START_TICK'});
+          }}
+        />
+        <Button
+          label="Start Level 1"
+          onClick={() => {
+            dispatch({type: 'START', level: 1});
+            dispatch({type: 'START_TICK'});
+          }}
+        />
+      </span>
       <Button
-        label="Start Test Level"
-        hotkey={13} // enter
-        onClick={() => {
-          dispatch({type: 'START', level: 0});
-          dispatch({type: 'START_TICK'});
-        }}
+        label="Level Editor"
+          onClick={() => {
+            dispatch({type: 'START_EDITOR'});
+          }}
       />
-      <Button
-        label="Start Level 1"
-        onClick={() => {
-          dispatch({type: 'START', level: 1});
-          dispatch({type: 'START_TICK'});
-        }}
-      />
-    </span>
+    </div>
   );
 }
 

@@ -41,6 +41,8 @@ var graphTasks = require('../state/graphTasks');
 
 var initGameState = function initGameState(level) {
   switch (level) {
+    case -1:
+      return baseState(50, 50);
     case 0:
       return level0();
     case 1:

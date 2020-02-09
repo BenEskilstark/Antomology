@@ -26,7 +26,15 @@ var rootReducer = function rootReducer(state, action) {
         var level = action.level;
 
         return _extends({}, state, {
+          mode: 'GAME',
           game: initGameState(level)
+        });
+      }
+    case 'START_EDITOR':
+      {
+        return _extends({}, state, {
+          mode: 'EDITOR',
+          game: initGameState(-1) // base level
         });
       }
     case 'SET_MODAL':

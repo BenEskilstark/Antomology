@@ -2,7 +2,7 @@
 
 var React = require('react');
 var Canvas = require('./Canvas.react');
-var Sidebar = require('./Sidebar.react');
+var GameSidebar = require('./GameSidebar.react');
 
 function Game(props) {
 
@@ -12,7 +12,7 @@ function Game(props) {
     React.createElement(Canvas, {
       width: props.width, height: props.height
     }),
-    React.createElement(Sidebar, { state: props.state, dispatch: props.dispatch })
+    React.createElement(GameSidebar, { state: props.state, dispatch: props.dispatch })
   );
 }
 

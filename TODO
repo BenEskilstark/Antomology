@@ -1,4 +1,16 @@
 
+ - - - - - - LEVEL EDITOR - - - - - -
+ - separate way to initialize systems
+ - refactor mouseControl into one for editor
+ - palette for drawing out each entity type
+ - marquee-style drawing tool to draw out a square section of entities
+ - delete tool
+ - still can add locations
+ - import/export
+ - ability to set world size
+ - fix canvas resize without ticking
+
+
  - - - - - - PHEROMONE GRAPH - - - - - -
  - sidebar UI
     - conditionals that are addable/editable

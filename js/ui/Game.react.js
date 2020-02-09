@@ -2,7 +2,7 @@
 
 const React = require('react');
 const Canvas = require('./Canvas.react');
-const Sidebar = require('./Sidebar.react');
+const GameSidebar = require('./GameSidebar.react');
 
 import type {Action, State} from '../types';
 
@@ -20,7 +20,7 @@ function Game(props: Props): React.Node {
       <Canvas
         width={props.width} height={props.height}
       />
-      <Sidebar state={props.state} dispatch={props.dispatch} />
+      <GameSidebar state={props.state} dispatch={props.dispatch} />
     </div>
   );
 }

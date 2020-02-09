@@ -14,21 +14,31 @@ function Lobby(props) {
   var dispatch = props.dispatch;
 
   return React.createElement(
-    'span',
+    'div',
     null,
+    React.createElement(
+      'span',
+      null,
+      React.createElement(Button, {
+        label: 'Start Test Level',
+        hotkey: 13 // enter
+        , onClick: function onClick() {
+          dispatch({ type: 'START', level: 0 });
+          dispatch({ type: 'START_TICK' });
+        }
+      }),
+      React.createElement(Button, {
+        label: 'Start Level 1',
+        onClick: function onClick() {
+          dispatch({ type: 'START', level: 1 });
+          dispatch({ type: 'START_TICK' });
+        }
+      })
+    ),
     React.createElement(Button, {
-      label: 'Start Test Level',
-      hotkey: 13 // enter
-      , onClick: function onClick() {
-        dispatch({ type: 'START', level: 0 });
-        dispatch({ type: 'START_TICK' });
-      }
-    }),
-    React.createElement(Button, {
-      label: 'Start Level 1',
+      label: 'Level Editor',
       onClick: function onClick() {
-        dispatch({ type: 'START', level: 1 });
-        dispatch({ type: 'START_TICK' });
+        dispatch({ type: 'START_EDITOR' });
       }
     })
   );

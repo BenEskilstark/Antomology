@@ -29,6 +29,7 @@ export type Modal = {
 // -------------------------------------------------------------------------------
 
 export type State = {
+  mode: 'MENU' | 'GAME' | 'EDITOR';
   game: ?GameState,
   modal: ?Modal,
 };

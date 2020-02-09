@@ -16,7 +16,7 @@ type Props = {
   dispatch: (action: Action) => Action,
 };
 
-function Sidebar(props: Props): React.Node {
+function GameSidebar(props: Props): React.Node {
   const {state, dispatch} = props;
   const {game} = state;
   const selectedEntities = game.selectedEntities.map(id => game.entities[id]);
@@ -86,4 +86,4 @@ function Sidebar(props: Props): React.Node {
   );
 }
 
-module.exports = Sidebar;
+module.exports = GameSidebar;

@@ -16,7 +16,15 @@ const rootReducer = (state: State, action: Action): State => {
       const {level} = action;
       return {
         ...state,
+        mode: 'GAME',
         game: initGameState(level),
+      };
+    }
+    case 'START_EDITOR': {
+      return {
+        ...state,
+        mode: 'EDITOR',
+        game: initGameState(-1), // base level
       };
     }
     case 'SET_MODAL':

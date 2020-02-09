@@ -2,6 +2,7 @@
 
 var initState = function initState() {
   return {
+    mode: 'MENU',
     game: null,
     modal: null
   };

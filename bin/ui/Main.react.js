@@ -7,6 +7,7 @@ var _require = require('../config'),
 
 var Game = require('./Game.react');
 var Lobby = require('./Lobby.react');
+var LevelEditor = require('./LevelEditor.react');
 var Button = require('./components/Button.react');
 
 function Main(props) {
@@ -23,10 +24,16 @@ function Main(props) {
     }
   }
   var content = React.useMemo(function () {
-    if (props.state.game == null) {
+    if (props.state.mode === 'MENU') {
       return React.createElement(Lobby, { dispatch: props.dispatch });
-    } else {
+    } else if (props.state.mode === 'GAME') {
       return React.createElement(Game, {
+        state: props.state,
+        width: config.canvasWidth, height: config.canvasHeight,
+        dispatch: props.dispatch
+      });
+    } else if (props.state.mode === 'EDITOR') {
+      return React.createElement(LevelEditor, {
         state: props.state,
         width: config.canvasWidth, height: config.canvasHeight,
         dispatch: props.dispatch
