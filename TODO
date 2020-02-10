@@ -45,6 +45,7 @@
  - dragging pheromone trails doesn't always work
  - sending an ant through a location causes it to switch tasks to that location
  - once pheromones are gone, remove them from the edges
+ - following trails backwards doesn't allow turning corners
 
 
  - - - - - - LIFTNG BIG ENTITIES - - - - - -

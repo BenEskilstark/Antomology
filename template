@@ -3,7 +3,7 @@
 # Then run to get all these node files
 # Comment out things you don't need
 
-npm init
+# npm init
 
 # flow
 sudo npm install --save-dev flow-bin
