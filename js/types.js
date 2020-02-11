@@ -285,7 +285,8 @@ export type Action =
   {type: 'SET_MODAL', modal: Modal} |
   {type: 'DISMISS_MODAL'} |
   {type: 'STOP_TICK'} |
-  {type: 'TICK'} |
+  {type: 'START_TICK', updateSim: boolean} |
+  {type: 'TICK', updateSim: boolean} | // whether the simulation should update on ticks
   {type: 'CREATE_ENTITY', entity: Entity} |
   {type: 'SET_SELECTED_ENTITIES', entityIDs: Array<EntityID>} |
   {type: 'DESTROY_ENTITY', id: EntityID} |

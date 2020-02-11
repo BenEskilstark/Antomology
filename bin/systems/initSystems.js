@@ -12,11 +12,25 @@ var _require3 = require('./mouseControlsSystem'),
     initMouseControlsSystem = _require3.initMouseControlsSystem;
 
 var initSystems = function initSystems(store) {
-  initRenderSystem(store);
-  initMouseControlsSystem(store);
-  initFoodSpawnSystem(store);
-  // const audio = document.getElementById('clayMusic1');
-  // audio.play();
+  var gameMode = store.getState().mode;
+  store.subscribe(function () {
+    var nextGameMode = store.getState().mode;
+    // game systems
+    if (gameMode === 'MENU' && nextGameMode === 'GAME') {
+      initRenderSystem(store);
+      initMouseControlsSystem(store);
+      initFoodSpawnSystem(store);
+      // const audio = document.getElementById('clayMusic1');
+      // audio.play();
+
+      // editor systems
+    } else if (gameMode === 'MENU' && nextGameMode === 'EDITOR') {
+      initRenderSystem(store);
+      initMouseControlsSystem(store);
+    }
+
+    gameMode = nextGameMode;
+  });
 };
 
 module.exports = { initSystems: initSystems };

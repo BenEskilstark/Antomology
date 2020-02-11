@@ -10,7 +10,7 @@ const {initSystems} = require('./systems/initSystems');
 import type {Store} from './types';
 
 const store = createStore(rootReducer);
-window.store = store; // useful for debugging
+window.store = store; // useful for debugging and a few hacks
 
 // initializes the other systems on game start
 initSystems(store);

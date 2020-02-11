@@ -14,7 +14,7 @@ var _require3 = require('./systems/initSystems'),
     initSystems = _require3.initSystems;
 
 var store = createStore(rootReducer);
-window.store = store; // useful for debugging
+window.store = store; // useful for debugging and a few hacks
 
 // initializes the other systems on game start
 initSystems(store);

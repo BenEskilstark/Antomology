@@ -341,7 +341,7 @@ var _require3 = require('./systems/initSystems'),
     initSystems = _require3.initSystems;
 
 var store = createStore(rootReducer);
-window.store = store; // useful for debugging
+window.store = store; // useful for debugging and a few hacks
 
 // initializes the other systems on game start
 initSystems(store);
@@ -822,22 +822,36 @@ var _require13 = require('../state/graphTasks'),
 var tickReducer = function tickReducer(game, action) {
   switch (action.type) {
     case 'START_TICK':
-      if (game != null && game.tickInterval != null) {
+      {
+        if (game != null && game.tickInterval != null) {
+          return game;
+        }
+        var updateSim = action.updateSim;
+
+        return _extends({}, game, {
+          tickInterval: setInterval(
+          // HACK: store is only available via window
+          function () {
+            return store.dispatch({ type: 'TICK', updateSim: updateSim });
+          }, config.msPerTick)
+        });
+      }
+    case 'STOP_TICK':
+      {
+        clearInterval(game.tickInterval);
+        game.tickInterval = null;
         return game;
       }
-      return _extends({}, game, {
-        tickInterval: setInterval(
-        // HACK: store is only available via window
-        function () {
-          return store.dispatch({ type: 'TICK' });
-        }, config.msPerTick)
-      });
-    case 'STOP_TICK':
-      clearInterval(game.tickInterval);
-      game.tickInterval = null;
-      return game;
     case 'TICK':
-      return handleTick(game);
+      {
+        var _updateSim = action.updateSim;
+
+        if (_updateSim) {
+          return handleTick(game);
+        } else {
+          return game; // just ticking for rendering
+        }
+      }
   }
   return game;
 };
@@ -3322,11 +3336,25 @@ var _require3 = require('./mouseControlsSystem'),
     initMouseControlsSystem = _require3.initMouseControlsSystem;
 
 var initSystems = function initSystems(store) {
-  initRenderSystem(store);
-  initMouseControlsSystem(store);
-  initFoodSpawnSystem(store);
-  // const audio = document.getElementById('clayMusic1');
-  // audio.play();
+  var gameMode = store.getState().mode;
+  store.subscribe(function () {
+    var nextGameMode = store.getState().mode;
+    // game systems
+    if (gameMode === 'MENU' && nextGameMode === 'GAME') {
+      initRenderSystem(store);
+      initMouseControlsSystem(store);
+      initFoodSpawnSystem(store);
+      // const audio = document.getElementById('clayMusic1');
+      // audio.play();
+
+      // editor systems
+    } else if (gameMode === 'MENU' && nextGameMode === 'EDITOR') {
+      initRenderSystem(store);
+      initMouseControlsSystem(store);
+    }
+
+    gameMode = nextGameMode;
+  });
 };
 
 module.exports = { initSystems: initSystems };
@@ -4826,14 +4854,14 @@ function Lobby(props) {
         hotkey: 13 // enter
         , onClick: function onClick() {
           dispatch({ type: 'START', level: 0 });
-          dispatch({ type: 'START_TICK' });
+          dispatch({ type: 'START_TICK', updateSim: true });
         }
       }),
       React.createElement(Button, {
         label: 'Start Level 1',
         onClick: function onClick() {
           dispatch({ type: 'START', level: 1 });
-          dispatch({ type: 'START_TICK' });
+          dispatch({ type: 'START_TICK', updateSim: true });
         }
       })
     ),
@@ -4841,6 +4869,7 @@ function Lobby(props) {
       label: 'Level Editor',
       onClick: function onClick() {
         dispatch({ type: 'START_EDITOR' });
+        dispatch({ type: 'START_TICK', updateSim: false });
       }
     })
   );
@@ -37179,7 +37208,7 @@ function createStore(reducer, preloadedState, enhancer) {
     }
 
     if (isDispatching) {
-      throw new Error('You may not call store.subscribe() while the reducer is executing. ' + 'If you would like to be notified after the store has been updated, subscribe from a ' + 'component and invoke store.getState() in the callback to access the latest state. ' + 'See https://redux.js.org/api-reference/store#subscribelistener for more details.');
+      throw new Error('You may not call store.subscribe() while the reducer is executing. ' + 'If you would like to be notified after the store has been updated, subscribe from a ' + 'component and invoke store.getState() in the callback to access the latest state. ' + 'See https://redux.js.org/api-reference/store#subscribe(listener) for more details.');
     }
 
     var isSubscribed = true;
@@ -37191,14 +37220,13 @@ function createStore(reducer, preloadedState, enhancer) {
       }
 
       if (isDispatching) {
-        throw new Error('You may not unsubscribe from a store listener while the reducer is executing. ' + 'See https://redux.js.org/api-reference/store#subscribelistener for more details.');
+        throw new Error('You may not unsubscribe from a store listener while the reducer is executing. ' + 'See https://redux.js.org/api-reference/store#subscribe(listener) for more details.');
       }
 
       isSubscribed = false;
       ensureCanMutateNextListeners();
       var index = nextListeners.indexOf(listener);
       nextListeners.splice(index, 1);
-      currentListeners = null;
     };
   }
   /**
@@ -37500,7 +37528,6 @@ function combineReducers(reducers) {
       hasChanged = hasChanged || nextStateForKey !== previousStateForKey;
     }
 
-    hasChanged = hasChanged || finalReducerKeys.length !== Object.keys(state).length;
     return hasChanged ? nextState : state;
   };
 }

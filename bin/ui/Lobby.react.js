@@ -24,14 +24,14 @@ function Lobby(props) {
         hotkey: 13 // enter
         , onClick: function onClick() {
           dispatch({ type: 'START', level: 0 });
-          dispatch({ type: 'START_TICK' });
+          dispatch({ type: 'START_TICK', updateSim: true });
         }
       }),
       React.createElement(Button, {
         label: 'Start Level 1',
         onClick: function onClick() {
           dispatch({ type: 'START', level: 1 });
-          dispatch({ type: 'START_TICK' });
+          dispatch({ type: 'START_TICK', updateSim: true });
         }
       })
     ),
@@ -39,6 +39,7 @@ function Lobby(props) {
       label: 'Level Editor',
       onClick: function onClick() {
         dispatch({ type: 'START_EDITOR' });
+        dispatch({ type: 'START_TICK', updateSim: false });
       }
     })
   );

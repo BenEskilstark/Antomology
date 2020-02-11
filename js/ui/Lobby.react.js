@@ -21,14 +21,14 @@ function Lobby(props: Props): React.Node {
           hotkey={13} // enter
           onClick={() => {
             dispatch({type: 'START', level: 0});
-            dispatch({type: 'START_TICK'});
+            dispatch({type: 'START_TICK', updateSim: true});
           }}
         />
         <Button
           label="Start Level 1"
           onClick={() => {
             dispatch({type: 'START', level: 1});
-            dispatch({type: 'START_TICK'});
+            dispatch({type: 'START_TICK', updateSim: true});
           }}
         />
       </span>
@@ -36,6 +36,7 @@ function Lobby(props: Props): React.Node {
         label="Level Editor"
           onClick={() => {
             dispatch({type: 'START_EDITOR'});
+            dispatch({type: 'START_TICK', updateSim: false});
           }}
       />
     </div>

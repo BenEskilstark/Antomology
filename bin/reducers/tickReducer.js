@@ -77,22 +77,36 @@ var _require13 = require('../state/graphTasks'),
 var tickReducer = function tickReducer(game, action) {
   switch (action.type) {
     case 'START_TICK':
-      if (game != null && game.tickInterval != null) {
+      {
+        if (game != null && game.tickInterval != null) {
+          return game;
+        }
+        var updateSim = action.updateSim;
+
+        return _extends({}, game, {
+          tickInterval: setInterval(
+          // HACK: store is only available via window
+          function () {
+            return store.dispatch({ type: 'TICK', updateSim: updateSim });
+          }, config.msPerTick)
+        });
+      }
+    case 'STOP_TICK':
+      {
+        clearInterval(game.tickInterval);
+        game.tickInterval = null;
         return game;
       }
-      return _extends({}, game, {
-        tickInterval: setInterval(
-        // HACK: store is only available via window
-        function () {
-          return store.dispatch({ type: 'TICK' });
-        }, config.msPerTick)
-      });
-    case 'STOP_TICK':
-      clearInterval(game.tickInterval);
-      game.tickInterval = null;
-      return game;
     case 'TICK':
-      return handleTick(game);
+      {
+        var _updateSim = action.updateSim;
+
+        if (_updateSim) {
+          return handleTick(game);
+        } else {
+          return game; // just ticking for rendering
+        }
+      }
   }
   return game;
 };

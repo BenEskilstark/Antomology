@@ -59,24 +59,33 @@ import type {
 
 const tickReducer = (game: GameState, action: Action): GameState => {
   switch (action.type) {
-    case 'START_TICK':
+    case 'START_TICK': {
       if (game != null && game.tickInterval != null) {
         return game;
       }
+      const {updateSim} = action;
       return {
         ...game,
         tickInterval: setInterval(
           // HACK: store is only available via window
-          () => store.dispatch({type: 'TICK'}),
+          () => store.dispatch({type: 'TICK', updateSim}),
           config.msPerTick,
         ),
       };
-    case 'STOP_TICK':
+    }
+    case 'STOP_TICK': {
       clearInterval(game.tickInterval);
       game.tickInterval = null;
       return game;
-    case 'TICK':
-      return handleTick(game);
+    }
+    case 'TICK': {
+      const {updateSim} = action;
+      if (updateSim) {
+        return handleTick(game);
+      } else {
+        return game; // just ticking for rendering
+      }
+    }
   }
   return game;
 };
