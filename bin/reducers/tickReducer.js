@@ -101,6 +101,7 @@ var tickReducer = function tickReducer(game, action) {
       {
         var _updateSim = action.updateSim;
 
+        game.time += 1;
         if (_updateSim) {
           return handleTick(game);
         } else {
@@ -196,8 +197,6 @@ var handleTick = function handleTick(game) {
   // updatePheromones(game);
   computeGravity(game);
   updateFoWVision(game);
-
-  game.time += 1;
 
   // const time = performance.now() - startTime;
   // totalTime += time;

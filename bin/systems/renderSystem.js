@@ -212,7 +212,7 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
   ctx.lineWidth = px;
 
   // handle fog
-  if (!entity.visible && !noRecursion) {
+  if (!entity.visible && !noRecursion && !state.editor) {
     var width = entity.width + 0.04;
     var height = entity.height + 0.04;
     if (entity.lastSeenPos == null) {

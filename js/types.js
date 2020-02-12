@@ -31,7 +31,16 @@ export type Modal = {
 export type State = {
   mode: 'MENU' | 'GAME' | 'EDITOR';
   game: ?GameState,
+  editor: ?EditorState,
   modal: ?Modal,
+};
+
+export type EditorMode =
+  'CREATE_ENTITY' | 'CREATE_LOCATION' | 'MARK_TRAIL' | 'MARQUEE_ENTITY' |
+  'DELETE_ENTITY';
+export type EditorState = {
+  editorMode: EditorMode,
+  entityType: EntityType,
 };
 
 // -------------------------------------------------------------------------------
@@ -307,4 +316,3 @@ export type Action =
   {type: 'UPDATE_EDGE', id: EdgeID, edge: Edge} |
   {type: 'SET_CUR_EDGE', curEdge: EdgeID} |
   {type: 'SET_MOUSE_POS', curPos: Vector, curPixel: Vector};
-

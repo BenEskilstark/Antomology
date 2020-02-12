@@ -7,6 +7,7 @@ const initState = (): State => {
     mode: 'MENU',
     game: null,
     modal: null,
+    editor: null,
   };
 }
 

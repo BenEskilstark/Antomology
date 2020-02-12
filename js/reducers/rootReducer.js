@@ -25,6 +25,10 @@ const rootReducer = (state: State, action: Action): State => {
         ...state,
         mode: 'EDITOR',
         game: initGameState(-1), // base level
+        editor: {
+          editorMode: 'CREATE_ENTITY',
+          entityType: 'DIRT',
+        }
       };
     }
     case 'SET_MODAL':

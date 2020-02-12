@@ -1,14 +1,13 @@
 
  - - - - - - LEVEL EDITOR - - - - - -
- - refactor mouseControl into one for editor
- - palette for drawing out each entity type
+ - helper for making entity by type
+ - palette for drawing out each entity type on mouse move
  - marquee-style drawing tool to draw out a square section of entities
  - delete tool
  - still can add locations
  - import/export
  - ability to set world size
- - fix canvas resize without ticking
- - separate rendering to their own tick thread
+ - toggle for fog on/off
 
 
  - - - - - - PHEROMONE GRAPH - - - - - -
@@ -107,6 +106,7 @@
  - saving with local storage
  - prevent accidental click-and-drag text selection
  - audio system
+ - let cmd/ctrl + left click == right click
 
 
  - - - - - - RENDERING - - - - - -
@@ -143,5 +143,3 @@
  - fix or remove the concept of "blockers"
  - passing around location names instead of ids is V dangerous
  - common function for ant switching tasks
-
-

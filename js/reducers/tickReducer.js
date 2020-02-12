@@ -80,6 +80,7 @@ const tickReducer = (game: GameState, action: Action): GameState => {
     }
     case 'TICK': {
       const {updateSim} = action;
+      game.time += 1;
       if (updateSim) {
         return handleTick(game);
       } else {
@@ -156,8 +157,6 @@ const handleTick = (game: GameState): GameState => {
   // updatePheromones(game);
   computeGravity(game);
   updateFoWVision(game);
-
-  game.time += 1;
 
   // const time = performance.now() - startTime;
   // totalTime += time;

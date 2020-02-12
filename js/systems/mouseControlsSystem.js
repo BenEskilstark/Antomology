@@ -11,6 +11,7 @@ const {
   add, subtract, equals, makeVector, vectorTheta, multiply, floor,
 } = require('../utils/vectors');
 const {makeLocation} = require('../entities/location');
+const {makeDirt} = require('../entities/dirt');
 const {makePheromone} = require('../entities/pheromone');
 const {lookupInGrid} = require('../utils/stateHelpers');
 const {
@@ -25,7 +26,7 @@ const initMouseControlsSystem = (store) => {
   document.onmouseup = (ev) => {
     const state = store.getState();
     if (state.game == null) return;
-      const gridPos = getClickedPos(state.game, ev);
+    const gridPos = getClickedPos(state.game, ev);
 
     if (ev.button == 0) { // left click
       dispatch({type: 'SET_MOUSE_DOWN', isLeft: true, isDown: false});
@@ -113,7 +114,6 @@ const initMouseControlsSystem = (store) => {
 ////////////////////////////////////////////////////////////////////////////
 // Mouse move
 ////////////////////////////////////////////////////////////////////////////
-
 const handleMouseMove = (
   state: State,
   dispatch: Dispatch,
@@ -188,98 +188,146 @@ const handleMouseMove = (
     dispatch({type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos});
   }
 }
+
 ////////////////////////////////////////////////////////////////////////////
 // Left click
 ////////////////////////////////////////////////////////////////////////////
-
 const handleLeftClick = (
   state: State,
   dispatch: Dispatch,
   gridPos: Vector,
 ): void => {
-  const {game} = state;
-  // handle creating locations
-  if (game.userMode === 'CREATE_LOCATION') {
-    const dimensions = subtract(gridPos, game.mouse.downPos);
-    const locPosition = {...game.mouse.downPos};
-    if (dimensions.x < 0) {
-      locPosition.x = locPosition.x + dimensions.x;
+  const {game, editor} = state;
+  if (editor == null) {
+    switch (game.userMode) {
+      case 'CREATE_LOCATION':
+        createLocation(game, dispatch, gridPos);
+        break;
+      case 'SELECT':
+        selectEntities(game, dispatch, gridPos);
+        break;
+      case 'MARK_TRAIL':
+        createPheromoneTrail(game, dispatch, gridPos);
+        break;
     }
-    if (dimensions.y < 0) {
-      locPosition.y = locPosition.y + dimensions.y;
-    }
-    const newLocation = makeLocation(
-      game.nextLocationName,
-      Math.abs(dimensions.x) + 1, // off by one
-      Math.abs(dimensions.y) + 1,
-      locPosition,
-    );
-    dispatch({type: 'CREATE_ENTITY', entity: newLocation});
-    return;
-  } else if (game.userMode === 'SELECT') {
-    // handle selecting ants
-    const {mouse} = game;
-    const dims = subtract(mouse.curPos, mouse.downPos);
-    const x = dims.x > 0 ? mouse.downPos.x : mouse.curPos.x;
-    const y = dims.y > 0 ? mouse.downPos.y : mouse.curPos.y;
-    const marqueeLocation =
-      {position: {x, y}, width: Math.abs(dims.x) + 1, height: Math.abs(dims.y) + 1};
-    let clickedEntities = entitiesInMarquee(game, marqueeLocation)
-      .filter(e => config.selectableEntities.includes(e.type))
-      .filter(e => e.id != config.clickedPosition);
-    // const obeliskID = game.OBELISK[0];
-    // if (clickedEntities.includes(obeliskID)) {
-    //   clickedEntities = [obeliskID];
-    // }
-    const pheromonesInEdges = [];
-    for (const entity of clickedEntities) {
-      if (entity.type === 'PHEROMONE') {
-        const edge = game.edges[entity.edge];
-        pheromonesInEdges.push(...edge.pheromones);
-      }
-    }
-    if (clickedEntities.length > 0) {
-      const clickedIDs = clickedEntities.map(e => e.id);
-      for (const ph of pheromonesInEdges) {
-        if (!clickedIDs.includes(ph)) {
-          clickedIDs.push(ph);
-        }
-      }
-      dispatch({
-        type: 'SET_SELECTED_ENTITIES',
-        entityIDs: clickedIDs.slice(0, config.maxSelectableAnts),
-      });
-    } else if (game.selectedEntities.length > 0) {
-      dispatch({
-        type: 'SET_SELECTED_ENTITIES',
-        entityIDs: [],
-      });
-    }
-  } else if (game.userMode === 'MARK_TRAIL') {
-    dispatch({type: 'SET_PREV_PHEROMONE', id: null});
-    const clickedEntities = lookupInGrid(game.grid, gridPos)
-      .map(i => game.entities[i]);
-    const clickedLocations = clickedEntities
-      .filter(e => e.type === 'LOCATION');
+  } else {
+    switch (editor.editorMode) {
+      case 'CREATE_ENTITY':
+        const entity = makeDirt(gridPos);
+        dispatch({type: 'CREATE_ENTITY', entity});
+        break;
+      case 'CREATE_LOCATION':
+        createLocation(game, dispatch, gridPos);
+        break;
+      case 'MARK_TRAIL':
 
-    if (clickedLocations.length > 0 && game.curEdge != null) {
-      // TODO distinguish which location you're starting from/ending on
-      const loc = clickedLocations[0];
-      const edge = game.edges[game.curEdge];
-      dispatch({
-        type: 'UPDATE_EDGE', id: edge.id, edge: {...edge, end: loc.id}
-      });
-    } else {
-      dispatch({type: 'SET_CUR_EDGE', curEdge: null});
+        break;
+      case 'MARQUEE_ENTITY':
+
+        break;
+      case 'DELETE_ENTITY':
+
+        break;
     }
   }
 };
 
+const createLocation = (
+  game: GameState,
+  dispatch: Dispatch,
+  gridPos: Vector,
+): void => {
+  const dimensions = subtract(gridPos, game.mouse.downPos);
+  const locPosition = {...game.mouse.downPos};
+  if (dimensions.x < 0) {
+    locPosition.x = locPosition.x + dimensions.x;
+  }
+  if (dimensions.y < 0) {
+    locPosition.y = locPosition.y + dimensions.y;
+  }
+  const newLocation = makeLocation(
+    game.nextLocationName,
+    Math.abs(dimensions.x) + 1, // off by one
+    Math.abs(dimensions.y) + 1,
+    locPosition,
+  );
+  dispatch({type: 'CREATE_ENTITY', entity: newLocation});
+}
+
+const selectEntities = (
+  game: GameState,
+  dispatch: Dispatch,
+  gridPos: Vector,
+): void => {
+  // handle selecting ants
+  const {mouse} = game;
+  const dims = subtract(mouse.curPos, mouse.downPos);
+  const x = dims.x > 0 ? mouse.downPos.x : mouse.curPos.x;
+  const y = dims.y > 0 ? mouse.downPos.y : mouse.curPos.y;
+  const marqueeLocation =
+    {position: {x, y}, width: Math.abs(dims.x) + 1, height: Math.abs(dims.y) + 1};
+  let clickedEntities = entitiesInMarquee(game, marqueeLocation)
+    .filter(e => config.selectableEntities.includes(e.type))
+    .filter(e => e.id != config.clickedPosition);
+  // const obeliskID = game.OBELISK[0];
+  // if (clickedEntities.includes(obeliskID)) {
+  //   clickedEntities = [obeliskID];
+  // }
+  const pheromonesInEdges = [];
+  for (const entity of clickedEntities) {
+    if (entity.type === 'PHEROMONE') {
+      const edge = game.edges[entity.edge];
+      pheromonesInEdges.push(...edge.pheromones);
+    }
+  }
+  if (clickedEntities.length > 0) {
+    const clickedIDs = clickedEntities.map(e => e.id);
+    for (const ph of pheromonesInEdges) {
+      if (!clickedIDs.includes(ph)) {
+        clickedIDs.push(ph);
+      }
+    }
+    dispatch({
+      type: 'SET_SELECTED_ENTITIES',
+      entityIDs: clickedIDs.slice(0, config.maxSelectableAnts),
+    });
+  } else if (game.selectedEntities.length > 0) {
+    dispatch({
+      type: 'SET_SELECTED_ENTITIES',
+      entityIDs: [],
+    });
+  }
+}
+
+const createPheromoneTrail = (
+  game: GameState,
+  dispatch: Dispatch,
+  gridPos: Vector,
+): void => {
+  dispatch({type: 'SET_PREV_PHEROMONE', id: null});
+  const clickedEntities = lookupInGrid(game.grid, gridPos)
+    .map(i => game.entities[i]);
+  const clickedLocations = clickedEntities
+    .filter(e => e.type === 'LOCATION');
+
+  if (clickedLocations.length > 0 && game.curEdge != null) {
+    // TODO distinguish which location you're starting from/ending on
+    const loc = clickedLocations[0];
+    const edge = game.edges[game.curEdge];
+    dispatch({
+      type: 'UPDATE_EDGE', id: edge.id, edge: {...edge, end: loc.id}
+    });
+  } else {
+    dispatch({type: 'SET_CUR_EDGE', curEdge: null});
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////
 // Right click
 ////////////////////////////////////////////////////////////////////////////
-
-const handleRightClick = (state: State, dispatch: Dispatch, gridPos: Vector): void => {
+const handleRightClick = (
+  state: State, dispatch: Dispatch, gridPos: Vector,
+): void => {
   const selectedAntIDs = getSelectedAntIDs(state.game);
   const clickedEntity = entitiesInMarquee(
     state.game,
@@ -357,7 +405,6 @@ const handleRightClick = (state: State, dispatch: Dispatch, gridPos: Vector): vo
 ////////////////////////////////////////////////////////////////////////////
 // click -> position helpers
 ////////////////////////////////////////////////////////////////////////////
-
 let canvas = null;
 const getClickedPos = (game, ev, noFloor): ?Vector => {
   const pixel = getMousePixel(ev);
