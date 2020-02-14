@@ -1,6 +1,7 @@
 
  - - - - - - LEVEL EDITOR - - - - - -
  - helper for making entity by type
+ - don't stack entities of the same type
  - palette for drawing out each entity type on mouse move
  - marquee-style drawing tool to draw out a square section of entities
  - delete tool
@@ -8,6 +9,7 @@
  - import/export
  - ability to set world size
  - toggle for fog on/off
+ - tool to fill entire map
 
 
  - - - - - - PHEROMONE GRAPH - - - - - -
@@ -107,6 +109,7 @@
  - prevent accidental click-and-drag text selection
  - audio system
  - let cmd/ctrl + left click == right click
+ - zoom to mouse instead of center of screen
 
 
  - - - - - - RENDERING - - - - - -

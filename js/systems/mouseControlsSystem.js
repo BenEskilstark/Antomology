@@ -120,74 +120,105 @@ const handleMouseMove = (
   gridPos: Vector,
   canvasPos: Vector,
 ): void => {
-  if (state.game.mouse.isLeftDown && state.game.userMode === 'MARK_TRAIL') {
-    dispatch({type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos});
-    if (state.game.curEdge == null) {
-      return; // not creating an edge
-    }
-    let prevPheromone = state.game.entities[state.game.prevPheromone];
-    if (prevPheromone == null) {
-      dispatch({
-        type: 'CREATE_ENTITY',
-        entity: makePheromone(gridPos, 0 /* theta */, 1, state.game.curEdge),
-      });
-      return;
-    }
-    if (equals(gridPos, prevPheromone.position)) {
-      return; // don't make another at its current spot
-    }
-
-    let prevPos = null;
-    let prevPheromoneID = null;
-    let cursor = {...prevPheromone.position};
-    while (!equals(cursor, gridPos)) {
-      const diff = subtract(gridPos, cursor);
-      // initial case
-      if (prevPos == null) {
-        prevPos = {...cursor};
-        prevPheromoneID = prevPheromone.id;
+  if (state.game.mouse.isLeftDown) {
+    if (state.editor != null && state.editor.editorMode == 'CREATE_ENTITY') {
+      const occupied = lookupInGrid(state.game.grid, gridPos)
+        .map(i => state.game.entities[i])
+        .filter(e => e.type == 'DIRT')
+        .length > 0;
+      if (!occupied) {
+        const entity = makeDirt(gridPos);
+        dispatch({type: 'CREATE_ENTITY', entity});
       }
-      if (Math.abs(diff.x) > Math.abs(diff.y)) {
-        cursor.x += diff.x / Math.abs(diff.x);
-      } else {
-        cursor.y += diff.y / Math.abs(diff.y);
-      }
-      const theta = vectorTheta(subtract(cursor, prevPos));
-      const curPheromone = makePheromone({...cursor}, theta, 1, state.game.curEdge);
-      dispatch({
-        type: 'CREATE_ENTITY',
-        entity: curPheromone,
-      });
-      dispatch({type: 'UPDATE_THETA', id: prevPheromoneID, theta});
-
-      prevPheromoneID = curPheromone.id;
-      prevPos = {...cursor};
-    }
-  } else if (state.game.mouse.isLeftDown && state.game.userMode === 'PAN') {
-    const dragDiffPixel = subtract(canvasPos, state.game.mouse.curPixel);
-    if (equals(dragDiffPixel, {x: 0, y: 0})) {
+    } else if (state.game.userMode === 'MARK_TRAIL') {
       dispatch({type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos});
-      return;
-    }
-    const dragDiff = multiply(dragDiffPixel,{
-      x: config.width / config.canvasWidth,
-      y: -1 * config.height / config.canvasHeight,
-    });
-    const nextViewPos = subtract(state.game.viewPos, dragDiff);
-    if (
-      nextViewPos.x < 0 || nextViewPos.y < 0 ||
-      nextViewPos.x + config.width > state.game.worldWidth ||
-      nextViewPos.y + config.height > state.game.worldHeight
-    ) {
+      dragPheromoneTrail(state, dispatch, gridPos);
+    } else if (state.game.userMode === 'PAN') {
+      const dragDiffPixel = subtract(canvasPos, state.game.mouse.curPixel);
+      doPan(state, dispatch, gridPos, canvasPos, dragDiffPixel);
+    } else {
       dispatch({type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos});
-      return;
     }
-    dispatch({type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos});
-    dispatch({type: 'SET_VIEW_POS', viewPos: nextViewPos});
   } else {
     dispatch({type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos});
   }
 }
+
+const doPan = (
+  state: State,
+  dispatch: Dispatch,
+  gridPos: Vector,
+  canvasPos: Vector,
+  dragDiffPixel: Vector,
+): void => {
+  if (equals(dragDiffPixel, {x: 0, y: 0})) {
+    dispatch({type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos});
+    return;
+  }
+  const dragDiff = multiply(dragDiffPixel,{
+    x: config.width / config.canvasWidth,
+    y: -1 * config.height / config.canvasHeight,
+  });
+  const nextViewPos = subtract(state.game.viewPos, dragDiff);
+  if (
+    nextViewPos.x < 0 || nextViewPos.y < 0 ||
+    nextViewPos.x + config.width > state.game.worldWidth ||
+    nextViewPos.y + config.height > state.game.worldHeight
+  ) {
+    dispatch({type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos});
+    return;
+  }
+  dispatch({type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos});
+  dispatch({type: 'SET_VIEW_POS', viewPos: nextViewPos});
+}
+
+const dragPheromoneTrail = (
+  state: State,
+  dispatch: Dispatch,
+  gridPos: Vector,
+): void => {
+  if (state.game.curEdge == null) {
+    return; // not creating an edge
+  }
+  let prevPheromone = state.game.entities[state.game.prevPheromone];
+  if (prevPheromone == null) {
+    dispatch({
+      type: 'CREATE_ENTITY',
+      entity: makePheromone(gridPos, 0 /* theta */, 1, state.game.curEdge),
+    });
+    return;
+  }
+  if (equals(gridPos, prevPheromone.position)) {
+    return; // don't make another at its current spot
+  }
+
+  let prevPos = null;
+  let prevPheromoneID = null;
+  let cursor = {...prevPheromone.position};
+  while (!equals(cursor, gridPos)) {
+    const diff = subtract(gridPos, cursor);
+    // initial case
+    if (prevPos == null) {
+      prevPos = {...cursor};
+      prevPheromoneID = prevPheromone.id;
+    }
+    if (Math.abs(diff.x) > Math.abs(diff.y)) {
+      cursor.x += diff.x / Math.abs(diff.x);
+    } else {
+      cursor.y += diff.y / Math.abs(diff.y);
+    }
+    const theta = vectorTheta(subtract(cursor, prevPos));
+    const curPheromone = makePheromone({...cursor}, theta, 1, state.game.curEdge);
+    dispatch({
+      type: 'CREATE_ENTITY',
+      entity: curPheromone,
+    });
+    dispatch({type: 'UPDATE_THETA', id: prevPheromoneID, theta});
+
+    prevPheromoneID = curPheromone.id;
+    prevPos = {...cursor};
+  }
+};
 
 ////////////////////////////////////////////////////////////////////////////
 // Left click
