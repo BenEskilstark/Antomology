@@ -176,7 +176,7 @@ var render = function render(state, ctx) {
 
   var mouse = game.mouse;
 
-  if (mouse.isLeftDown && (game.userMode === 'SELECT' || game.userMode === 'CREATE_LOCATION')) {
+  if (mouse.isLeftDown && (state.editor == null && (game.userMode === 'SELECT' || game.userMode === 'CREATE_LOCATION') || state.editor != null && state.editor.editorMode === 'MARQUEE_ENTITY')) {
     if (game.userMode === 'CREATE_LOCATION') {
       ctx.fillStyle = 'rgba(100, 100, 100, 0.25)';
     } else if (game.userMode === 'SELECT') {
@@ -212,7 +212,7 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
   ctx.lineWidth = px;
 
   // handle fog
-  if (!entity.visible && !noRecursion && !state.editor) {
+  if (!entity.visible && !noRecursion && state.game.fog) {
     var width = entity.width + 0.04;
     var height = entity.height + 0.04;
     if (entity.lastSeenPos == null) {

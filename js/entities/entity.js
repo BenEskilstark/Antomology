@@ -2,7 +2,9 @@
 
 import type {Radians, Vector, Size, Entity, EntityType} from '../types';
 
-let nextID = 0;
+
+// HACK: adding to window so that importing a level can update it
+window.nextID = 0;
 
 const makeEntity = (
   type: EntityType,

@@ -1,7 +1,7 @@
 // @flow
 
 const config = {
-  msPerTick: 200,
+  msPerTick: 150,
 
   // screen sizes in grid cells and in pixels:
   // grid size

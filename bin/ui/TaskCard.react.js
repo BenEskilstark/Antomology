@@ -97,7 +97,8 @@ function TaskCard(props) {
       }
     }),
     React.createElement('input', { type: 'text', style: { width: '25px' },
-      value: JSON.stringify(importedTask), onChange: function onChange(ev) {
+      value: importedTask == '' ? '' : JSON.stringify(importedTask),
+      onChange: function onChange(ev) {
         setImportedTask(JSON.parse(ev.target.value));
       }
     })

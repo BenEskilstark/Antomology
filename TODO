@@ -1,15 +1,18 @@
 
  - - - - - - LEVEL EDITOR - - - - - -
- - helper for making entity by type
- - don't stack entities of the same type
+ - still can add locations/pheromone trails
+ - still can pan
  - palette for drawing out each entity type on mouse move
- - marquee-style drawing tool to draw out a square section of entities
+    - allow specifying worker vs queen ant
+    - allow specifying sky vs background dirt
+    - allow specifying dimensions of obelisk
+    - mousedown creates entity, mouse move drags it, mouseup drops it in place
  - delete tool
- - still can add locations
- - import/export
+    - allow deleting only one layer at a time (e.g. ant but not background)
+    - allow locking entities/layers
  - ability to set world size
- - toggle for fog on/off
- - tool to fill entire map
+    - move viewport and fix zoom on making world smaller
+ - action for making many entities at once fast
 
 
  - - - - - - PHEROMONE GRAPH - - - - - -
@@ -127,6 +130,7 @@
  - test on firefox
    - fix dropdowns
    - fix selection weirdness
+   - firefox uses ev.code == 'Enter' instead of keyCode
  - make UI elements screen-size responsive
 
 

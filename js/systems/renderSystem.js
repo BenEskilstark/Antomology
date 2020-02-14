@@ -102,8 +102,9 @@ const render = (state: State, ctx: any): void => {
   // render marquees
   const {mouse} = game;
   if (
-    mouse.isLeftDown &&
-    (game.userMode === 'SELECT' || game.userMode === 'CREATE_LOCATION')
+    mouse.isLeftDown && ((state.editor == null &&
+    (game.userMode === 'SELECT' || game.userMode === 'CREATE_LOCATION'))
+    || state.editor != null && state.editor.editorMode === 'MARQUEE_ENTITY')
   ) {
     if (game.userMode === 'CREATE_LOCATION') {
       ctx.fillStyle = 'rgba(100, 100, 100, 0.25)';
@@ -144,7 +145,7 @@ const renderEntity = (
   ctx.lineWidth = px;
 
   // handle fog
-  if (!entity.visible && !noRecursion && !state.editor) {
+  if (!entity.visible && !noRecursion && state.game.fog) {
     const width = entity.width + 0.04;
     const height = entity.height + 0.04;
     if (entity.lastSeenPos == null) {

@@ -17,12 +17,18 @@ var _require3 = require('../utils/helpers'),
 var _require4 = require('../entities/edge'),
     createEdge = _require4.createEdge;
 
+var _require5 = require('../selectors/selectors'),
+    insideWorld = _require5.insideWorld;
+
 var gameReducer = function gameReducer(game, action) {
   switch (action.type) {
     case 'CREATE_ENTITY':
       {
         var entity = action.entity;
 
+        if (entity.position != null && !insideWorld(game, entity.position)) {
+          return game;
+        }
         if (entity.type == 'LOCATION') {
           // if trying to make a location with the same name as one that already exists,
           // just update the position of the currently-existing entity for that location
@@ -57,6 +63,61 @@ var gameReducer = function gameReducer(game, action) {
           selectedEntities: action.entityIDs
         });
       }
+    case 'TOGGLE_FOG':
+      {
+        var fog = action.fog;
+
+        return _extends({}, game, {
+          fog: fog
+        });
+      }
+    case 'SET_WORLD_SIZE':
+      {
+        var width = action.width,
+            height = action.height;
+
+        var nextWorldWidth = width != null ? width : game.worldWidth;
+        var nextWorldHeight = height != null ? height : game.worldHeight;
+
+        // delete entities outside the world
+        var entitiesToDelete = [];
+        for (var _id in game.entities) {
+          var _entity = game.entities[_id];
+          if (_entity == null) continue; // entity already deleted
+          if (_entity.position.x >= nextWorldWidth || _entity.position.y >= nextWorldHeight) {
+            entitiesToDelete.push(_entity);
+          }
+        }
+        var _iteratorNormalCompletion = true;
+        var _didIteratorError = false;
+        var _iteratorError = undefined;
+
+        try {
+          for (var _iterator = entitiesToDelete[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+            var _entity2 = _step.value;
+
+            removeEntity(game, _entity2);
+          }
+        } catch (err) {
+          _didIteratorError = true;
+          _iteratorError = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion && _iterator.return) {
+              _iterator.return();
+            }
+          } finally {
+            if (_didIteratorError) {
+              throw _iteratorError;
+            }
+          }
+        }
+
+        return _extends({}, game, {
+          worldWidth: nextWorldWidth,
+          worldHeight: nextWorldHeight
+        });
+      }
     case 'CREATE_EDGE':
       {
         var start = action.start;
@@ -69,13 +130,13 @@ var gameReducer = function gameReducer(game, action) {
       }
     case 'UPDATE_EDGE':
       {
-        var _id = action.id,
+        var _id2 = action.id,
             edge = action.edge;
 
-        if (game.edges[_id].end == null && edge.end != null) {
-          game.entities[edge.end].incomingEdges.push(_id);
+        if (game.edges[_id2].end == null && edge.end != null) {
+          game.entities[edge.end].incomingEdges.push(_id2);
         }
-        game.edges[_id] = edge;
+        game.edges[_id2] = edge;
         game.curEdge = null;
         return game;
       }
@@ -108,10 +169,10 @@ var gameReducer = function gameReducer(game, action) {
       }
     case 'UPDATE_LOCATION_NAME':
       {
-        var _id2 = action.id,
+        var _id3 = action.id,
             newName = action.newName;
 
-        game.entities[_id2].name = newName;
+        game.entities[_id3].name = newName;
         return game;
       }
     case 'UPDATE_NEXT_LOCATION_NAME':
@@ -125,9 +186,9 @@ var gameReducer = function gameReducer(game, action) {
     case 'UPDATE_LOCATION_TASK':
       {
         var _task2 = action.task,
-            _id3 = action.id;
+            _id4 = action.id;
 
-        var loc = game.entities[_id3];
+        var loc = game.entities[_id4];
         loc.task.repeating = false;
         loc.task.behaviorQueue = _task2.behaviorQueue;
         return game;
@@ -136,30 +197,30 @@ var gameReducer = function gameReducer(game, action) {
       {
         var _task3 = action.task,
             ants = action.ants;
-        var _iteratorNormalCompletion = true;
-        var _didIteratorError = false;
-        var _iteratorError = undefined;
+        var _iteratorNormalCompletion2 = true;
+        var _didIteratorError2 = false;
+        var _iteratorError2 = undefined;
 
         try {
-          for (var _iterator = ants[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-            var _id4 = _step.value;
+          for (var _iterator2 = ants[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+            var _id5 = _step2.value;
 
-            game.entities[_id4].task = _task3;
-            game.entities[_id4].taskStack = [];
-            game.entities[_id4].taskIndex = 0;
+            game.entities[_id5].task = _task3;
+            game.entities[_id5].taskStack = [];
+            game.entities[_id5].taskIndex = 0;
           }
           // add the task to the task array
         } catch (err) {
-          _didIteratorError = true;
-          _iteratorError = err;
+          _didIteratorError2 = true;
+          _iteratorError2 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion && _iterator.return) {
-              _iterator.return();
+            if (!_iteratorNormalCompletion2 && _iterator2.return) {
+              _iterator2.return();
             }
           } finally {
-            if (_didIteratorError) {
-              throw _iteratorError;
+            if (_didIteratorError2) {
+              throw _iteratorError2;
             }
           }
         }
@@ -190,20 +251,20 @@ var gameReducer = function gameReducer(game, action) {
       }
     case 'UPDATE_THETA':
       {
-        var _id5 = action.id,
+        var _id6 = action.id,
             theta = action.theta;
 
-        if (game.entities[_id5] != null) {
-          game.entities[_id5].theta = theta;
+        if (game.entities[_id6] != null) {
+          game.entities[_id6].theta = theta;
         }
         return game;
       }
     case 'SET_PREV_PHEROMONE':
       {
-        var _id6 = action.id;
+        var _id7 = action.id;
 
         return _extends({}, game, {
-          prevPheromone: _id6
+          prevPheromone: _id7
         });
       }
     case 'SET_MOUSE_DOWN':

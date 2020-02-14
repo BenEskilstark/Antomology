@@ -105,6 +105,7 @@ var tickReducer = function tickReducer(game, action) {
         if (_updateSim) {
           return handleTick(game);
         } else {
+          updateFoWVision(game);
           return game; // just ticking for rendering
         }
       }

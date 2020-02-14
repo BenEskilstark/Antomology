@@ -182,7 +182,9 @@ var baseState = function baseState(worldWidth, worldHeight) {
     BACKGROUND: [],
 
     tasks: [],
-    grid: []
+    grid: [],
+
+    fog: true
   };
 
   // seed start location

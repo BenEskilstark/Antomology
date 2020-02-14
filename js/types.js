@@ -100,6 +100,8 @@ export type GameState = {
   // for faster collision detection
   grid: Array<Array<Array<EntityID>>>,
 
+  fog: boolean,
+
   tasks: Array<Task>, // tasks that can be assigned to ants
 };
 
@@ -295,6 +297,7 @@ export type Action =
   {type: 'DISMISS_MODAL'} |
   {type: 'STOP_TICK'} |
   {type: 'START_TICK', updateSim: boolean} |
+  {type: 'TOGGLE_FOG', fog: boolean} |
   {type: 'TICK', updateSim: boolean} | // whether the simulation should update on ticks
   {type: 'CREATE_ENTITY', entity: Entity} |
   {type: 'SET_SELECTED_ENTITIES', entityIDs: Array<EntityID>} |
@@ -315,4 +318,8 @@ export type Action =
   {type: 'CREATE_EDGE', start: EntityID} |
   {type: 'UPDATE_EDGE', id: EdgeID, edge: Edge} |
   {type: 'SET_CUR_EDGE', curEdge: EdgeID} |
-  {type: 'SET_MOUSE_POS', curPos: Vector, curPixel: Vector};
+  {type: 'SET_MOUSE_POS', curPos: Vector, curPixel: Vector} |
+  {type: 'SET_EDITOR_MODE', editorMode: EditorMode} |
+  {type: 'SET_EDITOR_ENTITY', entityType: EntityType} |
+  {type: 'APPLY_GAME_STATE', game: GameState} |
+  {type: 'SET_WORLD_SIZE', width: ?number, height: ?number};

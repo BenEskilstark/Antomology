@@ -7,6 +7,7 @@ const {
 } = require('../utils/stateHelpers');
 const {clamp} = require('../utils/helpers');
 const {createEdge} = require('../entities/edge');
+const {insideWorld} = require('../selectors/selectors');
 
 import type {State, GameState, Action} from '../types';
 
@@ -14,6 +15,9 @@ const gameReducer = (game: GameState, action: Action): GameState => {
   switch (action.type) {
     case 'CREATE_ENTITY': {
       const {entity} = action;
+      if (entity.position != null && !insideWorld(game, entity.position)) {
+        return game;
+      }
       if (entity.type == 'LOCATION') {
         // if trying to make a location with the same name as one that already exists,
         // just update the position of the currently-existing entity for that location
@@ -45,6 +49,40 @@ const gameReducer = (game: GameState, action: Action): GameState => {
         ...game,
         selectedEntities: action.entityIDs,
       };
+    }
+    case 'TOGGLE_FOG': {
+      const {fog} = action;
+      return {
+        ...game,
+        fog,
+      };
+    }
+    case 'SET_WORLD_SIZE': {
+      const {width, height} = action;
+      const nextWorldWidth = width != null ? width : game.worldWidth;
+      const nextWorldHeight = height != null ? height : game.worldHeight;
+
+      // delete entities outside the world
+      const entitiesToDelete = [];
+      for (const id in game.entities) {
+        const entity = game.entities[id];
+        if (entity == null) continue; // entity already deleted
+        if (
+          entity.position.x >= nextWorldWidth ||
+          entity.position.y >= nextWorldHeight
+        ) {
+          entitiesToDelete.push(entity);
+        }
+      }
+      for (const entity of entitiesToDelete) {
+        removeEntity(game, entity);
+      }
+
+      return {
+        ...game,
+        worldWidth: nextWorldWidth,
+        worldHeight: nextWorldHeight,
+      }
     }
     case 'CREATE_EDGE': {
       const {start} = action;

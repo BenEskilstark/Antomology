@@ -3,6 +3,7 @@
 const {initState} = require('../state/initState');
 const {initGameState} = require('../state/initGameState');
 const {gameReducer} = require('./gameReducer');
+const {editorReducer} = require('./editorReducer');
 const {tickReducer} = require('./tickReducer');
 const {modalReducer} = require('./modalReducer');
 
@@ -24,13 +25,23 @@ const rootReducer = (state: State, action: Action): State => {
       return {
         ...state,
         mode: 'EDITOR',
-        game: initGameState(-1), // base level
+        game: {
+          ...initGameState(-1), // base level
+          fog: false,
+        },
         editor: {
           editorMode: 'CREATE_ENTITY',
           entityType: 'DIRT',
         }
       };
     }
+    case 'SET_EDITOR_MODE':
+    case 'SET_EDITOR_ENTITY':
+      if (!state.editor) return state;
+      return {
+        ...state,
+        editor: editorReducer(state.editor, action),
+      };
     case 'SET_MODAL':
     case 'DISMISS_MODAL':
       return modalReducer(state, action);
@@ -41,6 +52,20 @@ const rootReducer = (state: State, action: Action): State => {
       return {
         ...state,
         game: tickReducer(state.game, action),
+      };
+    case 'APPLY_GAME_STATE':
+      const {game} = action;
+      let maxEntityID = 0;
+      for (const id in game.entities) {
+        if (id > maxEntityID) {
+          maxEntityID = id;
+        }
+      }
+      // HACK: available from entities/entity via window
+      nextID = maxEntityID + 1;
+      return {
+        ...state,
+        game,
       };
     case 'CREATE_ENTITY':
     case 'DESTROY_ENTITY':
@@ -61,6 +86,8 @@ const rootReducer = (state: State, action: Action): State => {
     case 'UPDATE_EDGE':
     case 'SET_CUR_EDGE':
     case 'SET_VIEW_POS':
+    case 'TOGGLE_FOG':
+    case 'SET_WORLD_SIZE':
     case 'ZOOM':
       if (!state.game) return state;
       return {

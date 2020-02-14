@@ -165,6 +165,8 @@ const baseState = (worldWidth: number, worldHeight: number): GameState => {
 
     tasks: [],
     grid: [],
+
+    fog: true,
   };
 
   // seed start location

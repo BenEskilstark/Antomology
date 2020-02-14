@@ -85,7 +85,8 @@ function TaskCard(props: Props): React.Node {
         }}
       />
       <input type="text" style={{width: '25px'}}
-        value={JSON.stringify(importedTask)} onChange={(ev) => {
+        value={importedTask == '' ? '' : JSON.stringify(importedTask)}
+        onChange={(ev) => {
           setImportedTask(JSON.parse(ev.target.value));
         }}
       />

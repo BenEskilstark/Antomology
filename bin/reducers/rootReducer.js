@@ -11,11 +11,14 @@ var _require2 = require('../state/initGameState'),
 var _require3 = require('./gameReducer'),
     gameReducer = _require3.gameReducer;
 
-var _require4 = require('./tickReducer'),
-    tickReducer = _require4.tickReducer;
+var _require4 = require('./editorReducer'),
+    editorReducer = _require4.editorReducer;
 
-var _require5 = require('./modalReducer'),
-    modalReducer = _require5.modalReducer;
+var _require5 = require('./tickReducer'),
+    tickReducer = _require5.tickReducer;
+
+var _require6 = require('./modalReducer'),
+    modalReducer = _require6.modalReducer;
 
 var rootReducer = function rootReducer(state, action) {
   if (state === undefined) return initState();
@@ -34,13 +37,21 @@ var rootReducer = function rootReducer(state, action) {
       {
         return _extends({}, state, {
           mode: 'EDITOR',
-          game: initGameState(-1), // base level
+          game: _extends({}, initGameState(-1), { // base level
+            fog: false
+          }),
           editor: {
             editorMode: 'CREATE_ENTITY',
             entityType: 'DIRT'
           }
         });
       }
+    case 'SET_EDITOR_MODE':
+    case 'SET_EDITOR_ENTITY':
+      if (!state.editor) return state;
+      return _extends({}, state, {
+        editor: editorReducer(state.editor, action)
+      });
     case 'SET_MODAL':
     case 'DISMISS_MODAL':
       return modalReducer(state, action);
@@ -50,6 +61,20 @@ var rootReducer = function rootReducer(state, action) {
       if (!state.game) return state;
       return _extends({}, state, {
         game: tickReducer(state.game, action)
+      });
+    case 'APPLY_GAME_STATE':
+      var game = action.game;
+
+      var maxEntityID = 0;
+      for (var id in game.entities) {
+        if (id > maxEntityID) {
+          maxEntityID = id;
+        }
+      }
+      // HACK: available from entities/entity via window
+      nextID = maxEntityID + 1;
+      return _extends({}, state, {
+        game: game
       });
     case 'CREATE_ENTITY':
     case 'DESTROY_ENTITY':
@@ -70,6 +95,8 @@ var rootReducer = function rootReducer(state, action) {
     case 'UPDATE_EDGE':
     case 'SET_CUR_EDGE':
     case 'SET_VIEW_POS':
+    case 'TOGGLE_FOG':
+    case 'SET_WORLD_SIZE':
     case 'ZOOM':
       if (!state.game) return state;
       return _extends({}, state, {

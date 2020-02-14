@@ -11,7 +11,11 @@ const {
   add, subtract, equals, makeVector, vectorTheta, multiply, floor,
 } = require('../utils/vectors');
 const {makeLocation} = require('../entities/location');
-const {makeDirt} = require('../entities/dirt');
+const {
+  makeEntityUnderMouse,
+  makeEntitiesInMarquee,
+  deleteEntitiesUnderMouse,
+} = require('../editor/palette');
 const {makePheromone} = require('../entities/pheromone');
 const {lookupInGrid} = require('../utils/stateHelpers');
 const {
@@ -121,23 +125,37 @@ const handleMouseMove = (
   canvasPos: Vector,
 ): void => {
   if (state.game.mouse.isLeftDown) {
-    if (state.editor != null && state.editor.editorMode == 'CREATE_ENTITY') {
-      const occupied = lookupInGrid(state.game.grid, gridPos)
-        .map(i => state.game.entities[i])
-        .filter(e => e.type == 'DIRT')
-        .length > 0;
-      if (!occupied) {
-        const entity = makeDirt(gridPos);
-        dispatch({type: 'CREATE_ENTITY', entity});
+    if (state.editor != null) {
+      const {editor} = state;
+      switch (editor.editorMode) {
+        case 'CREATE_ENTITY':
+          makeEntityUnderMouse(state, dispatch, editor.entityType, gridPos);
+          break;
+        case 'CREATE_LOCATION':
+          createLocation(game, dispatch, gridPos);
+          break;
+        case 'MARK_TRAIL':
+
+          break;
+        case 'DELETE_ENTITY':
+          deleteEntitiesUnderMouse(state, dispatch, gridPos);
+          break;
       }
-    } else if (state.game.userMode === 'MARK_TRAIL') {
       dispatch({type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos});
-      dragPheromoneTrail(state, dispatch, gridPos);
-    } else if (state.game.userMode === 'PAN') {
-      const dragDiffPixel = subtract(canvasPos, state.game.mouse.curPixel);
-      doPan(state, dispatch, gridPos, canvasPos, dragDiffPixel);
     } else {
-      dispatch({type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos});
+      switch (state.game.userMode) {
+        case 'MARK_TRAIL':
+          dispatch({type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos});
+          dragPheromoneTrail(state, dispatch, gridPos);
+          break;
+        case 'PAN':
+          const dragDiffPixel = subtract(canvasPos, state.game.mouse.curPixel);
+          doPan(state, dispatch, gridPos, canvasPos, dragDiffPixel);
+          break;
+        default:
+          dispatch({type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos});
+          break;
+      }
     }
   } else {
     dispatch({type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos});
@@ -244,8 +262,7 @@ const handleLeftClick = (
   } else {
     switch (editor.editorMode) {
       case 'CREATE_ENTITY':
-        const entity = makeDirt(gridPos);
-        dispatch({type: 'CREATE_ENTITY', entity});
+        makeEntityUnderMouse(state, dispatch, editor.entityType, gridPos);
         break;
       case 'CREATE_LOCATION':
         createLocation(game, dispatch, gridPos);
@@ -254,10 +271,10 @@ const handleLeftClick = (
 
         break;
       case 'MARQUEE_ENTITY':
-
+        makeEntitiesInMarquee(state, dispatch, editor.entityType);
         break;
       case 'DELETE_ENTITY':
-
+        deleteEntitiesUnderMouse(state, dispatch, gridPos);
         break;
     }
   }

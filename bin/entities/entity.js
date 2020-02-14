@@ -1,6 +1,7 @@
 'use strict';
 
-var nextID = 0;
+// HACK: adding to window so that importing a level can update it
+window.nextID = 0;
 
 var makeEntity = function makeEntity(type, width, height, position, toLift, theta, spriteSet) {
   return {

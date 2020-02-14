@@ -84,6 +84,7 @@ const tickReducer = (game: GameState, action: Action): GameState => {
       if (updateSim) {
         return handleTick(game);
       } else {
+        updateFoWVision(game);
         return game; // just ticking for rendering
       }
     }
