@@ -32,11 +32,17 @@ const rootReducer = (state: State, action: Action): State => {
         editor: {
           editorMode: 'CREATE_ENTITY',
           entityType: 'DIRT',
+          antSubType: 'QUEEN',
+          backgroundType: 'SKY',
+          allowDeleteBackground: true,
         }
       };
     }
     case 'SET_EDITOR_MODE':
     case 'SET_EDITOR_ENTITY':
+    case 'SET_EDITOR_ANT_SUBTYPE':
+    case 'SET_EDITOR_BACKGROUND_TYPE':
+    case 'SET_EDITOR_ALLOW_DELETE_BACKGROUND':
       if (!state.editor) return state;
       return {
         ...state,

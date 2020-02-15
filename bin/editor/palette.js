@@ -16,7 +16,7 @@ var makeEntityUnderMouse = function makeEntityUnderMouse(state, dispatch, entity
     return e.type == entityType;
   }).length > 0;
   if (!occupied) {
-    var entity = makeEntityByType(state.editor.entityType, gridPos);
+    var entity = makeEntityByType(state, state.editor.entityType, gridPos);
     dispatch({ type: 'CREATE_ENTITY', entity: entity });
   }
 };
@@ -45,6 +45,11 @@ var deleteEntitiesUnderMouse = function deleteEntitiesUnderMouse(state, dispatch
     for (var _iterator = ids[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
       var id = _step.value;
 
+      if (!state.editor.allowDeleteBackground) {
+        if (state.game.BACKGROUND.includes(id)) {
+          continue;
+        }
+      }
       dispatch({ type: 'DESTROY_ENTITY', id: id });
     }
   } catch (err) {

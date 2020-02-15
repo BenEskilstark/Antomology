@@ -19,7 +19,7 @@ var initSystems = function initSystems(store) {
     if (gameMode === 'MENU' && nextGameMode === 'GAME') {
       initRenderSystem(store);
       initMouseControlsSystem(store);
-      initFoodSpawnSystem(store);
+      // initFoodSpawnSystem(store);
       // const audio = document.getElementById('clayMusic1');
       // audio.play();
 

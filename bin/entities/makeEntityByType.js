@@ -41,12 +41,15 @@ var _require12 = require('../config'),
  * Meant to be used in level editor and so works only for "organic"
  * entity types (e.g. not locations or pheromones)
  */
-var makeEntityByType = function makeEntityByType(entityType, gridPos) {
+var makeEntityByType = function makeEntityByType(state, entityType, gridPos) {
+  if (state.editor == null) {
+    console.error('no editor state', state, entityType);
+  }
   switch (entityType) {
     case 'ANT':
-      return makeAnt(gridPos, 'QUEEN'); // TODO
+      return makeAnt(gridPos, state.editor.antSubType);
     case 'BACKGROUND':
-      return makeBackground(gridPos, 'SKY'); // TODO
+      return makeBackground(gridPos, state.editor.backgroundType);
     case 'DIRT':
       return makeDirt(gridPos);
     case 'EGG':

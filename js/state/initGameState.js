@@ -18,6 +18,7 @@ const {
 } = require('../utils/stateHelpers');
 const tasks = require('../state/tasks');
 const graphTasks = require('../state/graphTasks');
+const {level1} = require('../state/level1');
 
 import type {GameState} from '../types';
 
@@ -28,22 +29,17 @@ const initGameState = (level: number): GameState => {
     case 0:
       return level0();
     case 1:
-      return level1();
+      return {
+        ...level1(),
+        time: 0,
+        tickInterval: null,
+      };
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////
 // Levels
 ////////////////////////////////////////////////////////////////////////////
-
-const level1 = (): GameState => {
-  const game = baseState(100, 100);
-  addEntity(game, makeAnt({x: 25, y: 30}, 'QUEEN'));
-  addEntity(game, makeAnt({x: 20, y: 30}, 'WORKER'));
-  addEntity(game, makeAnt({x: 30, y: 30}, 'WORKER'));
-
-  return game;
-}
 
 const level0 = (): GameState => {
   const game = baseState(100, 100);

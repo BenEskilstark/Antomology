@@ -42,12 +42,18 @@ var rootReducer = function rootReducer(state, action) {
           }),
           editor: {
             editorMode: 'CREATE_ENTITY',
-            entityType: 'DIRT'
+            entityType: 'DIRT',
+            antSubType: 'QUEEN',
+            backgroundType: 'SKY',
+            allowDeleteBackground: true
           }
         });
       }
     case 'SET_EDITOR_MODE':
     case 'SET_EDITOR_ENTITY':
+    case 'SET_EDITOR_ANT_SUBTYPE':
+    case 'SET_EDITOR_BACKGROUND_TYPE':
+    case 'SET_EDITOR_ALLOW_DELETE_BACKGROUND':
       if (!state.editor) return state;
       return _extends({}, state, {
         editor: editorReducer(state.editor, action)

@@ -20,6 +20,30 @@ var editorReducer = function editorReducer(editor, action) {
           entityType: entityType
         });
       }
+    case 'SET_EDITOR_ANT_SUBTYPE':
+      {
+        var subType = action.subType;
+
+        return _extends({}, editor, {
+          antSubType: subType
+        });
+      }
+    case 'SET_EDITOR_BACKGROUND_TYPE':
+      {
+        var backgroundType = action.backgroundType;
+
+        return _extends({}, editor, {
+          backgroundType: backgroundType
+        });
+      }
+    case 'SET_EDITOR_ALLOW_DELETE_BACKGROUND':
+      {
+        var allow = action.allow;
+
+        return _extends({}, editor, {
+          allowDeleteBackground: allow
+        });
+      }
   }
 };
 

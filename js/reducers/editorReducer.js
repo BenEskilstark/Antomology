@@ -18,6 +18,27 @@ const editorReducer = (editor: EditorState, action: Action): EditorState => {
         entityType,
       };
     }
+    case 'SET_EDITOR_ANT_SUBTYPE': {
+      const {subType} = action;
+      return {
+        ...editor,
+        antSubType: subType,
+      };
+    }
+    case 'SET_EDITOR_BACKGROUND_TYPE': {
+      const {backgroundType} = action;
+      return {
+        ...editor,
+        backgroundType,
+      };
+    }
+    case 'SET_EDITOR_ALLOW_DELETE_BACKGROUND': {
+      const {allow} = action;
+      return {
+        ...editor,
+        allowDeleteBackground: allow,
+      };
+    }
   }
 };
 

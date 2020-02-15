@@ -14,7 +14,7 @@ const {makeStone} = require('../entities/stone');
 
 const {config} = require('../config');
 
-import type {EntityType, Vector} from '../types';
+import type {State, EntityType, Vector} from '../types';
 
 /**
  * Create a default entity of the given type at the given position.
@@ -22,13 +22,17 @@ import type {EntityType, Vector} from '../types';
  * entity types (e.g. not locations or pheromones)
  */
 const makeEntityByType = (
+  state: State,
   entityType: EntityType, gridPos: Vector,
 ): Entity => {
+  if (state.editor == null) {
+    console.error('no editor state', state, entityType);
+  }
   switch (entityType) {
     case 'ANT':
-      return makeAnt(gridPos, 'QUEEN'); // TODO
+      return makeAnt(gridPos, state.editor.antSubType);
     case 'BACKGROUND':
-      return makeBackground(gridPos, 'SKY'); // TODO
+      return makeBackground(gridPos, state.editor.backgroundType);
     case 'DIRT':
       return makeDirt(gridPos);
     case 'EGG':

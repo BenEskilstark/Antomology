@@ -44,6 +44,44 @@ function Sidebar(props) {
     }
   });
 
+  var backgroundPicker = React.createElement(
+    'div',
+    null,
+    React.createElement(Dropdown, {
+      noNoneOption: true,
+      options: ['SKY', 'DIRT'],
+      selected: editor.backgroundType,
+      onChange: function onChange(backgroundType) {
+        dispatch({ type: 'SET_EDITOR_BACKGROUND_TYPE', backgroundType: backgroundType });
+      }
+    })
+  );
+
+  var antSubTypePicker = React.createElement(
+    'div',
+    null,
+    React.createElement(Dropdown, {
+      noNoneOption: true,
+      options: ['QUEEN', 'WORKER'],
+      selected: editor.antSubType,
+      onChange: function onChange(subType) {
+        dispatch({ type: 'SET_EDITOR_ANT_SUBTYPE', subType: subType });
+      }
+    })
+  );
+
+  var allowDeleteBackgroundToggle = React.createElement(
+    'div',
+    null,
+    'Delete Background Too:',
+    React.createElement(Checkbox, {
+      checked: editor.allowDeleteBackground,
+      onChange: function onChange(allow) {
+        dispatch({ type: 'SET_EDITOR_ALLOW_DELETE_BACKGROUND', allow: allow });
+      }
+    })
+  );
+
   var _useState = useState(''),
       _useState2 = _slicedToArray(_useState, 2),
       importedGame = _useState2[0],
@@ -110,7 +148,10 @@ function Sidebar(props) {
           dispatch({ type: 'SET_EDITOR_MODE', editorMode: editorMode });
         }
       }),
-      editor.editorMode === 'CREATE_ENTITY' || editor.editorMode === 'MARQUEE_ENTITY' ? entityPicker : null
+      editor.editorMode === 'CREATE_ENTITY' || editor.editorMode === 'MARQUEE_ENTITY' ? entityPicker : null,
+      (editor.editorMode === 'CREATE_ENTITY' || editor.editorMode === 'MARQUEE_ENTITY') && editor.entityType === 'ANT' ? antSubTypePicker : null,
+      (editor.editorMode === 'CREATE_ENTITY' || editor.editorMode === 'MARQUEE_ENTITY') && editor.entityType === 'BACKGROUND' ? backgroundPicker : null,
+      editor.editorMode === 'DELETE_ENTITY' ? allowDeleteBackgroundToggle : null
     ),
     React.createElement(
       'div',

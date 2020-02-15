@@ -47,6 +47,44 @@ function Sidebar(props: {state: State, dispatch: Action => void}): React.Node {
     />
   );
 
+  const backgroundPicker = (
+    <div>
+      <Dropdown
+        noNoneOption={true}
+        options={['SKY', 'DIRT']}
+        selected={editor.backgroundType}
+        onChange={(backgroundType) => {
+          dispatch({type: 'SET_EDITOR_BACKGROUND_TYPE', backgroundType});
+        }}
+      />
+    </div>
+  );
+
+  const antSubTypePicker = (
+    <div>
+      <Dropdown
+        noNoneOption={true}
+        options={['QUEEN', 'WORKER']}
+        selected={editor.antSubType}
+        onChange={(subType) => {
+          dispatch({type: 'SET_EDITOR_ANT_SUBTYPE', subType});
+        }}
+      />
+    </div>
+  );
+
+  const allowDeleteBackgroundToggle = (
+    <div>
+      Delete Background Too:
+      <Checkbox
+        checked={editor.allowDeleteBackground}
+        onChange={(allow) => {
+          dispatch({type: 'SET_EDITOR_ALLOW_DELETE_BACKGROUND', allow});
+        }}
+      />
+    </div>
+  );
+
   const [importedGame, setImportedGame] = useState('');
 
   return (
@@ -100,6 +138,22 @@ function Sidebar(props: {state: State, dispatch: Action => void}): React.Node {
           editor.editorMode === 'CREATE_ENTITY' ||
           editor.editorMode === 'MARQUEE_ENTITY'
           ? entityPicker : null
+        }
+        {(
+            editor.editorMode === 'CREATE_ENTITY' ||
+            editor.editorMode === 'MARQUEE_ENTITY'
+          ) && editor.entityType === 'ANT'
+          ? antSubTypePicker : null
+        }
+        {(
+            editor.editorMode === 'CREATE_ENTITY' ||
+            editor.editorMode === 'MARQUEE_ENTITY'
+          ) && editor.entityType === 'BACKGROUND'
+          ? backgroundPicker : null
+        }
+        {
+          editor.editorMode === 'DELETE_ENTITY'
+          ? allowDeleteBackgroundToggle : null
         }
       </div>
       <div>

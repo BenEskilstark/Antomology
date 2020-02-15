@@ -39,6 +39,9 @@ var _require11 = require('../utils/stateHelpers'),
 var tasks = require('../state/tasks');
 var graphTasks = require('../state/graphTasks');
 
+var _require12 = require('../state/level1'),
+    level1 = _require12.level1;
+
 var initGameState = function initGameState(level) {
   switch (level) {
     case -1:
@@ -46,22 +49,16 @@ var initGameState = function initGameState(level) {
     case 0:
       return level0();
     case 1:
-      return level1();
+      return _extends({}, level1(), {
+        time: 0,
+        tickInterval: null
+      });
   }
 };
 
 ////////////////////////////////////////////////////////////////////////////
 // Levels
 ////////////////////////////////////////////////////////////////////////////
-
-var level1 = function level1() {
-  var game = baseState(100, 100);
-  addEntity(game, makeAnt({ x: 25, y: 30 }, 'QUEEN'));
-  addEntity(game, makeAnt({ x: 20, y: 30 }, 'WORKER'));
-  addEntity(game, makeAnt({ x: 30, y: 30 }, 'WORKER'));
-
-  return game;
-};
 
 var level0 = function level0() {
   var game = baseState(100, 100);

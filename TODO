@@ -3,16 +3,13 @@
  - still can add locations/pheromone trails
  - still can pan
  - palette for drawing out each entity type on mouse move
-    - allow specifying worker vs queen ant
-    - allow specifying sky vs background dirt
     - allow specifying dimensions of obelisk
     - mousedown creates entity, mouse move drags it, mouseup drops it in place
- - delete tool
-    - allow deleting only one layer at a time (e.g. ant but not background)
-    - allow locking entities/layers
  - ability to set world size
     - move viewport and fix zoom on making world smaller
- - action for making many entities at once fast
+ - action for making many entities at once faster
+ - exporting levels
+    - make level exports compressed somehow
 
 
  - - - - - - PHEROMONE GRAPH - - - - - -
@@ -64,6 +61,7 @@
 
 
  - - - - - - WORLD - - - - - -
+ - add obelisk target entity
  - fix food system to spawn larger food less frequently
  - grass entities that support ants but not dirt
  - big entities:

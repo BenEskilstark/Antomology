@@ -17,7 +17,7 @@ const makeEntityUnderMouse = (
     .filter(e => e.type == entityType)
     .length > 0;
   if (!occupied) {
-    const entity = makeEntityByType(state.editor.entityType, gridPos);
+    const entity = makeEntityByType(state, state.editor.entityType, gridPos);
     dispatch({type: 'CREATE_ENTITY', entity});
   }
 };
@@ -49,6 +49,11 @@ const deleteEntitiesUnderMouse = (
 ): void => {
   const ids = lookupInGrid(state.game.grid, gridPos);
   for (const id of ids) {
+    if (!state.editor.allowDeleteBackground) {
+      if (state.game.BACKGROUND.includes(id)) {
+        continue;
+      }
+    }
     dispatch({type: 'DESTROY_ENTITY', id});
   }
 };
