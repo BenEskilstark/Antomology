@@ -181,6 +181,8 @@ export type Pheromone = Entity & {
   category: number, // so there can be different kinds of trails
   quantity: number,
   edge: EdgeID,
+  prevPheromone: ?EntityID, // id of previous pheromone for the purpose
+                           // of following a trail backwards
 };
 export type Background = Entity & {
   subType: 'SKY' | 'DIRT'

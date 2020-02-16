@@ -110,8 +110,19 @@ var doAction = function doAction(game, ant, action) {
             return e.type === 'PHEROMONE';
           })[0];
           if (pheromone != null) {
-            var dir = obj === 'TRAIL' ? makeVector(pheromone.theta, 1) : makeVector(pheromone.theta + Math.PI, 1);
-            loc = { position: add(ant.position, dir) };
+            if (obj === 'REVERSE_TRAIL') {
+              if (pheromone.prevPheromone != null) {
+                var prevPheromone = game.entities[pheromone.prevPheromone];
+                var diff = subtract(prevPheromone.position, pheromone.position);
+                var dir = makeVector(vectorTheta(diff), 1);
+                loc = { position: add(ant.position, dir) };
+              } else {
+                obj = 'RANDOM';
+              }
+            } else {
+              var _dir = makeVector(pheromone.theta, 1);
+              loc = { position: add(ant.position, _dir) };
+            }
           } else {
             obj = 'RANDOM';
           }

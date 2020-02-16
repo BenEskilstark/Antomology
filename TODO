@@ -1,6 +1,5 @@
 
  - - - - - - LEVEL EDITOR - - - - - -
- - compile time is made ridiculuous by the level
  - still can add pheromone trails
  - still can pan
  - palette for drawing out each entity type on mouse move
@@ -47,7 +46,7 @@
  - dragging pheromone trails doesn't always work
  - sending an ant through a location causes it to switch tasks to that location
  - once pheromones are gone, remove them from the edges
- - following trails backwards doesn't allow turning corners
+ - ants can pickup stone when they block their pheromone trail
 
 
  - - - - - - LIFTNG BIG ENTITIES - - - - - -
@@ -146,3 +145,4 @@
  - antBlockingEntities should be renamed to moveBlockingEntities
  - passing around location names instead of ids is V dangerous
  - common function for ant switching tasks
+ - condition for whether to render marquee is ridiculously overcomplicated

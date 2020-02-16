@@ -108,7 +108,7 @@ const render = (state: State, ctx: any): void => {
     (state.editor != null && (
       state.editor.editorMode === 'MARQUEE_ENTITY' ||
       state.editor.editorMode === 'CREATE_LOCATION'))
-  ) {
+  )) {
     if (game.userMode === 'CREATE_LOCATION') {
       ctx.fillStyle = 'rgba(100, 100, 100, 0.25)';
     } else if (game.userMode === 'SELECT') {

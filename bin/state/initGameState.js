@@ -39,7 +39,7 @@ var _require11 = require('../utils/stateHelpers'),
 var tasks = require('../state/tasks');
 var graphTasks = require('../state/graphTasks');
 
-var _require12 = require('../state/level1'),
+var _require12 = require('../levels/level1'),
     level1 = _require12.level1;
 
 var initGameState = function initGameState(level) {
