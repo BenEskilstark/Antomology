@@ -1,6 +1,7 @@
 
  - - - - - - LEVEL EDITOR - - - - - -
- - still can add locations/pheromone trails
+ - compile time is made ridiculuous by the level
+ - still can add pheromone trails
  - still can pan
  - palette for drawing out each entity type on mouse move
     - allow specifying dimensions of obelisk
@@ -18,7 +19,7 @@
     - edges listed for locations should be selectable from there
     - locations listed for edges should be selectable
  - simulation
-    - implement conditional checking for outgoing edges
+    - implement conditional checking on outgoing edges
  - pheromone brush
     - picking up trails in the middle should cause 50/50 split
     - how to handle split trails in UI? As new location at split point?
@@ -61,7 +62,7 @@
 
 
  - - - - - - WORLD - - - - - -
- - add obelisk target entity
+ - add obelisk target entity for winning the level
  - fix food system to spawn larger food less frequently
  - grass entities that support ants but not dirt
  - big entities:
@@ -74,7 +75,7 @@
       their new location is seen
     - support partial rendering of big entities that are partially visible
  - black monolith
-    - gate other UI features behind having monolith selected
+    - treat monolith as a location
  - add other entities: beetles, worms, spiders, aphids
  - zooming:
     - configure min and max zoom
@@ -140,11 +141,8 @@
  - fix flow errors
  - MOVE action implementation sucks
  - get optional chaining working
- - state/tasks is disorganized
  - switch dead ants/larva to their own entity type
- - split out tickReducer
  - replace collides function with fastCollidesWith in tickReducer
  - antBlockingEntities should be renamed to moveBlockingEntities
- - fix or remove the concept of "blockers"
  - passing around location names instead of ids is V dangerous
  - common function for ant switching tasks

@@ -87,6 +87,14 @@ function Sidebar(props: {state: State, dispatch: Action => void}): React.Node {
 
   const [importedGame, setImportedGame] = useState('');
 
+  const locationNameField = (
+    <input type="text" value={game.nextLocationName}
+      onChange={(ev) => {
+        dispatch({type: 'UPDATE_NEXT_LOCATION_NAME', name: ev.target.value});
+      }}
+    />
+  );
+
   return (
     <div
       style={{
@@ -154,6 +162,10 @@ function Sidebar(props: {state: State, dispatch: Action => void}): React.Node {
         {
           editor.editorMode === 'DELETE_ENTITY'
           ? allowDeleteBackgroundToggle : null
+        }
+        {
+          editor.editorMode === 'CREATE_LOCATION'
+          ? locationNameField : null
         }
       </div>
       <div>

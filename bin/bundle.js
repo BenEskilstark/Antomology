@@ -3814,9 +3814,6 @@ var handleMouseMove = function handleMouseMove(state, dispatch, gridPos, canvasP
         case 'CREATE_ENTITY':
           makeEntityUnderMouse(state, dispatch, editor.entityType, gridPos);
           break;
-        case 'CREATE_LOCATION':
-          createLocation(game, dispatch, gridPos);
-          break;
         case 'MARK_TRAIL':
 
           break;
@@ -5256,6 +5253,12 @@ function Sidebar(props) {
       importedGame = _useState2[0],
       setImportedGame = _useState2[1];
 
+  var locationNameField = React.createElement('input', { type: 'text', value: game.nextLocationName,
+    onChange: function onChange(ev) {
+      dispatch({ type: 'UPDATE_NEXT_LOCATION_NAME', name: ev.target.value });
+    }
+  });
+
   return React.createElement(
     'div',
     {
@@ -5320,7 +5323,8 @@ function Sidebar(props) {
       editor.editorMode === 'CREATE_ENTITY' || editor.editorMode === 'MARQUEE_ENTITY' ? entityPicker : null,
       (editor.editorMode === 'CREATE_ENTITY' || editor.editorMode === 'MARQUEE_ENTITY') && editor.entityType === 'ANT' ? antSubTypePicker : null,
       (editor.editorMode === 'CREATE_ENTITY' || editor.editorMode === 'MARQUEE_ENTITY') && editor.entityType === 'BACKGROUND' ? backgroundPicker : null,
-      editor.editorMode === 'DELETE_ENTITY' ? allowDeleteBackgroundToggle : null
+      editor.editorMode === 'DELETE_ENTITY' ? allowDeleteBackgroundToggle : null,
+      editor.editorMode === 'CREATE_LOCATION' ? locationNameField : null
     ),
     React.createElement(
       'div',
@@ -37823,7 +37827,7 @@ function createStore(reducer, preloadedState, enhancer) {
     }
 
     if (isDispatching) {
-      throw new Error('You may not call store.subscribe() while the reducer is executing. ' + 'If you would like to be notified after the store has been updated, subscribe from a ' + 'component and invoke store.getState() in the callback to access the latest state. ' + 'See https://redux.js.org/api-reference/store#subscribelistener for more details.');
+      throw new Error('You may not call store.subscribe() while the reducer is executing. ' + 'If you would like to be notified after the store has been updated, subscribe from a ' + 'component and invoke store.getState() in the callback to access the latest state. ' + 'See https://redux.js.org/api-reference/store#subscribe(listener) for more details.');
     }
 
     var isSubscribed = true;
@@ -37835,14 +37839,13 @@ function createStore(reducer, preloadedState, enhancer) {
       }
 
       if (isDispatching) {
-        throw new Error('You may not unsubscribe from a store listener while the reducer is executing. ' + 'See https://redux.js.org/api-reference/store#subscribelistener for more details.');
+        throw new Error('You may not unsubscribe from a store listener while the reducer is executing. ' + 'See https://redux.js.org/api-reference/store#subscribe(listener) for more details.');
       }
 
       isSubscribed = false;
       ensureCanMutateNextListeners();
       var index = nextListeners.indexOf(listener);
       nextListeners.splice(index, 1);
-      currentListeners = null;
     };
   }
   /**
@@ -38144,7 +38147,6 @@ function combineReducers(reducers) {
       hasChanged = hasChanged || nextStateForKey !== previousStateForKey;
     }
 
-    hasChanged = hasChanged || finalReducerKeys.length !== Object.keys(state).length;
     return hasChanged ? nextState : state;
   };
 }

@@ -87,6 +87,12 @@ function Sidebar(props) {
       importedGame = _useState2[0],
       setImportedGame = _useState2[1];
 
+  var locationNameField = React.createElement('input', { type: 'text', value: game.nextLocationName,
+    onChange: function onChange(ev) {
+      dispatch({ type: 'UPDATE_NEXT_LOCATION_NAME', name: ev.target.value });
+    }
+  });
+
   return React.createElement(
     'div',
     {
@@ -151,7 +157,8 @@ function Sidebar(props) {
       editor.editorMode === 'CREATE_ENTITY' || editor.editorMode === 'MARQUEE_ENTITY' ? entityPicker : null,
       (editor.editorMode === 'CREATE_ENTITY' || editor.editorMode === 'MARQUEE_ENTITY') && editor.entityType === 'ANT' ? antSubTypePicker : null,
       (editor.editorMode === 'CREATE_ENTITY' || editor.editorMode === 'MARQUEE_ENTITY') && editor.entityType === 'BACKGROUND' ? backgroundPicker : null,
-      editor.editorMode === 'DELETE_ENTITY' ? allowDeleteBackgroundToggle : null
+      editor.editorMode === 'DELETE_ENTITY' ? allowDeleteBackgroundToggle : null,
+      editor.editorMode === 'CREATE_LOCATION' ? locationNameField : null
     ),
     React.createElement(
       'div',
