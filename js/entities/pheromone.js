@@ -10,6 +10,7 @@ const makePheromone = (
   theta: Radian,
   category: number,
   edge: EdgeID,
+  prevPheromone: ?EntityID,
   quantity: ?number,
 ): Pheromone => {
   const amount = quantity != null ? quantity : config.pheromoneStartingQuantity;
@@ -18,6 +19,7 @@ const makePheromone = (
     theta,
     category,
     quantity: amount,
+    prevPheromone,
     edge,
     visible: true,
   };

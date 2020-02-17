@@ -18,7 +18,7 @@ const {
 } = require('../utils/stateHelpers');
 const tasks = require('../state/tasks');
 const graphTasks = require('../state/graphTasks');
-const {level1} = require('../state/level1');
+const {level1} = require('../levels/level1');
 
 import type {GameState} from '../types';
 

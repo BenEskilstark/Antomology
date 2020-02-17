@@ -8,12 +8,13 @@ var _require = require('./entity'),
 var _require2 = require('../config'),
     config = _require2.config;
 
-var makePheromone = function makePheromone(position, theta, category, edge, quantity) {
+var makePheromone = function makePheromone(position, theta, category, edge, prevPheromone, quantity) {
   var amount = quantity != null ? quantity : config.pheromoneStartingQuantity;
   return _extends({}, makeEntity('PHEROMONE', 1, 1, position), {
     theta: theta,
     category: category,
     quantity: amount,
+    prevPheromone: prevPheromone,
     edge: edge,
     visible: true
   });

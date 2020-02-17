@@ -199,7 +199,7 @@ const dragPheromoneTrail = (
   if (prevPheromone == null) {
     dispatch({
       type: 'CREATE_ENTITY',
-      entity: makePheromone(gridPos, 0 /* theta */, 1, state.game.curEdge),
+      entity: makePheromone(gridPos, 0 /* theta */, 1, state.game.curEdge, null),
     });
     return;
   }
@@ -223,7 +223,9 @@ const dragPheromoneTrail = (
       cursor.y += diff.y / Math.abs(diff.y);
     }
     const theta = vectorTheta(subtract(cursor, prevPos));
-    const curPheromone = makePheromone({...cursor}, theta, 1, state.game.curEdge);
+    const curPheromone = makePheromone(
+      {...cursor}, theta, 1, state.game.curEdge, prevPheromoneID,
+    );
     dispatch({
       type: 'CREATE_ENTITY',
       entity: curPheromone,

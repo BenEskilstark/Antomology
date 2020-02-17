@@ -96,10 +96,19 @@ const doAction = (
           .map(id => game.entities[id])
           .filter(e => e.type === 'PHEROMONE')[0];
         if (pheromone != null) {
-          const dir = obj === 'TRAIL'
-           ? makeVector(pheromone.theta, 1)
-           : makeVector(pheromone.theta + Math.PI, 1);
-          loc = {position: add(ant.position, dir)};
+          if (obj === 'REVERSE_TRAIL') {
+            if (pheromone.prevPheromone != null) {
+              const prevPheromone = game.entities[pheromone.prevPheromone];
+              const diff = subtract(prevPheromone.position, pheromone.position);
+              const dir = makeVector(vectorTheta(diff), 1)
+              loc = {position: add(ant.position, dir)};
+            } else {
+              obj = 'RANDOM';
+            }
+          } else {
+            const dir = makeVector(pheromone.theta, 1)
+            loc = {position: add(ant.position, dir)};
+          }
         } else {
           obj = 'RANDOM';
         }
