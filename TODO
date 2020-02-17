@@ -1,4 +1,17 @@
 
+
+ - - - - - - BUGS - - - - - -
+ - ants sometimes don't fall when at clicked position
+ - make pheromone trails visible so their theta is sensible
+ - groups of ants can ignore gravity by climbing on each other
+ - ants that are falling and trying to go to a clicked location above them
+   will hover in air
+ - picked-up pupa never hatch and then die on putdown. Should just wait to hatch
+ - dragging pheromone trails doesn't always work
+ - sending an ant through a location causes it to switch tasks to that location
+ - once pheromones are gone, remove them from the edges
+
+
  - - - - - - LEVEL EDITOR - - - - - -
  - compile time is made ridiculuous by the level
  - still can add pheromone trails
@@ -37,17 +50,6 @@
     - ants that lay trails themselves
     - tool for clearing pheromone
     - support categories of pheromone you can select and have different colors
-
-
- - - - - - - BUGS - - - - - -
- - groups of ants can ignore gravity by climbing on each other
- - ants that are falling and trying to go to a clicked location above them
-   will hover in air
- - picked-up pupa never hatch and then die on putdown. Should just wait to hatch
- - dragging pheromone trails doesn't always work
- - sending an ant through a location causes it to switch tasks to that location
- - once pheromones are gone, remove them from the edges
- - following trails backwards doesn't allow turning corners
 
 
  - - - - - - LIFTNG BIG ENTITIES - - - - - -
