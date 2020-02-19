@@ -1,31 +1,28 @@
 
 
- - - - - - - BUGS - - - - - -
- - ants sometimes don't fall when at clicked position
- - make pheromone trails visible so their theta is sensible
- - groups of ants can ignore gravity by climbing on each other
- - ants that are falling and trying to go to a clicked location above them
-   will hover in air
- - picked-up pupa never hatch and then die on putdown. Should just wait to hatch
- - dragging pheromone trails doesn't always work
- - sending an ant through a location causes it to switch tasks to that location
+ - - - - - - UI / UX - - - - - -
+ - set userMode back to select after creating pheromone/location
+ - move pan to some other control
+ - left-click-and-drag seems overloaded with functionality
+ - add pause functionality/button
+ - change cursor based on userMode
+ - Call out ants near death of old age
+ - saving with local storage
+ - prevent accidental click-and-drag text selection
+ - audio system
+ - let cmd/ctrl + left click == right click
+ - zoom to mouse instead of center of screen
+
+
+- - - - - - PHEROMONE GRAPH - - - - - -
  - once pheromones are gone, remove them from the edges
-
-
- - - - - - - LEVEL EDITOR - - - - - -
- - still can add pheromone trails
- - still can pan
- - palette for drawing out each entity type on mouse move
-    - allow specifying dimensions of obelisk
-    - mousedown creates entity, mouse move drags it, mouseup drops it in place
- - ability to set world size
-    - move viewport and fix zoom on making world smaller
- - action for making many entities at once faster
- - exporting levels
-    - make level exports compressed somehow
-
-
- - - - - - - PHEROMONE GRAPH - - - - - -
+ - location tasks UX
+    - feed higher level task should allow specifying target type (larva, any, queen)
+    - remove "towards:" dropdown for MOVE high level action
+    - EAT shows NONE dropdown
+    - LAY shows NONE dropdown
+    - IDLE shows NONE dropdown
+    - PUTDOWN shows NONE dropdown
  - sidebar UI
     - conditionals that are addable/editable
     - edges listed for locations should be selectable from there
@@ -35,13 +32,10 @@
  - pheromone brush
     - picking up trails in the middle should cause 50/50 split
     - how to handle split trails in UI? As new location at split point?
- - location tasks UX
-    - remove "towards:" dropdown for MOVE high level action
  - world UX
     - call out disconnected edges
     - show pheromone level of trails
  - "edge" cases
-    - queen laying eggs
     - food search random walk
  - future features
     - pheromones fading vs being permanent
@@ -51,18 +45,8 @@
     - support categories of pheromone you can select and have different colors
 
 
- - - - - - - LIFTNG BIG ENTITIES - - - - - -
- - picking up:
-    - ants should put down when they are re-assigned/go away
-    - dead ants shouldn't count towards held
- - moving:
-    - ants need to be able to push held entity up against gravity
-    - how to compute ants falling off
- - putting down:
-    - ants should get out of the way and let it fall
-
-
  - - - - - - WORLD - - - - - -
+ - make un-pickup-able entity that also doesn't obey gravity
  - add obelisk target entity for winning the level
  - fix food system to spawn larger food less frequently
  - grass entities that support ants but not dirt
@@ -78,15 +62,23 @@
  - black monolith
     - treat monolith as a location
  - add other entities: beetles, worms, spiders, aphids
+ - compute old-age death for ants
  - zooming:
     - configure min and max zoom
     - screen size in grid cells should be on the state, not the config
 
 
- - - - - - - ANTS - - - - - -
- - compute old-age death for ants
- - make location position in center instead of top left for moving towards
- - A*-like for ants moving towards location?
+ - - - - - - LEVEL EDITOR - - - - - -
+ - still can add pheromone trails
+ - still can pan
+ - palette for drawing out each entity type on mouse move
+    - allow specifying dimensions of obelisk
+    - mousedown creates entity, mouse move drags it, mouseup drops it in place
+ - ability to set world size
+    - move viewport and fix zoom on making world smaller
+ - action for making many entities at once faster
+ - exporting levels
+    - make level exports compressed somehow
 
 
  - - - - - - TASK EDITOR - - - - - -
@@ -97,22 +89,27 @@
 
 
  - - - - - - LEVELS - - - - - -
- - tasks etc. should be initialized in all levels
  - init systems should be inside level creation
- - specific level with some story component
 
 
- - - - - - - UI / UX - - - - - -
- - Add a bunch of tasks to default tasks
- - left-click-and-drag seems overloaded with functionality
- - add pause functionality/button
- - change cursor based on userMode
- - Call out ants near death of old age
- - saving with local storage
- - prevent accidental click-and-drag text selection
- - audio system
- - let cmd/ctrl + left click == right click
- - zoom to mouse instead of center of screen
+ - - - - - - - BUGS - - - - - - -
+ - only do action (putdown, lay) one additional space inside location to prevent blocking
+ - sending an ant through a location causes it to switch tasks to that location
+ - feeding an ant ignores max calories
+ - picked-up pupa never hatch and then die on putdown. Should just wait to hatch
+ - groups of ants can ignore gravity by climbing on each other
+ - ants sometimes don't fall when at clicked position
+
+
+ - - - - - - LIFTNG BIG ENTITIES - - - - - -
+ - picking up:
+    - ants should put down when they are re-assigned/go away
+    - dead ants shouldn't count towards held
+ - moving:
+    - ants need to be able to push held entity up against gravity
+    - how to compute ants falling off
+ - putting down:
+    - ants should get out of the way and let it fall
 
 
  - - - - - - RENDERING - - - - - -

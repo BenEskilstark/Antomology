@@ -19,6 +19,7 @@ const {
 const tasks = require('../state/tasks');
 const graphTasks = require('../state/graphTasks');
 const {level1} = require('../levels/level1');
+const {level2} = require('../levels/level2');
 
 import type {GameState} from '../types';
 
@@ -31,6 +32,12 @@ const initGameState = (level: number): GameState => {
     case 1:
       return {
         ...level1(),
+        time: 0,
+        tickInterval: null,
+      };
+    case 2:
+      return {
+        ...level2(),
         time: 0,
         tickInterval: null,
       };

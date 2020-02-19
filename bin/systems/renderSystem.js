@@ -77,6 +77,9 @@ var render = function render(state, ctx) {
       var _id = _step.value;
 
       var _entity = game.entities[_id];
+      if (!_entity.position) {
+        console.log("entity with no position:", _entity);
+      }
       if (!onScreen(game, _entity.position)) continue;
 
       renderEntity(state, ctx, _entity);

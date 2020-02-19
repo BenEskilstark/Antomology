@@ -62,6 +62,9 @@ const render = (state: State, ctx: any): void => {
   // sky first
   for (const id of game.BACKGROUND) {
     const entity = game.entities[id];
+    if (!entity.position) {
+      console.log("entity with no position:", entity);
+    }
     if (!onScreen(game, entity.position)) continue;
 
     renderEntity(state, ctx, entity);

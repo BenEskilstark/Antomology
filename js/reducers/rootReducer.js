@@ -15,10 +15,19 @@ const rootReducer = (state: State, action: Action): State => {
   switch (action.type) {
     case 'START': {
       const {level} = action;
+      const game = initGameState(level);
+      let maxEntityID = 0;
+      for (const id in game.entities) {
+        if (id > maxEntityID) {
+          maxEntityID = id;
+        }
+      }
+      // HACK: available from entities/entity via window
+      nextID = maxEntityID + 1;
       return {
         ...state,
         mode: 'GAME',
-        game: initGameState(level),
+        game,
       };
     }
     case 'START_EDITOR': {

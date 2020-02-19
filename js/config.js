@@ -44,7 +44,7 @@ const config = {
   antMaxCalories: 6000,
   antStarvationWarningThreshold: 0.3,
 
-  // life-cycle relatedA
+  // life-cycle related
   eggLayingCooldown: 50,
   antMaxAge: 10000,
   eggHatchAge: 300,

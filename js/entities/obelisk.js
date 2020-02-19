@@ -9,6 +9,7 @@ const makeObelisk = (position: Vector, width: number, height: number): Obelisk =
     ...makeEntity('OBELISK', width, height, position),
     theta: 0,
     toLift: 6,
+    visible: true,
   };
 };
 

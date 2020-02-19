@@ -28,9 +28,18 @@ var rootReducer = function rootReducer(state, action) {
       {
         var level = action.level;
 
+        var _game = initGameState(level);
+        var _maxEntityID = 0;
+        for (var id in _game.entities) {
+          if (id > _maxEntityID) {
+            _maxEntityID = id;
+          }
+        }
+        // HACK: available from entities/entity via window
+        nextID = _maxEntityID + 1;
         return _extends({}, state, {
           mode: 'GAME',
-          game: initGameState(level)
+          game: _game
         });
       }
     case 'START_EDITOR':
@@ -72,9 +81,9 @@ var rootReducer = function rootReducer(state, action) {
       var game = action.game;
 
       var maxEntityID = 0;
-      for (var id in game.entities) {
-        if (id > maxEntityID) {
-          maxEntityID = id;
+      for (var _id in game.entities) {
+        if (_id > maxEntityID) {
+          maxEntityID = _id;
         }
       }
       // HACK: available from entities/entity via window

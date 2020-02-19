@@ -120,14 +120,10 @@ var performBehavior = function performBehavior(game, ant, behavior) {
       {
         var childBehavior = behavior.behavior;
         if (evaluateCondition(game, ant, behavior.condition)) {
-          performBehavior(game, ant, childBehavior);
+          done = performBehavior(game, ant, childBehavior);
         } else if (behavior.elseBehavior != null) {
-          performBehavior(game, ant, behavior.elseBehavior);
+          done = performBehavior(game, ant, behavior.elseBehavior);
         }
-        // TODO support nested execution
-        // if (childBehavior.done) {
-        done = true;
-        // }
         break;
       }
     case 'WHILE':

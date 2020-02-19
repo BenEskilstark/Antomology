@@ -153,20 +153,20 @@ function transitionBehavior(behavior: Behavior, newType: string): Behavior {
         },
       }
       newBehavior.behavior = {
-        type: 'DO_ACTION',
+        type: 'DO_HIGH_LEVEL_ACTION',
         action: {
-          type: 'IDLE',
+          type: 'MOVE',
           payload: {
-            object: null,
+            object: 'RANDOM',
           },
         },
       }
       newBehavior.elseBehavior = {
-        type: 'DO_ACTION',
+        type: 'DO_HIGH_LEVEL_ACTION',
         action: {
-          type: 'IDLE',
+          type: 'MOVE',
           payload: {
-            object: null,
+            object: 'RANDOM',
           },
         },
       }

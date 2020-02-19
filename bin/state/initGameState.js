@@ -42,6 +42,9 @@ var graphTasks = require('../state/graphTasks');
 var _require12 = require('../levels/level1'),
     level1 = _require12.level1;
 
+var _require13 = require('../levels/level2'),
+    level2 = _require13.level2;
+
 var initGameState = function initGameState(level) {
   switch (level) {
     case -1:
@@ -50,6 +53,11 @@ var initGameState = function initGameState(level) {
       return level0();
     case 1:
       return _extends({}, level1(), {
+        time: 0,
+        tickInterval: null
+      });
+    case 2:
+      return _extends({}, level2(), {
         time: 0,
         tickInterval: null
       });

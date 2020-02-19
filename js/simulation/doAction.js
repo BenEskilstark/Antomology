@@ -445,6 +445,7 @@ const doHighLevelAction = (
       if (!ant.holding || ant.holding.type != 'FOOD') {
         done = true;
       } else {
+        doAction(game, ant, {type: 'FEED', payload: {object: null}});
         doAction(
           game, ant,
           {
@@ -452,8 +453,8 @@ const doHighLevelAction = (
             payload: {object: 'RANDOM', constraint: ant.location}
           },
         );
-        doAction(game, ant, {type: 'FEED', payload: {object: null}});
       }
+      break;
     }
     case 'EAT': {
       const startCalories = ant.calories;
@@ -468,7 +469,19 @@ const doHighLevelAction = (
       if (ant.calories > startCalories) {
         done = true;
       }
+      break;
     }
+    case 'LAY': {
+      doAction(
+        game, ant,
+        {
+          type: 'MOVE',
+          payload: {object: 'RANDOM', constraint: ant.location}
+        },
+      );
+      doAction(game, ant, {type: 'LAY', payload: {object: null}});
+    }
+      break;
   }
   return done;
 };

@@ -507,12 +507,13 @@ var doHighLevelAction = function doHighLevelAction(game, ant, action) {
         if (!ant.holding || ant.holding.type != 'FOOD') {
           done = true;
         } else {
+          doAction(game, ant, { type: 'FEED', payload: { object: null } });
           doAction(game, ant, {
             type: 'MOVE',
             payload: { object: 'RANDOM', constraint: ant.location }
           });
-          doAction(game, ant, { type: 'FEED', payload: { object: null } });
         }
+        break;
       }
     case 'EAT':
       {
@@ -525,7 +526,17 @@ var doHighLevelAction = function doHighLevelAction(game, ant, action) {
         if (ant.calories > startCalories) {
           done = true;
         }
+        break;
       }
+    case 'LAY':
+      {
+        doAction(game, ant, {
+          type: 'MOVE',
+          payload: { object: 'RANDOM', constraint: ant.location }
+        });
+        doAction(game, ant, { type: 'LAY', payload: { object: null } });
+      }
+      break;
   }
   return done;
 };

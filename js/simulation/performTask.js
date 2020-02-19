@@ -106,14 +106,10 @@ const performBehavior = (game: GameState, ant: Ant, behavior: Behavior): boolean
     case 'IF': {
       const childBehavior = behavior.behavior;
       if (evaluateCondition(game, ant, behavior.condition)) {
-        performBehavior(game, ant, childBehavior);
+        done = performBehavior(game, ant, childBehavior);
       } else if (behavior.elseBehavior != null) {
-        performBehavior(game, ant, behavior.elseBehavior);
+        done = performBehavior(game, ant, behavior.elseBehavior);
       }
-      // TODO support nested execution
-      // if (childBehavior.done) {
-      done = true;
-      // }
       break;
     }
     case 'WHILE': {
