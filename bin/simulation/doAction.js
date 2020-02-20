@@ -41,7 +41,8 @@ var _require6 = require('../utils/stateHelpers'),
     changeEntityType = _require6.changeEntityType,
     pickUpEntity = _require6.pickUpEntity,
     putDownEntity = _require6.putDownEntity,
-    maybeMoveEntity = _require6.maybeMoveEntity;
+    maybeMoveEntity = _require6.maybeMoveEntity,
+    antEatEntity = _require6.antEatEntity;
 
 var _require7 = require('../selectors/selectors'),
     fastCollidesWith = _require7.fastCollidesWith,
@@ -345,55 +346,79 @@ var doAction = function doAction(game, ant, action) {
           })[0];
         }
         if (entityToEat == null) break;
-
-        var caloriesEaten = Math.min(config.antCaloriesPerEat, entityToEat.calories, config.antMaxCalories - ant.calories);
-        ant.calories += caloriesEaten;
-        entityToEat.calories -= caloriesEaten;
-        // remove the food item if it has no more calories
-        if (entityToEat.calories <= 0) {
-          removeEntity(game, entityToEat);
-        }
+        antEatEntity(game, ant, entityToEat);
         break;
       }
     case 'FEED':
       {
+        var typeToFeed = object;
+        console.log(typeToFeed);
         var feedableEntities = fastGetNeighbors(game, ant).filter(function (e) {
           return ['ANT', 'LARVA'].includes(e.type);
         });
         if (ant.holding != null && ant.holding.type === 'FOOD' && feedableEntities.length > 0) {
-          // prefer to feed larva if possible
           var fedEntity = oneOf(feedableEntities);
-          var _iteratorNormalCompletion3 = true;
-          var _didIteratorError3 = false;
-          var _iteratorError3 = undefined;
+          if (typeToFeed === 'LARVA') {
+            var _iteratorNormalCompletion3 = true;
+            var _didIteratorError3 = false;
+            var _iteratorError3 = undefined;
 
-          try {
-            for (var _iterator3 = feedableEntities[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-              var e = _step3.value;
+            try {
+              for (var _iterator3 = feedableEntities[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                var e = _step3.value;
 
-              if (e.type === 'LARVA') {
-                fedEntity = e;
-                break;
+                if (e.type === 'LARVA') {
+                  fedEntity = e;
+                  break;
+                }
+              }
+            } catch (err) {
+              _didIteratorError3 = true;
+              _iteratorError3 = err;
+            } finally {
+              try {
+                if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                  _iterator3.return();
+                }
+              } finally {
+                if (_didIteratorError3) {
+                  throw _iteratorError3;
+                }
               }
             }
-          } catch (err) {
-            _didIteratorError3 = true;
-            _iteratorError3 = err;
-          } finally {
+          } else if (typeToFeed === 'QUEEN') {
+            var _iteratorNormalCompletion4 = true;
+            var _didIteratorError4 = false;
+            var _iteratorError4 = undefined;
+
             try {
-              if (!_iteratorNormalCompletion3 && _iterator3.return) {
-                _iterator3.return();
+              for (var _iterator4 = feedableEntities[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                var _e = _step4.value;
+
+                if (_e.subType === 'QUEEN') {
+                  fedEntity = _e;
+                  break;
+                }
               }
+            } catch (err) {
+              _didIteratorError4 = true;
+              _iteratorError4 = err;
             } finally {
-              if (_didIteratorError3) {
-                throw _iteratorError3;
+              try {
+                if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                  _iterator4.return();
+                }
+              } finally {
+                if (_didIteratorError4) {
+                  throw _iteratorError4;
+                }
               }
             }
           }
-
-          fedEntity.calories += ant.holding.calories;
-          removeEntity(game, ant.holding);
-          ant.holding = null;
+          var ateAll = antEatEntity(game, fedEntity, ant.holding);
+          if (ateAll) {
+            ant.holding = null;
+          }
         }
         break;
       }
@@ -507,7 +532,7 @@ var doHighLevelAction = function doHighLevelAction(game, ant, action) {
         if (!ant.holding || ant.holding.type != 'FOOD') {
           done = true;
         } else {
-          doAction(game, ant, { type: 'FEED', payload: { object: null } });
+          doAction(game, ant, { type: 'FEED', payload: { object: object } });
           doAction(game, ant, {
             type: 'MOVE',
             payload: { object: 'RANDOM', constraint: ant.location }

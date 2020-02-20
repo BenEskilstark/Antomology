@@ -157,6 +157,18 @@ function putDownEntity(game, ant) {
   ant.leadHolder = false;
 }
 
+// returns whether toEat was eaten entirely
+function antEatEntity(game, ant, toEat) {
+  var caloriesEaten = Math.min(config.antCaloriesPerEat, toEat.calories, config.antMaxCalories - ant.calories);
+  ant.calories += caloriesEaten;
+  toEat.calories -= caloriesEaten;
+  if (toEat.calories <= 0) {
+    removeEntity(game, toEat);
+    return true;
+  }
+  return false;
+}
+
 ////////////////////////////////////////////////////////////////////////
 // Validated Entity Functions
 ////////////////////////////////////////////////////////////////////////
@@ -210,6 +222,7 @@ module.exports = {
   changeEntityType: changeEntityType,
   pickUpEntity: pickUpEntity,
   putDownEntity: putDownEntity,
+  antEatEntity: antEatEntity,
 
   maybeMoveEntity: maybeMoveEntity
 };

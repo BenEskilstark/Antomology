@@ -134,6 +134,24 @@ function putDownEntity(
   ant.leadHolder = false;
 }
 
+// returns whether toEat was eaten entirely
+function antEatEntity(
+  game: GameState, ant: Ant, toEat: Entity,
+): boolean {
+  const caloriesEaten = Math.min(
+    config.antCaloriesPerEat,
+    toEat.calories,
+    config.antMaxCalories - ant.calories,
+  );
+  ant.calories += caloriesEaten;
+  toEat.calories -= caloriesEaten;
+  if (toEat.calories <= 0) {
+    removeEntity(game, toEat);
+    return true;
+  }
+  return false;
+}
+
 ////////////////////////////////////////////////////////////////////////
 // Validated Entity Functions
 ////////////////////////////////////////////////////////////////////////
@@ -189,6 +207,7 @@ module.exports = {
   changeEntityType,
   pickUpEntity,
   putDownEntity,
+  antEatEntity,
 
   maybeMoveEntity,
 }

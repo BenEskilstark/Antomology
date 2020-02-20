@@ -11,6 +11,9 @@ var _require2 = require('./foodSpawnSystem'),
 var _require3 = require('./mouseControlsSystem'),
     initMouseControlsSystem = _require3.initMouseControlsSystem;
 
+var _require4 = require('./keyboardControlsSystem'),
+    initKeyboardControlsSystem = _require4.initKeyboardControlsSystem;
+
 var initSystems = function initSystems(store) {
   var gameMode = store.getState().mode;
   store.subscribe(function () {
@@ -19,6 +22,7 @@ var initSystems = function initSystems(store) {
     if (gameMode === 'MENU' && nextGameMode === 'GAME') {
       initRenderSystem(store);
       initMouseControlsSystem(store);
+      initKeyboardControlsSystem(store);
       // initFoodSpawnSystem(store);
       // const audio = document.getElementById('clayMusic1');
       // audio.play();
@@ -27,6 +31,7 @@ var initSystems = function initSystems(store) {
     } else if (gameMode === 'MENU' && nextGameMode === 'EDITOR') {
       initRenderSystem(store);
       initMouseControlsSystem(store);
+      initKeyboardControlsSystem(store);
     }
 
     gameMode = nextGameMode;

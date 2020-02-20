@@ -303,6 +303,14 @@ var gameReducer = function gameReducer(game, action) {
           viewPos: viewPos
         });
       }
+    case 'SET_KEY_PRESS':
+      {
+        var dir = action.dir,
+            pressed = action.pressed;
+
+        game.arrowKeys[dir] = pressed;
+        return game;
+      }
     case 'ZOOM':
       {
         var out = action.out;

@@ -102,6 +102,7 @@ var tickReducer = function tickReducer(game, action) {
         var _updateSim = action.updateSim;
 
         game.time += 1;
+        handlePan(game);
         if (_updateSim) {
           return handleTick(game);
         } else {
@@ -111,6 +112,26 @@ var tickReducer = function tickReducer(game, action) {
       }
   }
   return game;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// Handle Pan
+///////////////////////////////////////////////////////////////////////////////
+var handlePan = function handlePan(game) {
+  var nextViewPos = _extends({}, game.viewPos);
+  if (game.arrowKeys.up) {
+    nextViewPos.y += 1;
+  }
+  if (game.arrowKeys.down) {
+    nextViewPos.y -= 1;
+  }
+  if (game.arrowKeys.left) {
+    nextViewPos.x -= 1;
+  }
+  if (game.arrowKeys.right) {
+    nextViewPos.x += 1;
+  }
+  game.viewPos = nextViewPos;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

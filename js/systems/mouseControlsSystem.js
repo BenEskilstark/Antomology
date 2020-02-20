@@ -37,6 +37,7 @@ const initMouseControlsSystem = (store) => {
       dispatch({type: 'SET_VIEW_POS', viewPos: floor(state.game.viewPos)});
       if (gridPos == null) return;
       handleLeftClick(state, dispatch, gridPos);
+      dispatch({type: 'SET_USER_MODE', userMode: 'SELECT'});
     } else if (ev.button == 2) { // right click
       dispatch({type: 'SET_MOUSE_DOWN', isLeft: false, isDown: false});
       if (gridPos == null) return;

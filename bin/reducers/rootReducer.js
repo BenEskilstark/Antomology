@@ -112,6 +112,7 @@ var rootReducer = function rootReducer(state, action) {
     case 'SET_VIEW_POS':
     case 'TOGGLE_FOG':
     case 'SET_WORLD_SIZE':
+    case 'SET_KEY_PRESS':
     case 'ZOOM':
       if (!state.game) return state;
       return _extends({}, state, {

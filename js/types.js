@@ -61,6 +61,12 @@ export type Mouse = {
   curPixel: Vector, // pixel position of mouse
   prevPixel: Vector,
 };
+export type ArrowKeys = {
+  up: boolean,
+  down: boolean,
+  left: boolean,
+  right: boolean,
+};
 
 export type GameState = {
   time: number,
@@ -70,6 +76,7 @@ export type GameState = {
   antMode: AntMode, // what ants do at clicked entities
   userMode: UserMode,
   mouse: Mouse,
+  arrowKeys: ArrowKeys,
 
   // UI-based partial state
   nextLocationName: string,
@@ -330,5 +337,6 @@ export type Action =
   {type: 'SET_WORLD_SIZE', width: ?number, height: ?number} |
   {type: 'SET_EDITOR_ALLOW_DELETE_BACKGROUND', allow: boolean} |
   {type: 'SET_EDITOR_ANT_SUBTYPE', subType: AntSubType} |
+  {type: 'SET_KEY_PRESS', dir: 'up' | 'down' | 'left' | 'right', pressed: boolean} |
   {type: 'SET_EDITOR_BACKGROUND_TYPE', backgroundType: 'SKY' | 'DIRT'};
 

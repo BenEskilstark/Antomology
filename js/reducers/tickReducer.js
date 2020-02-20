@@ -81,6 +81,7 @@ const tickReducer = (game: GameState, action: Action): GameState => {
     case 'TICK': {
       const {updateSim} = action;
       game.time += 1;
+      handlePan(game);
       if (updateSim) {
         return handleTick(game);
       } else {
@@ -91,6 +92,27 @@ const tickReducer = (game: GameState, action: Action): GameState => {
   }
   return game;
 };
+
+///////////////////////////////////////////////////////////////////////////////
+// Handle Pan
+///////////////////////////////////////////////////////////////////////////////
+const handlePan = (game: GameState): void => {
+  const nextViewPos = {...game.viewPos};
+  if (game.arrowKeys.up) {
+    nextViewPos.y += 1;
+  }
+  if (game.arrowKeys.down) {
+    nextViewPos.y -= 1;
+  }
+  if (game.arrowKeys.left) {
+    nextViewPos.x -= 1;
+  }
+  if (game.arrowKeys.right) {
+    nextViewPos.x += 1;
+  }
+  game.viewPos = nextViewPos;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Handle Tick

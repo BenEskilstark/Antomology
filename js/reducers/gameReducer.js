@@ -215,6 +215,11 @@ const gameReducer = (game: GameState, action: Action): GameState => {
         viewPos,
       };
     }
+    case 'SET_KEY_PRESS': {
+      const {dir, pressed} = action;
+      game.arrowKeys[dir] = pressed;
+      return game;
+    }
     case 'ZOOM': {
       const {out} = action;
       const widthToHeight = config.width / config.height;

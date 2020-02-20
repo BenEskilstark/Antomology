@@ -1,28 +1,21 @@
 
 
  - - - - - - UI / UX - - - - - -
- - set userMode back to select after creating pheromone/location
- - move pan to some other control
- - left-click-and-drag seems overloaded with functionality
  - add pause functionality/button
  - change cursor based on userMode
  - Call out ants near death of old age
  - saving with local storage
- - prevent accidental click-and-drag text selection
  - audio system
  - let cmd/ctrl + left click == right click
  - zoom to mouse instead of center of screen
+ - need hotkey configerator for handling key handling across the board
 
 
 - - - - - - PHEROMONE GRAPH - - - - - -
+ - figure out how to dig out chambers: can't carry out dirt
  - once pheromones are gone, remove them from the edges
  - location tasks UX
-    - feed higher level task should allow specifying target type (larva, any, queen)
     - remove "towards:" dropdown for MOVE high level action
-    - EAT shows NONE dropdown
-    - LAY shows NONE dropdown
-    - IDLE shows NONE dropdown
-    - PUTDOWN shows NONE dropdown
  - sidebar UI
     - conditionals that are addable/editable
     - edges listed for locations should be selectable from there
@@ -50,6 +43,7 @@
  - add obelisk target entity for winning the level
  - fix food system to spawn larger food less frequently
  - grass entities that support ants but not dirt
+ - how to carry something up
  - big entities:
     - support rotated big-entities
     - subdividing bigger entities on pickup
@@ -95,10 +89,10 @@
  - - - - - - - BUGS - - - - - - -
  - only do action (putdown, lay) one additional space inside location to prevent blocking
  - sending an ant through a location causes it to switch tasks to that location
- - feeding an ant ignores max calories
  - picked-up pupa never hatch and then die on putdown. Should just wait to hatch
  - groups of ants can ignore gravity by climbing on each other
  - ants sometimes don't fall when at clicked position
+ - ants moving out of the way when they putdown can cause them to leave the location
 
 
  - - - - - - LIFTNG BIG ENTITIES - - - - - -

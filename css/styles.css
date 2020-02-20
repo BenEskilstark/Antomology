@@ -2,6 +2,7 @@ body {
   margin: 0;
   background-color: #faf8ef;
   overflow: hidden;
+  user-select: none;
 }
 
 .container {
@@ -16,33 +17,15 @@ body {
   overflow: hidden;
 }
 
-/******************************************************************************
- * Lobby
- ******************************************************************************/
-
-.lobby {
-  margin-left: 8px;
-}
-
-.hostedGame {
-  margin-top: 4px;
-  margin-bottom: 4px;
-}
-
-.gameRows {
-  display: inline-block;
-}
-
-.gameRow {
-  margin-bottom: 8px;
-  border-top: 1px solid grey;
-  padding: 2px;
-}
-
 p {
   display: inline;
   margin-right: 4px;
 }
+
+.noselect {
+  user-select: none;
+}
+
 
 /******************************************************************************
  * Game

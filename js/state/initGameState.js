@@ -32,11 +32,13 @@ const initGameState = (level: number): GameState => {
     case 1:
       return {
         ...level1(),
+        ...baseState(50, 50),
         time: 0,
         tickInterval: null,
       };
     case 2:
       return {
+        ...baseState(50, 50),
         ...level2(),
         time: 0,
         tickInterval: null,
@@ -146,6 +148,12 @@ const baseState = (worldWidth: number, worldHeight: number): GameState => {
       curPixel: {x: 0, y: 0},
       prevPixel: {x: 0, y: 0},
     },
+    arrowKeys: {
+      up: false,
+      down: false,
+      left: false,
+      right: false,
+    },
 
     worldWidth,
     worldHeight,
@@ -182,9 +190,6 @@ const baseState = (worldWidth: number, worldHeight: number): GameState => {
   game.tasks = [
     tasks.createIdleTask(),
     tasks.createRandomMoveTask(),
-    tasks.createDigBlueprintTask(game),
-    tasks.createMoveBlockerTask(),
-    tasks.createGoToColonyEntranceWithBlockerTask(game),
     tasks.createLayEggTask(),
     tasks.createHoldingAndIdleTask(),
     graphTasks.createFindPheromoneTask(),

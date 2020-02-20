@@ -313,6 +313,7 @@ function DoActionCard(props: mixed): React.Node {
   const actionType = behavior.action.type;
   let actionOptions = [];
   let actionPreposition = '';
+  let selectedObject = behavior.action.payload.object;
   switch (actionType) {
     case 'MOVE':
       actionPreposition = 'towards: ';
@@ -324,12 +325,17 @@ function DoActionCard(props: mixed): React.Node {
       break
     case 'PUTDOWN':
       break;
+    case 'FEED':
+      actionOptions = ['RANDOM', 'LARVA', 'QUEEN']
+      if (selectedObject == null) {
+        selectedObject = 'RANDOM';
+      }
+      break;
     case 'IDLE':
       actionOptions = [];
       break;
     // TODO
   }
-  let selectedObject = behavior.action.payload.object;
   if (selectedObject == null) {
     selectedObject = 'NONE';
   }
@@ -343,14 +349,17 @@ function DoActionCard(props: mixed): React.Node {
   return (
     <span>
       {actionPreposition}
-      <Dropdown
-        options={actionOptions}
-        selected={selectedObject}
-        onChange={(nextActionOption) => {
-          behavior.action.payload.object = nextActionOption;
-          setBehavior(behavior);
-        }}
-      />
+      {actionOptions.length > 0 ?
+        <Dropdown
+          options={actionOptions}
+          selected={selectedObject}
+          noNoneOption={true}
+          onChange={(nextActionOption) => {
+            behavior.action.payload.object = nextActionOption;
+            setBehavior(behavior);
+          }}
+        /> : null
+      }
     </span>
   );
 }

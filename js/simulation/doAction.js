@@ -32,6 +32,7 @@ const {
   pickUpEntity,
   putDownEntity,
   maybeMoveEntity,
+  antEatEntity,
 } = require('../utils/stateHelpers');
 const {
   fastCollidesWith,
@@ -289,38 +290,41 @@ const doAction = (
         entityToEat = neighborFood.filter(f => f.id == entityToEat.id)[0];
       }
       if (entityToEat == null) break;
-
-      const caloriesEaten = Math.min(
-        config.antCaloriesPerEat,
-        entityToEat.calories,
-        config.antMaxCalories - ant.calories,
-      );
-      ant.calories += caloriesEaten;
-      entityToEat.calories -= caloriesEaten;
-      // remove the food item if it has no more calories
-      if (entityToEat.calories <= 0) {
-        removeEntity(game, entityToEat);
-      }
+      antEatEntity(game, ant, entityToEat);
       break;
     }
     case 'FEED': {
+      const typeToFeed = object;
       const feedableEntities = fastGetNeighbors(game, ant)
         .filter(e => ['ANT', 'LARVA'].includes(e.type));
       if (
         ant.holding != null && ant.holding.type === 'FOOD' &&
         feedableEntities.length > 0
       ) {
-        // prefer to feed larva if possible
-        let fedEntity = oneOf(feedableEntities);
-        for (const e of feedableEntities) {
-          if (e.type === 'LARVA') {
-            fedEntity = e;
-            break;
+        let fedEntity = null;
+        if (typeToFeed === 'LARVA') {
+          for (const e of feedableEntities) {
+            if (e.type === 'LARVA') {
+              fedEntity = e;
+              break;
+            }
+          }
+        } else if (typeToFeed === 'QUEEN') {
+          for (const e of feedableEntities) {
+            if (e.subType === 'QUEEN') {
+              fedEntity = e;
+              break;
+            }
+          }
+        } else if (typeToFeed === null || typeToFeed === 'RANDOM') {
+          fedEntity = oneOf(feedableEntities);
+        }
+        if (fedEntity != null) {
+          const ateAll = antEatEntity(game, fedEntity, ant.holding);
+          if (ateAll) {
+            ant.holding = null;
           }
         }
-        fedEntity.calories += ant.holding.calories;
-        removeEntity(game, ant.holding);
-        ant.holding = null;
       }
       break;
     }
@@ -445,7 +449,7 @@ const doHighLevelAction = (
       if (!ant.holding || ant.holding.type != 'FOOD') {
         done = true;
       } else {
-        doAction(game, ant, {type: 'FEED', payload: {object: null}});
+        doAction(game, ant, {type: 'FEED', payload: {object}});
         doAction(
           game, ant,
           {

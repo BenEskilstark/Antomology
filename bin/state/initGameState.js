@@ -52,12 +52,12 @@ var initGameState = function initGameState(level) {
     case 0:
       return level0();
     case 1:
-      return _extends({}, level1(), {
+      return _extends({}, level1(), baseState(50, 50), {
         time: 0,
         tickInterval: null
       });
     case 2:
-      return _extends({}, level2(), {
+      return _extends({}, baseState(50, 50), level2(), {
         time: 0,
         tickInterval: null
       });
@@ -166,6 +166,12 @@ var baseState = function baseState(worldWidth, worldHeight) {
       curPixel: { x: 0, y: 0 },
       prevPixel: { x: 0, y: 0 }
     },
+    arrowKeys: {
+      up: false,
+      down: false,
+      left: false,
+      right: false
+    },
 
     worldWidth: worldWidth,
     worldHeight: worldHeight,
@@ -198,7 +204,7 @@ var baseState = function baseState(worldWidth, worldHeight) {
   addEntity(game, clickedLocation);
 
   // initial tasks
-  game.tasks = [tasks.createIdleTask(), tasks.createRandomMoveTask(), tasks.createDigBlueprintTask(game), tasks.createMoveBlockerTask(), tasks.createGoToColonyEntranceWithBlockerTask(game), tasks.createLayEggTask(), tasks.createHoldingAndIdleTask(), graphTasks.createFindPheromoneTask(), graphTasks.createFollowTrailTask(), graphTasks.createFollowTrailInReverseTask(), {
+  game.tasks = [tasks.createIdleTask(), tasks.createRandomMoveTask(), tasks.createLayEggTask(), tasks.createHoldingAndIdleTask(), graphTasks.createFindPheromoneTask(), graphTasks.createFollowTrailTask(), graphTasks.createFollowTrailInReverseTask(), {
     name: 'Find Food',
     repeating: false,
     behaviorQueue: [{

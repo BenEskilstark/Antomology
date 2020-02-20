@@ -3,6 +3,7 @@
 const {initRenderSystem} = require('./renderSystem');
 const {initFoodSpawnSystem} = require('./foodSpawnSystem');
 const {initMouseControlsSystem} = require('./mouseControlsSystem');
+const {initKeyboardControlsSystem} = require('./keyboardControlsSystem');
 
 const initSystems = (store: Store): void => {
   let gameMode = store.getState().mode;
@@ -12,6 +13,7 @@ const initSystems = (store: Store): void => {
     if (gameMode === 'MENU' && nextGameMode === 'GAME') {
       initRenderSystem(store);
       initMouseControlsSystem(store);
+      initKeyboardControlsSystem(store);
       // initFoodSpawnSystem(store);
       // const audio = document.getElementById('clayMusic1');
       // audio.play();
@@ -20,6 +22,7 @@ const initSystems = (store: Store): void => {
     } else if (gameMode === 'MENU' && nextGameMode === 'EDITOR') {
       initRenderSystem(store);
       initMouseControlsSystem(store);
+      initKeyboardControlsSystem(store);
     }
 
     gameMode = nextGameMode;

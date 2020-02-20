@@ -324,6 +324,7 @@ function DoActionCard(props) {
   var actionType = behavior.action.type;
   var actionOptions = [];
   var actionPreposition = '';
+  var selectedObject = behavior.action.payload.object;
   switch (actionType) {
     case 'MOVE':
       actionPreposition = 'towards: ';
@@ -336,12 +337,17 @@ function DoActionCard(props) {
       break;
     case 'PUTDOWN':
       break;
+    case 'FEED':
+      actionOptions = ['RANDOM', 'LARVA', 'QUEEN'];
+      if (selectedObject == null) {
+        selectedObject = 'RANDOM';
+      }
+      break;
     case 'IDLE':
       actionOptions = [];
       break;
     // TODO
   }
-  var selectedObject = behavior.action.payload.object;
   if (selectedObject == null) {
     selectedObject = 'NONE';
   }
@@ -356,14 +362,15 @@ function DoActionCard(props) {
     'span',
     null,
     actionPreposition,
-    React.createElement(Dropdown, {
+    actionOptions.length > 0 ? React.createElement(Dropdown, {
       options: actionOptions,
       selected: selectedObject,
+      noNoneOption: true,
       onChange: function onChange(nextActionOption) {
         behavior.action.payload.object = nextActionOption;
         setBehavior(behavior);
       }
-    })
+    }) : null
   );
 }
 
