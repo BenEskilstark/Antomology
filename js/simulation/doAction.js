@@ -20,6 +20,7 @@ const {
   normalIn,
   oneOf,
   deleteFromArray,
+  getInnerLocation,
 } = require('../utils/helpers');
 const {
   insertInGrid,
@@ -33,6 +34,7 @@ const {
   putDownEntity,
   maybeMoveEntity,
   antEatEntity,
+  antMakePheromone,
 } = require('../utils/stateHelpers');
 const {
   fastCollidesWith,
@@ -93,13 +95,15 @@ const doAction = (
       let loc = object;
       let obj = object;
       if (obj === 'TRAIL' || obj === 'REVERSE_TRAIL') {
-        const pheromone = lookupInGrid(game.grid, ant.position)
-          .map(id => game.entities[id])
-          .filter(e => e.type === 'PHEROMONE')[0];
+        const pheromone = oneOf(
+          lookupInGrid(game.grid, ant.position)
+            .map(id => game.entities[id])
+            .filter(e => e.type === 'PHEROMONE')
+        );
         if (pheromone != null) {
           if (obj === 'REVERSE_TRAIL') {
-            if (pheromone.prevPheromone != null) {
-              const prevPheromone = game.entities[pheromone.prevPheromone];
+            const prevPheromone = game.entities[pheromone.prevPheromone];
+            if (prevPheromone != null) {
               const diff = subtract(prevPheromone.position, pheromone.position);
               const dir = makeVector(vectorTheta(diff), 1)
               loc = {position: add(ant.position, dir)};
@@ -130,7 +134,7 @@ const doAction = (
         if (constraint != null) {
           freePositions = freePositions.filter(pos => {
             const inGrid = lookupInGrid(game.grid, pos);
-            return inGrid.includes(constraint);
+            return inGrid.includes(constraint.id);
           });
         }
         loc = {position: oneOf(freePositions)};
@@ -158,6 +162,7 @@ const doAction = (
       let nextPos = add(moveVec, ant.position);
       let didMove = maybeMoveEntity(game, ant, nextPos);
       if (didMove) {
+        antMakePheromone(game, ant);
         ant.blocked = false;
         ant.blockedBy = null;
       } else { // else try moving along the other axis
@@ -180,6 +185,7 @@ const doAction = (
         nextPos = add(moveVec, ant.position);
         didMove = maybeMoveEntity(game, ant, nextPos);
         if (didMove) {
+          antMakePheromone(game, ant);
           ant.blocked = false;
           ant.blockedBy = null;
         } else {
@@ -395,7 +401,7 @@ const doHighLevelAction = (
           game, ant,
           {
             type: 'MOVE',
-            payload: {object: 'RANDOM', constraint: ant.location}
+            payload: {object: 'RANDOM', constraint: getInnerLocation(ant.location)}
           },
         );
       } else {
@@ -416,7 +422,7 @@ const doHighLevelAction = (
           game, ant,
           {
             type: 'MOVE',
-            payload: {object: 'RANDOM', constraint: ant.location}
+            payload: {object: 'RANDOM', constraint: getInnerLocation(ant.location)}
           },
         );
         ant.accumulator--;
@@ -430,7 +436,18 @@ const doHighLevelAction = (
     case 'FIND_PHEROMONE': {
       const onPheromone = fastCollidesWith(game, ant)
         .filter(e => e.type === 'PHEROMONE')
-        .filter(p => game.edges[p.edge].end != ant.location)
+        // .filter(p => game.edges[p.edge].end != ant.location)
+        // filter to pheromones that point out of location
+        .filter(p => {
+          const locPointedAt = add(
+            makeVector(p.theta, 1),
+            p.position,
+          );
+
+          return !collides(
+            ant.location, {position: locPointedAt, width: 1, height: 1},
+          );
+        })
         .length > 0;
       if (onPheromone) {
         done = true;
@@ -454,7 +471,7 @@ const doHighLevelAction = (
           game, ant,
           {
             type: 'MOVE',
-            payload: {object: 'RANDOM', constraint: ant.location}
+            payload: {object: 'RANDOM', constraint: getInnerLocation(ant.location)}
           },
         );
       }
@@ -466,7 +483,7 @@ const doHighLevelAction = (
         game, ant,
         {
           type: 'MOVE',
-          payload: {object: 'RANDOM', constraint: ant.location}
+          payload: {object: 'RANDOM', constraint: getInnerLocation(ant.location)}
         },
       );
       doAction(game, ant, {type: 'EAT', payload: {object: null}});
@@ -480,7 +497,7 @@ const doHighLevelAction = (
         game, ant,
         {
           type: 'MOVE',
-          payload: {object: 'RANDOM', constraint: ant.location}
+          payload: {object: 'RANDOM', constraint: getInnerLocation(ant.location)}
         },
       );
       doAction(game, ant, {type: 'LAY', payload: {object: null}});

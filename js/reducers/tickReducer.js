@@ -20,6 +20,7 @@ const {
   normalIn,
   oneOf,
   deleteFromArray,
+  getInnerLocation,
 } = require('../utils/helpers');
 const {
   insertInGrid,
@@ -133,10 +134,11 @@ const handleTick = (game: GameState): GameState => {
 
     // if ant just arrived at a location, switch task to that
     const locs = fastCollidesWith(game, ant)
-      .filter(e => e.type === 'LOCATION');
-    if (locs.length > 0 && locs[0].id != ant.location) {
-      if (locs[0].id !== config.clickedPosition) {
-        ant.location = locs[0].id;
+      .filter(e => e.type === 'LOCATION')
+      .filter(e => e.id != config.clickedPosition);
+    if (locs.length > 0 && (ant.location == null || locs[0].id != ant.location.id)) {
+      if (collides(getInnerLocation(locs[0]), ant)) {
+        ant.location = locs[0];
         ant.task = locs[0].task;
         ant.taskIndex = 0;
         ant.taskStack = [
@@ -177,7 +179,7 @@ const handleTick = (game: GameState): GameState => {
 
   updateHeldBigEntities(game, heldEntityIDs);
   updateAntLifeCycles(game);
-  // updatePheromones(game);
+  updatePheromones(game);
   computeGravity(game);
   updateFoWVision(game);
 
@@ -276,22 +278,16 @@ const updateAntLifeCycles = (game): void => {
 // Phermones
 ///////////////////////////////////////////////////////////////////////////////
 const updatePheromones = (game: GameState): void => {
+  const toRemove = [];
   for (const id of game.PHEROMONE) {
     const pheromone = game.entities[id];
-    const antsHere = lookupInGrid(game.grid, pheromone.position)
-      .map(i => game.entities[i])
-      .filter(e => e.type === 'ANT')
-      .length > 0;
-    if (antsHere) {
-      pheromone.quantity = Math.min(
-        pheromone.quantity + 1, config.pheromoneMaxQuantity,
-      );
-    } else {
-      pheromone.quantity -= 1;
-    }
+    pheromone.quantity -= 1;
     if (pheromone.quantity <= 0) {
-      removeEntity(game, pheromone);
+      toRemove.push(pheromone);
     }
+  }
+  for (const pheromone of toRemove) {
+    removeEntity(game, pheromone);
   }
 }
 

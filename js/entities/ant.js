@@ -29,6 +29,7 @@ const makeAnt = (position: Vector, subType: AntSubType): Ant => {
     alive: true,
     visible: true,
     eggLayingCooldown: 0,
+    prevPheromone: null,
   };
 };
 

@@ -284,13 +284,15 @@ const renderEntity = (
       break;
     }
     case 'LOCATION': {
-      ctx.fillStyle = 'rgba(50, 50, 50, 0.2)';
-      ctx.strokeStyle = 'rgba(50, 50, 50, 0.2)';
+      ctx.fillStyle = 'rgba(50, 50, 50, 0.15)';
+      ctx.strokeStyle = 'rgba(50, 50, 50, 0.15)';
       if (state.game.selectedEntities.includes(entity.id)) {
         ctx.strokeStyle = '#FF6347';
       }
       ctx.fillRect(0, 0, entity.width, entity.height);
-      ctx.strokeRect(0, 0, entity.width, entity.height);
+      // ctx.strokeRect(0, 0, entity.width, entity.height);
+      ctx.fillRect(1, 1, entity.width - 2, entity.height - 2);
+      ctx.strokeRect(1, 1, entity.width - 2, entity.height - 2);
       // gotta flip back for location label
       ctx.save();
       ctx.scale(1, -1);

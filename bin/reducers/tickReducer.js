@@ -29,7 +29,8 @@ var _require5 = require('../utils/helpers'),
     randomIn = _require5.randomIn,
     normalIn = _require5.normalIn,
     oneOf = _require5.oneOf,
-    deleteFromArray = _require5.deleteFromArray;
+    deleteFromArray = _require5.deleteFromArray,
+    getInnerLocation = _require5.getInnerLocation;
 
 var _require6 = require('../utils/stateHelpers'),
     insertInGrid = _require6.insertInGrid,
@@ -161,10 +162,12 @@ var handleTick = function handleTick(game) {
       // if ant just arrived at a location, switch task to that
       var locs = fastCollidesWith(game, ant).filter(function (e) {
         return e.type === 'LOCATION';
+      }).filter(function (e) {
+        return e.id != config.clickedPosition;
       });
-      if (locs.length > 0 && locs[0].id != ant.location) {
-        if (locs[0].id !== config.clickedPosition) {
-          ant.location = locs[0].id;
+      if (locs.length > 0 && (ant.location == null || locs[0].id != ant.location.id)) {
+        if (collides(getInnerLocation(locs[0]), ant)) {
+          ant.location = locs[0];
           ant.task = locs[0].task;
           ant.taskIndex = 0;
           ant.taskStack = [{ name: 'Follow Trail', index: 0 }, { name: 'Find Pheromone Trail', index: 0 }];
@@ -216,7 +219,7 @@ var handleTick = function handleTick(game) {
 
   updateHeldBigEntities(game, heldEntityIDs);
   updateAntLifeCycles(game);
-  // updatePheromones(game);
+  updatePheromones(game);
   computeGravity(game);
   updateFoWVision(game);
 
@@ -398,6 +401,7 @@ var updateAntLifeCycles = function updateAntLifeCycles(game) {
 // Phermones
 ///////////////////////////////////////////////////////////////////////////////
 var updatePheromones = function updatePheromones(game) {
+  var toRemove = [];
   var _iteratorNormalCompletion6 = true;
   var _didIteratorError6 = false;
   var _iteratorError6 = undefined;
@@ -407,18 +411,9 @@ var updatePheromones = function updatePheromones(game) {
       var id = _step6.value;
 
       var pheromone = game.entities[id];
-      var antsHere = lookupInGrid(game.grid, pheromone.position).map(function (i) {
-        return game.entities[i];
-      }).filter(function (e) {
-        return e.type === 'ANT';
-      }).length > 0;
-      if (antsHere) {
-        pheromone.quantity = Math.min(pheromone.quantity + 1, config.pheromoneMaxQuantity);
-      } else {
-        pheromone.quantity -= 1;
-      }
+      pheromone.quantity -= 1;
       if (pheromone.quantity <= 0) {
-        removeEntity(game, pheromone);
+        toRemove.push(pheromone);
       }
     }
   } catch (err) {
@@ -435,26 +430,51 @@ var updatePheromones = function updatePheromones(game) {
       }
     }
   }
+
+  var _iteratorNormalCompletion7 = true;
+  var _didIteratorError7 = false;
+  var _iteratorError7 = undefined;
+
+  try {
+    for (var _iterator7 = toRemove[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+      var _pheromone = _step7.value;
+
+      removeEntity(game, _pheromone);
+    }
+  } catch (err) {
+    _didIteratorError7 = true;
+    _iteratorError7 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion7 && _iterator7.return) {
+        _iterator7.return();
+      }
+    } finally {
+      if (_didIteratorError7) {
+        throw _iteratorError7;
+      }
+    }
+  }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 // Compute Gravity
 ///////////////////////////////////////////////////////////////////////////////
 var computeGravity = function computeGravity(game) {
-  var _iteratorNormalCompletion7 = true;
-  var _didIteratorError7 = false;
-  var _iteratorError7 = undefined;
+  var _iteratorNormalCompletion8 = true;
+  var _didIteratorError8 = false;
+  var _iteratorError8 = undefined;
 
   try {
-    for (var _iterator7 = config.fallingEntities[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-      var entityType = _step7.value;
-      var _iteratorNormalCompletion8 = true;
-      var _didIteratorError8 = false;
-      var _iteratorError8 = undefined;
+    for (var _iterator8 = config.fallingEntities[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+      var entityType = _step8.value;
+      var _iteratorNormalCompletion9 = true;
+      var _didIteratorError9 = false;
+      var _iteratorError9 = undefined;
 
       try {
-        for (var _iterator8 = game[entityType][Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-          var id = _step8.value;
+        for (var _iterator9 = game[entityType][Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+          var id = _step9.value;
 
           var entity = game.entities[id];
           if (!entity.position) continue;
@@ -483,31 +503,31 @@ var computeGravity = function computeGravity(game) {
           }
         }
       } catch (err) {
-        _didIteratorError8 = true;
-        _iteratorError8 = err;
+        _didIteratorError9 = true;
+        _iteratorError9 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion8 && _iterator8.return) {
-            _iterator8.return();
+          if (!_iteratorNormalCompletion9 && _iterator9.return) {
+            _iterator9.return();
           }
         } finally {
-          if (_didIteratorError8) {
-            throw _iteratorError8;
+          if (_didIteratorError9) {
+            throw _iteratorError9;
           }
         }
       }
     }
   } catch (err) {
-    _didIteratorError7 = true;
-    _iteratorError7 = err;
+    _didIteratorError8 = true;
+    _iteratorError8 = err;
   } finally {
     try {
-      if (!_iteratorNormalCompletion7 && _iterator7.return) {
-        _iterator7.return();
+      if (!_iteratorNormalCompletion8 && _iterator8.return) {
+        _iterator8.return();
       }
     } finally {
-      if (_didIteratorError7) {
-        throw _iteratorError7;
+      if (_didIteratorError8) {
+        throw _iteratorError8;
       }
     }
   }
@@ -518,20 +538,20 @@ var computeGravity = function computeGravity(game) {
 ///////////////////////////////////////////////////////////////////////////////
 var updateFoWVision = function updateFoWVision(game) {
   var previouslyVisible = [];
-  var _iteratorNormalCompletion9 = true;
-  var _didIteratorError9 = false;
-  var _iteratorError9 = undefined;
+  var _iteratorNormalCompletion10 = true;
+  var _didIteratorError10 = false;
+  var _iteratorError10 = undefined;
 
   try {
-    for (var _iterator9 = config.entitiesInFog[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-      var entityType = _step9.value;
-      var _iteratorNormalCompletion12 = true;
-      var _didIteratorError12 = false;
-      var _iteratorError12 = undefined;
+    for (var _iterator10 = config.entitiesInFog[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+      var entityType = _step10.value;
+      var _iteratorNormalCompletion13 = true;
+      var _didIteratorError13 = false;
+      var _iteratorError13 = undefined;
 
       try {
-        for (var _iterator12 = game[entityType][Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
-          var id = _step12.value;
+        for (var _iterator13 = game[entityType][Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
+          var id = _step13.value;
 
           var entity = game.entities[id];
           if (entity.position == null) {
@@ -544,47 +564,19 @@ var updateFoWVision = function updateFoWVision(game) {
           }
         }
       } catch (err) {
-        _didIteratorError12 = true;
-        _iteratorError12 = err;
+        _didIteratorError13 = true;
+        _iteratorError13 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion12 && _iterator12.return) {
-            _iterator12.return();
+          if (!_iteratorNormalCompletion13 && _iterator13.return) {
+            _iterator13.return();
           }
         } finally {
-          if (_didIteratorError12) {
-            throw _iteratorError12;
+          if (_didIteratorError13) {
+            throw _iteratorError13;
           }
         }
       }
-    }
-  } catch (err) {
-    _didIteratorError9 = true;
-    _iteratorError9 = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion9 && _iterator9.return) {
-        _iterator9.return();
-      }
-    } finally {
-      if (_didIteratorError9) {
-        throw _iteratorError9;
-      }
-    }
-  }
-
-  var _iteratorNormalCompletion10 = true;
-  var _didIteratorError10 = false;
-  var _iteratorError10 = undefined;
-
-  try {
-    for (var _iterator10 = game.ANT[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-      var _id3 = _step10.value;
-
-      var ant = game.entities[_id3];
-      getEntitiesInRadius(game, ant.position, config.antVisionRadius).forEach(function (e) {
-        return e.visible = true;
-      });
     }
   } catch (err) {
     _didIteratorError10 = true;
@@ -606,12 +598,13 @@ var updateFoWVision = function updateFoWVision(game) {
   var _iteratorError11 = undefined;
 
   try {
-    for (var _iterator11 = previouslyVisible[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
-      var _entity = _step11.value;
+    for (var _iterator11 = game.ANT[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+      var _id3 = _step11.value;
 
-      if (!_entity.visible) {
-        _entity.lastSeenPos = _entity.position;
-      }
+      var ant = game.entities[_id3];
+      getEntitiesInRadius(game, ant.position, config.antVisionRadius).forEach(function (e) {
+        return e.visible = true;
+      });
     }
   } catch (err) {
     _didIteratorError11 = true;
@@ -624,6 +617,33 @@ var updateFoWVision = function updateFoWVision(game) {
     } finally {
       if (_didIteratorError11) {
         throw _iteratorError11;
+      }
+    }
+  }
+
+  var _iteratorNormalCompletion12 = true;
+  var _didIteratorError12 = false;
+  var _iteratorError12 = undefined;
+
+  try {
+    for (var _iterator12 = previouslyVisible[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
+      var _entity = _step12.value;
+
+      if (!_entity.visible) {
+        _entity.lastSeenPos = _entity.position;
+      }
+    }
+  } catch (err) {
+    _didIteratorError12 = true;
+    _iteratorError12 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion12 && _iterator12.return) {
+        _iterator12.return();
+      }
+    } finally {
+      if (_didIteratorError12) {
+        throw _iteratorError12;
       }
     }
   }

@@ -78,6 +78,18 @@ function deleteFromGrid(grid, position, item) {
   });
 }
 
+function getInnerLocation(loc) {
+  if (loc == null) return null;
+  return {
+    position: {
+      x: loc.position.x + 1,
+      y: loc.position.y + 1
+    },
+    width: loc.width - 2,
+    height: loc.height - 2
+  };
+}
+
 module.exports = {
   randomIn: randomIn,
   normalIn: normalIn,
@@ -86,5 +98,6 @@ module.exports = {
   insertInGrid: insertInGrid,
   lookupInGrid: lookupInGrid,
   deleteFromGrid: deleteFromGrid,
-  clamp: clamp
+  clamp: clamp,
+  getInnerLocation: getInnerLocation
 };

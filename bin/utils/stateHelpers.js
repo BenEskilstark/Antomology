@@ -19,6 +19,12 @@ var _require2 = require('../selectors/selectors'),
 var _require3 = require('../config'),
     config = _require3.config;
 
+var _require4 = require('../utils/helpers'),
+    getInnerLocation = _require4.getInnerLocation;
+
+var _require5 = require('../entities/pheromone'),
+    makePheromone = _require5.makePheromone;
+
 /**
  * These functions all mutate state in some way. Meant to be used by reducers
  * so they can do similar operations consistently
@@ -169,6 +175,41 @@ function antEatEntity(game, ant, toEat) {
   return false;
 }
 
+function antMakePheromone(game, ant) {
+  var prevPheromone = game.entities[ant.prevPheromone];
+  var nextPherPos = ant.prevPosition;
+  var theta = 0;
+  if (prevPheromone != null) {
+    theta = vectorTheta(subtract(nextPherPos, prevPheromone.position));
+    prevPheromone.theta = theta;
+  }
+  var strength = game.selectedEntities.includes(ant.id) ? game.selecteAntPheromoneStrength : game.allAntPheromoneStrength;
+  var pheromoneAtPos = lookupInGrid(game.grid, nextPherPos).map(function (id) {
+    return game.entities[id];
+  }).filter(function (e) {
+    return e.type === 'PHEROMONE';
+  }).filter(function (p) {
+    return p.theta === theta;
+  })[0];
+
+  var inInnerLocation = ant.location != null ? collides(ant.location, ant) : false;
+  if (inInnerLocation) {
+    ant.prevPheromone = null;
+    return; // don't make pheromones inside locations
+  }
+
+  if (pheromoneAtPos != null) {
+    pheromoneAtPos.quantity = Math.max(config.pheromoneMaxQuantity, config.pheromoneReinforcement + pheromoneAtPos.quantity);
+    ant.prevPheromone = pheromoneAtPos.id;
+  } else {
+    var pheromone = makePheromone(nextPherPos, theta, 1, // edge category
+    0, // edgeID (placeholder)
+    ant.prevPheromone, strength);
+    addEntity(game, pheromone);
+    ant.prevPheromone = pheromone.id;
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////
 // Validated Entity Functions
 ////////////////////////////////////////////////////////////////////////
@@ -223,6 +264,7 @@ module.exports = {
   pickUpEntity: pickUpEntity,
   putDownEntity: putDownEntity,
   antEatEntity: antEatEntity,
+  antMakePheromone: antMakePheromone,
 
   maybeMoveEntity: maybeMoveEntity
 };

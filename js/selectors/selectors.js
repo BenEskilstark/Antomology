@@ -12,6 +12,9 @@ import type {GameID, State, Game, Entity} from '../types';
 
 // TODO may not need all the size stuff if we just use the grid
 const collides = (entityA: Entity, entityB: Entity): boolean => {
+  if (entityA == null || entityB == null) {
+    return false;
+  }
   if (entityA.position == null || entityB.position == null) {
     return false;
   }

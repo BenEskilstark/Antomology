@@ -1,10 +1,14 @@
 // @flow
 
-const {add, subtract, makeVector, vectorTheta, equals} = require('../utils/vectors');
+const {
+  add, subtract, makeVector, vectorTheta, equals,
+} = require('../utils/vectors');
 const {
   fastCollidesWith, collides, insideWorld, lookupInGrid, getNeighborPositions,
 } = require('../selectors/selectors');
 const {config} = require('../config');
+const {getInnerLocation} = require('../utils/helpers');
+const {makePheromone} = require('../entities/pheromone');
 
 import type {EntityID, GameState, Vector, EntityType} from '../types';
 
@@ -152,6 +156,52 @@ function antEatEntity(
   return false;
 }
 
+function antMakePheromone(
+  game: GameState, ant: Ant,
+): void {
+  const prevPheromone = game.entities[ant.prevPheromone];
+  const nextPherPos = ant.prevPosition;
+  let theta = 0;
+  if (prevPheromone != null) {
+    theta = vectorTheta(subtract(nextPherPos, prevPheromone.position));
+    prevPheromone.theta = theta;
+  }
+  const strength = game.selectedEntities.includes(ant.id)
+    ? game.selecteAntPheromoneStrength
+    : game.allAntPheromoneStrength;
+  const pheromoneAtPos = lookupInGrid(game.grid, nextPherPos)
+    .map(id => game.entities[id])
+    .filter(e => e.type === 'PHEROMONE')
+    .filter(p => p.theta === theta)[0];
+
+  const inInnerLocation = ant.location != null
+    ? collides(ant.location, ant)
+    : false;
+  if (inInnerLocation) {
+    ant.prevPheromone = null;
+    return; // don't make pheromones inside locations
+  }
+
+  if (pheromoneAtPos != null) {
+    pheromoneAtPos.quantity = Math.max(
+      config.pheromoneMaxQuantity,
+      config.pheromoneReinforcement + pheromoneAtPos.quantity,
+    );
+    ant.prevPheromone = pheromoneAtPos.id;
+  } else {
+    const pheromone = makePheromone(
+      nextPherPos,
+      theta,
+      1, // edge category
+      0, // edgeID (placeholder)
+      ant.prevPheromone,
+      strength,
+    );
+    addEntity(game, pheromone);
+    ant.prevPheromone = pheromone.id;
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////
 // Validated Entity Functions
 ////////////////////////////////////////////////////////////////////////
@@ -208,6 +258,7 @@ module.exports = {
   pickUpEntity,
   putDownEntity,
   antEatEntity,
+  antMakePheromone,
 
   maybeMoveEntity,
 }

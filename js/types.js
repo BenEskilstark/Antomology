@@ -83,6 +83,10 @@ export type GameState = {
   prevPheromone: ?EntityID,
   curEdge: ?EdgeID,
 
+  // pheromones for ants
+  allAntPheromoneStrength: number,
+  selectedAntPheromoneStrength: number,
+
   edges: {[EdgeID]: Edge},
 
   // world info in grid coords
@@ -207,7 +211,7 @@ export type Ant = Entity & {
   calories: number,
   blocked: boolean, // is this ant blocked from where it's going
   blockedBy: ?entity, // entity that is blocking it
-  location: ?EntityID, // location the ant thinks it's at
+  location: ?Entity, // location the ant thinks it's at
   task: ?Task,
   taskIndex: number,
   // whenever you switch tasks, push old task as parent onto taskStack
@@ -217,6 +221,7 @@ export type Ant = Entity & {
     index: number, // your index in the parent task
   }>,
   alive: boolean,
+  prevPheromone: ?EntityID, // id of pheromone ant just laid
   eggLayingCooldown: number, // for the queen
 };
 

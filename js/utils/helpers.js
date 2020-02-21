@@ -56,6 +56,18 @@ function deleteFromGrid(grid, position, item) {
   grid[x][y] = grid[x][y].filter(i => i != item);
 }
 
+function getInnerLocation(loc) {
+  if (loc == null) return null;
+  return {
+    position: {
+      x: loc.position.x + 1,
+      y: loc.position.y + 1,
+    },
+    width: loc.width - 2,
+    height: loc.height - 2,
+  };
+}
+
 module.exports = {
   randomIn,
   normalIn,
@@ -65,4 +77,5 @@ module.exports = {
   lookupInGrid,
   deleteFromGrid,
   clamp,
+  getInnerLocation,
 };

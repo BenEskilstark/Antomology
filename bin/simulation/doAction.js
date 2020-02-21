@@ -29,7 +29,8 @@ var _require5 = require('../utils/helpers'),
     randomIn = _require5.randomIn,
     normalIn = _require5.normalIn,
     oneOf = _require5.oneOf,
-    deleteFromArray = _require5.deleteFromArray;
+    deleteFromArray = _require5.deleteFromArray,
+    getInnerLocation = _require5.getInnerLocation;
 
 var _require6 = require('../utils/stateHelpers'),
     insertInGrid = _require6.insertInGrid,
@@ -42,7 +43,8 @@ var _require6 = require('../utils/stateHelpers'),
     pickUpEntity = _require6.pickUpEntity,
     putDownEntity = _require6.putDownEntity,
     maybeMoveEntity = _require6.maybeMoveEntity,
-    antEatEntity = _require6.antEatEntity;
+    antEatEntity = _require6.antEatEntity,
+    antMakePheromone = _require6.antMakePheromone;
 
 var _require7 = require('../selectors/selectors'),
     fastCollidesWith = _require7.fastCollidesWith,
@@ -105,15 +107,15 @@ var doAction = function doAction(game, ant, action) {
         var loc = object;
         var obj = object;
         if (obj === 'TRAIL' || obj === 'REVERSE_TRAIL') {
-          var pheromone = lookupInGrid(game.grid, ant.position).map(function (id) {
+          var pheromone = oneOf(lookupInGrid(game.grid, ant.position).map(function (id) {
             return game.entities[id];
           }).filter(function (e) {
             return e.type === 'PHEROMONE';
-          })[0];
+          }));
           if (pheromone != null) {
             if (obj === 'REVERSE_TRAIL') {
-              if (pheromone.prevPheromone != null) {
-                var prevPheromone = game.entities[pheromone.prevPheromone];
+              var prevPheromone = game.entities[pheromone.prevPheromone];
+              if (prevPheromone != null) {
                 var diff = subtract(prevPheromone.position, pheromone.position);
                 var dir = makeVector(vectorTheta(diff), 1);
                 loc = { position: add(ant.position, dir) };
@@ -144,7 +146,7 @@ var doAction = function doAction(game, ant, action) {
           if (constraint != null) {
             _freePositions = _freePositions.filter(function (pos) {
               var inGrid = lookupInGrid(game.grid, pos);
-              return inGrid.includes(constraint);
+              return inGrid.includes(constraint.id);
             });
           }
           loc = { position: oneOf(_freePositions) };
@@ -172,6 +174,7 @@ var doAction = function doAction(game, ant, action) {
         var nextPos = add(moveVec, ant.position);
         var didMove = maybeMoveEntity(game, ant, nextPos);
         if (didMove) {
+          antMakePheromone(game, ant);
           ant.blocked = false;
           ant.blockedBy = null;
         } else {
@@ -196,6 +199,7 @@ var doAction = function doAction(game, ant, action) {
           nextPos = add(moveVec, ant.position);
           didMove = maybeMoveEntity(game, ant, nextPos);
           if (didMove) {
+            antMakePheromone(game, ant);
             ant.blocked = false;
             ant.blockedBy = null;
           } else {
@@ -352,12 +356,11 @@ var doAction = function doAction(game, ant, action) {
     case 'FEED':
       {
         var typeToFeed = object;
-        console.log(typeToFeed);
         var feedableEntities = fastGetNeighbors(game, ant).filter(function (e) {
           return ['ANT', 'LARVA'].includes(e.type);
         });
         if (ant.holding != null && ant.holding.type === 'FOOD' && feedableEntities.length > 0) {
-          var fedEntity = oneOf(feedableEntities);
+          var fedEntity = null;
           if (typeToFeed === 'LARVA') {
             var _iteratorNormalCompletion3 = true;
             var _didIteratorError3 = false;
@@ -414,10 +417,14 @@ var doAction = function doAction(game, ant, action) {
                 }
               }
             }
+          } else if (typeToFeed === null || typeToFeed === 'RANDOM') {
+            fedEntity = oneOf(feedableEntities);
           }
-          var ateAll = antEatEntity(game, fedEntity, ant.holding);
-          if (ateAll) {
-            ant.holding = null;
+          if (fedEntity != null) {
+            var ateAll = antEatEntity(game, fedEntity, ant.holding);
+            if (ateAll) {
+              ant.holding = null;
+            }
           }
         }
         break;
@@ -483,7 +490,7 @@ var doHighLevelAction = function doHighLevelAction(game, ant, action) {
         if (!ant.holding) {
           doAction(game, ant, {
             type: 'MOVE',
-            payload: { object: 'RANDOM', constraint: ant.location }
+            payload: { object: 'RANDOM', constraint: getInnerLocation(ant.location) }
           });
         } else {
           done = true;
@@ -500,7 +507,7 @@ var doHighLevelAction = function doHighLevelAction(game, ant, action) {
         } else {
           doAction(game, ant, {
             type: 'MOVE',
-            payload: { object: 'RANDOM', constraint: ant.location }
+            payload: { object: 'RANDOM', constraint: getInnerLocation(ant.location) }
           });
           ant.accumulator--;
         }
@@ -514,8 +521,13 @@ var doHighLevelAction = function doHighLevelAction(game, ant, action) {
       {
         var onPheromone = fastCollidesWith(game, ant).filter(function (e) {
           return e.type === 'PHEROMONE';
-        }).filter(function (p) {
-          return game.edges[p.edge].end != ant.location;
+        })
+        // .filter(p => game.edges[p.edge].end != ant.location)
+        // filter to pheromones that point out of location
+        .filter(function (p) {
+          var locPointedAt = add(makeVector(p.theta, 1), p.position);
+
+          return !collides(ant.location, { position: locPointedAt, width: 1, height: 1 });
         }).length > 0;
         if (onPheromone) {
           done = true;
@@ -535,7 +547,7 @@ var doHighLevelAction = function doHighLevelAction(game, ant, action) {
           doAction(game, ant, { type: 'FEED', payload: { object: object } });
           doAction(game, ant, {
             type: 'MOVE',
-            payload: { object: 'RANDOM', constraint: ant.location }
+            payload: { object: 'RANDOM', constraint: getInnerLocation(ant.location) }
           });
         }
         break;
@@ -545,7 +557,7 @@ var doHighLevelAction = function doHighLevelAction(game, ant, action) {
         var startCalories = ant.calories;
         doAction(game, ant, {
           type: 'MOVE',
-          payload: { object: 'RANDOM', constraint: ant.location }
+          payload: { object: 'RANDOM', constraint: getInnerLocation(ant.location) }
         });
         doAction(game, ant, { type: 'EAT', payload: { object: null } });
         if (ant.calories > startCalories) {
@@ -557,7 +569,7 @@ var doHighLevelAction = function doHighLevelAction(game, ant, action) {
       {
         doAction(game, ant, {
           type: 'MOVE',
-          payload: { object: 'RANDOM', constraint: ant.location }
+          payload: { object: 'RANDOM', constraint: getInnerLocation(ant.location) }
         });
         doAction(game, ant, { type: 'LAY', payload: { object: null } });
       }

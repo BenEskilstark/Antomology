@@ -19,6 +19,9 @@ var _require3 = require('../config'),
 
 // TODO may not need all the size stuff if we just use the grid
 var collides = function collides(entityA, entityB) {
+  if (entityA == null || entityB == null) {
+    return false;
+  }
   if (entityA.position == null || entityB.position == null) {
     return false;
   }

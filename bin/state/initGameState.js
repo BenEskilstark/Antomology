@@ -156,6 +156,9 @@ var baseState = function baseState(worldWidth, worldHeight) {
     prevPheromone: null,
     curEdge: null,
 
+    allAntPheromoneStrength: 0,
+    selectedAntPheromoneStrength: config.pheromoneStartingQuantity,
+
     edges: {},
 
     mouse: {

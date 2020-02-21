@@ -30,7 +30,8 @@ var makeAnt = function makeAnt(position, subType) {
     location: null,
     alive: true,
     visible: true,
-    eggLayingCooldown: 0
+    eggLayingCooldown: 0,
+    prevPheromone: null
   });
 };
 

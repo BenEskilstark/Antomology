@@ -1,7 +1,9 @@
-
+ - - - - - - ANTS LAY TRAILS - - - - - -
+ - make idle ants or ants sent to trails start following them
+ - slider UI for setting (un)selected ant pheromone strength
+ - more sensible default task for locations
 
  - - - - - - PHEROMONE GRAPH - - - - - -
- - once pheromones are gone, remove them from the edges
  - figure out how to dig out chambers: can't carry out dirt
  - location tasks UX
     - remove "towards:" dropdown for MOVE high level action
@@ -84,7 +86,6 @@
 
 
  - - - - - - - BUGS - - - - - - -
- - only do action (putdown, lay) one additional space inside location to prevent blocking
  - sending an ant through a location causes it to switch tasks to that location
  - picked-up pupa never hatch and then die on putdown. Should just wait to hatch
  - groups of ants can ignore gravity by climbing on each other

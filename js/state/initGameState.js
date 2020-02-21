@@ -138,6 +138,9 @@ const baseState = (worldWidth: number, worldHeight: number): GameState => {
     prevPheromone: null,
     curEdge: null,
 
+    allAntPheromoneStrength: 0,
+    selectedAntPheromoneStrength: config.pheromoneStartingQuantity,
+
     edges: {},
 
     mouse: {

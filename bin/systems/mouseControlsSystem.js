@@ -292,8 +292,9 @@ var createLocation = function createLocation(game, dispatch, gridPos) {
   if (dimensions.y < 0) {
     locPosition.y = locPosition.y + dimensions.y;
   }
-  var newLocation = makeLocation(game.nextLocationName, Math.abs(dimensions.x) + 1, // off by one
-  Math.abs(dimensions.y) + 1, locPosition);
+  // making locations with buffer
+  var newLocation = makeLocation(game.nextLocationName, Math.abs(dimensions.x) + 3, // off by one
+  Math.abs(dimensions.y) + 3, subtract(locPosition, { x: 1, y: 1 }));
   dispatch({ type: 'CREATE_ENTITY', entity: newLocation });
 };
 
