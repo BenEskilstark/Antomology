@@ -1,19 +1,8 @@
 
 
- - - - - - - UI / UX - - - - - -
- - add pause functionality/button
- - change cursor based on userMode
- - Call out ants near death of old age
- - saving with local storage
- - audio system
- - let cmd/ctrl + left click == right click
- - zoom to mouse instead of center of screen
- - need hotkey configerator for handling key handling across the board
-
-
-- - - - - - PHEROMONE GRAPH - - - - - -
- - figure out how to dig out chambers: can't carry out dirt
+ - - - - - - PHEROMONE GRAPH - - - - - -
  - once pheromones are gone, remove them from the edges
+ - figure out how to dig out chambers: can't carry out dirt
  - location tasks UX
     - remove "towards:" dropdown for MOVE high level action
  - sidebar UI
@@ -39,27 +28,35 @@
 
 
  - - - - - - WORLD - - - - - -
- - make un-pickup-able entity that also doesn't obey gravity
  - add obelisk target entity for winning the level
+ - make un-pickup-able entity that also doesn't obey gravity
  - fix food system to spawn larger food less frequently
  - grass entities that support ants but not dirt
- - how to carry something up
+ - black monolith
+    - treat monolith as a location
  - big entities:
     - support rotated big-entities
     - subdividing bigger entities on pickup
     - falling big entities should push down and/or crush solitary ants
  - fog of war:
-    - easy config option to turn fog off
     - dropped (seen-before) entities don't re-render correct location until
       their new location is seen
     - support partial rendering of big entities that are partially visible
- - black monolith
-    - treat monolith as a location
  - add other entities: beetles, worms, spiders, aphids
  - compute old-age death for ants
  - zooming:
     - configure min and max zoom
     - screen size in grid cells should be on the state, not the config
+
+
+ - - - - - - UI / UX - - - - - -
+ - add pause functionality/button
+ - change cursor based on userMode
+ - Call out ants near death of old age
+ - saving with local storage
+ - audio system
+ - let cmd/ctrl + left click == right click
+ - zoom to mouse instead of center of screen
 
 
  - - - - - - LEVEL EDITOR - - - - - -
@@ -93,6 +90,7 @@
  - groups of ants can ignore gravity by climbing on each other
  - ants sometimes don't fall when at clicked position
  - ants moving out of the way when they putdown can cause them to leave the location
+ - default state is breaking level1
 
 
  - - - - - - LIFTNG BIG ENTITIES - - - - - -
@@ -104,6 +102,7 @@
     - how to compute ants falling off
  - putting down:
     - ants should get out of the way and let it fall
+ - how to carry something up
 
 
  - - - - - - RENDERING - - - - - -
@@ -139,3 +138,4 @@
  - passing around location names instead of ids is V dangerous
  - common function for ant switching tasks
  - condition for whether to render marquee is ridiculously overcomplicated
+ - need hotkey configerator for handling key presses across the board
