@@ -104,6 +104,7 @@ const rootReducer = (state: State, action: Action): State => {
     case 'TOGGLE_FOG':
     case 'SET_WORLD_SIZE':
     case 'SET_KEY_PRESS':
+    case 'SET_PHEROMONE_STRENGTH':
     case 'ZOOM':
       if (!state.game) return state;
       return {

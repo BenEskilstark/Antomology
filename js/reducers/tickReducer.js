@@ -149,6 +149,17 @@ const handleTick = (game: GameState): GameState => {
     } else if (locs.length == 0 && ant.location != null) {
       ant.location = null;
     }
+
+    // if idle on pheromone, follow it
+    const pheromoneAtPosition = lookupInGrid(game.grid, ant.position)
+      .filter(id => game.PHEROMONE.includes(id))
+      .length > 0;
+    if (ant.task != null && ant.task.name === 'Idle' && pheromoneAtPosition) {
+      ant.taskIndex = 0;
+      ant.taskStack = [];
+      ant.task = createFollowTrailTask();
+    }
+
     // if blocked on a trail, pick up blocker and reverse
     if (ant.task != null && ant.task.name === 'Follow Trail' && ant.blocked) {
       const blockingEntity = ant.blockedBy;

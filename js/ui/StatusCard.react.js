@@ -168,35 +168,35 @@ function LocationCard(props: Props): React.Node {
   const game = state.game;
   const loc = entity;
 
-  const incomingEdgeInfos = loc.incomingEdges
-    .map(id => game.edges[id])
-    .map(edge => {
-      return (
-        <div
-          style={{paddingLeft: 10}}
-          key={"inc_" + edge.id}
-        >
-          Source: {edge.start != null ? game.entities[edge.start].name : 'Not Set'}
-        </div>
-      );
-    });
-  const outgoingEdgeInfos = loc.outgoingEdges
-    .map(id => game.edges[id])
-    .map(edge => {
-      return (
-        <div
-          style={{paddingLeft: 10}}
-          key={"out_" + edge.id}
-        >
-          <div>
-            Destination: {edge.end != null ? game.entities[edge.end].name : 'Not Set'}
-          </div>
-          <div>
-            Condition: TODO
-          </div>
-        </div>
-      );
-    });
+  // const incomingEdgeInfos = loc.incomingEdges
+  //   .map(id => game.edges[id])
+  //   .map(edge => {
+  //     return (
+  //       <div
+  //         style={{paddingLeft: 10}}
+  //         key={"inc_" + edge.id}
+  //       >
+  //         Source: {edge.start != null ? game.entities[edge.start].name : 'Not Set'}
+  //       </div>
+  //     );
+  //   });
+  // const outgoingEdgeInfos = loc.outgoingEdges
+  //   .map(id => game.edges[id])
+  //   .map(edge => {
+  //     return (
+  //       <div
+  //         style={{paddingLeft: 10}}
+  //         key={"out_" + edge.id}
+  //       >
+  //         <div>
+  //           Destination: {edge.end != null ? game.entities[edge.end].name : 'Not Set'}
+  //         </div>
+  //         <div>
+  //           Condition: TODO
+  //         </div>
+  //       </div>
+  //     );
+  //   });
 
   return (
     <div
@@ -227,18 +227,6 @@ function LocationCard(props: Props): React.Node {
           isLocationTask={true}
           entityID={loc.id}
         />
-      </div>
-      <div>
-        Incoming Trails:
-        <div>
-          {incomingEdgeInfos}
-        </div>
-      </div>
-      <div>
-        Outgoing Trails:
-        <div>
-          {outgoingEdgeInfos}
-        </div>
       </div>
     </div>
   );

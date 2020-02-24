@@ -31,10 +31,17 @@ var _require10 = require('../entities/pupa'),
     makePupa = _require10.makePupa;
 
 var _require11 = require('../entities/stone'),
-    makeStone = _require11.makeStone;
+    makeStone = _require11.makeStone,
+    makeStuckStone = _require11.makeStuckStone;
 
-var _require12 = require('../config'),
-    config = _require12.config;
+var _require12 = require('../entities/grass'),
+    makeGrass = _require12.makeGrass;
+
+var _require13 = require('../entities/target'),
+    makeTarget = _require13.makeTarget;
+
+var _require14 = require('../config'),
+    config = _require14.config;
 
 /**
  * Create a default entity of the given type at the given position.
@@ -64,6 +71,12 @@ var makeEntityByType = function makeEntityByType(state, entityType, gridPos) {
       return makePupa(gridPos, 'WORKER');
     case 'STONE':
       return makeStone(gridPos);
+    case 'STUCK_STONE':
+      return makeStuckStone(gridPos);
+    case 'GRASS':
+      return makeGrass(gridPos);
+    case 'TARGET':
+      return makeTarget(gridPos);
     default:
       console.error('no entity of type', entityType);
   }

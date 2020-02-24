@@ -286,41 +286,35 @@ function LocationCard(props) {
   var game = state.game;
   var loc = entity;
 
-  var incomingEdgeInfos = loc.incomingEdges.map(function (id) {
-    return game.edges[id];
-  }).map(function (edge) {
-    return React.createElement(
-      'div',
-      {
-        style: { paddingLeft: 10 },
-        key: "inc_" + edge.id
-      },
-      'Source: ',
-      edge.start != null ? game.entities[edge.start].name : 'Not Set'
-    );
-  });
-  var outgoingEdgeInfos = loc.outgoingEdges.map(function (id) {
-    return game.edges[id];
-  }).map(function (edge) {
-    return React.createElement(
-      'div',
-      {
-        style: { paddingLeft: 10 },
-        key: "out_" + edge.id
-      },
-      React.createElement(
-        'div',
-        null,
-        'Destination: ',
-        edge.end != null ? game.entities[edge.end].name : 'Not Set'
-      ),
-      React.createElement(
-        'div',
-        null,
-        'Condition: TODO'
-      )
-    );
-  });
+  // const incomingEdgeInfos = loc.incomingEdges
+  //   .map(id => game.edges[id])
+  //   .map(edge => {
+  //     return (
+  //       <div
+  //         style={{paddingLeft: 10}}
+  //         key={"inc_" + edge.id}
+  //       >
+  //         Source: {edge.start != null ? game.entities[edge.start].name : 'Not Set'}
+  //       </div>
+  //     );
+  //   });
+  // const outgoingEdgeInfos = loc.outgoingEdges
+  //   .map(id => game.edges[id])
+  //   .map(edge => {
+  //     return (
+  //       <div
+  //         style={{paddingLeft: 10}}
+  //         key={"out_" + edge.id}
+  //       >
+  //         <div>
+  //           Destination: {edge.end != null ? game.entities[edge.end].name : 'Not Set'}
+  //         </div>
+  //         <div>
+  //           Condition: TODO
+  //         </div>
+  //       </div>
+  //     );
+  //   });
 
   return React.createElement(
     'div',
@@ -361,26 +355,6 @@ function LocationCard(props) {
         isLocationTask: true,
         entityID: loc.id
       })
-    ),
-    React.createElement(
-      'div',
-      null,
-      'Incoming Trails:',
-      React.createElement(
-        'div',
-        null,
-        incomingEdgeInfos
-      )
-    ),
-    React.createElement(
-      'div',
-      null,
-      'Outgoing Trails:',
-      React.createElement(
-        'div',
-        null,
-        outgoingEdgeInfos
-      )
     )
   );
 }

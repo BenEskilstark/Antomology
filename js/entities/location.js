@@ -26,9 +26,9 @@ const makeLocation = (
     task: null,
     visible: true,
   };
-  loc.task = createFindPheromoneTask();
+  // loc.task = createFindPheromoneTask();
   // TODO update name on location name update
-  // loc.task = {...createRandomMoveInLocationTask(loc.id), name: loc.name};
+  loc.task = {...createRandomMoveInLocationTask(loc.id), name: loc.name};
   return loc;
 };
 

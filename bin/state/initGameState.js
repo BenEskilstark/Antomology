@@ -194,6 +194,9 @@ var baseState = function baseState(worldWidth, worldHeight) {
     STONE: [],
     OBELISK: [],
     BACKGROUND: [],
+    TARGET: [],
+    GRASS: [],
+    STUCK_STONE: [],
 
     tasks: [],
     grid: [],

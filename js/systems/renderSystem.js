@@ -250,6 +250,13 @@ const renderEntity = (
       ctx.fillRect(0, 0, width, height);
       break;
     }
+    case 'STUCK_STONE': {
+      ctx.fillStyle = '#444444';
+      const width = entity.width + px/2;
+      const height = entity.height + px/2;
+      ctx.fillRect(0, 0, width, height);
+      break;
+    }
     case 'DIRT': {
       ctx.fillStyle = '#8B4513';
       const width = entity.width + px/2;
@@ -281,6 +288,30 @@ const renderEntity = (
         );
         ctx.restore();
       }
+      break;
+    }
+    case 'TARGET': {
+      ctx.strokeStyle = 'red';
+      ctx.fillStyle = 'red';
+      ctx.lineWidth = 3 * px;
+      const radius = entity.width / 2;
+      ctx.beginPath();
+      ctx.arc(entity.width / 2, entity.height / 2, radius, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(entity.width / 2, entity.height / 2, radius * 2/3, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(entity.width / 2, entity.height / 2, radius * 1/3, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.fill();
+      break;
+    }
+    case 'GRASS': {
+      ctx.fillStyle = '#8fbc8f';
+      ctx.fillRect(0, 0, entity.width, entity.height);
       break;
     }
     case 'LOCATION': {

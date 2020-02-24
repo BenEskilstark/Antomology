@@ -102,6 +102,36 @@ function removeEntity(game, entity) {
       deleteFromGrid(game.grid, { x: x, y: y }, entity.id);
     }
   }
+  // clean up locations
+  if (entity.type === 'LOCATION') {
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
+
+    try {
+      for (var _iterator = game.ANT[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        var antID = _step.value;
+
+        var ant = game.entities[antID];
+        if (ant.location === entity.id) {
+          ant.location = null;
+        }
+      }
+    } catch (err) {
+      _didIteratorError = true;
+      _iteratorError = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion && _iterator.return) {
+          _iterator.return();
+        }
+      } finally {
+        if (_didIteratorError) {
+          throw _iteratorError;
+        }
+      }
+    }
+  }
 }
 
 function moveEntity(game, entity, nextPos) {
@@ -183,7 +213,7 @@ function antMakePheromone(game, ant) {
     theta = vectorTheta(subtract(nextPherPos, prevPheromone.position));
     prevPheromone.theta = theta;
   }
-  var strength = game.selectedEntities.includes(ant.id) ? game.selecteAntPheromoneStrength : game.allAntPheromoneStrength;
+  var strength = game.selectedEntities.includes(ant.id) ? game.selectedAntPheromoneStrength : game.allAntPheromoneStrength;
   var pheromoneAtPos = lookupInGrid(game.grid, nextPherPos).map(function (id) {
     return game.entities[id];
   }).filter(function (e) {

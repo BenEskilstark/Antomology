@@ -1,39 +1,50 @@
- - - - - - - ANTS LAY TRAILS - - - - - -
- - make idle ants or ants sent to trails start following them
- - slider UI for setting (un)selected ant pheromone strength
- - more sensible default task for locations
 
- - - - - - - PHEROMONE GRAPH - - - - - -
+ - - - - - - - - TUESDAY - - - - - - - -
+ - make basic level
+ - obelisk colliding with target wins level and returns to menu
+ - compute old-age death for ants
+ - Call out ants near death of old age
+ - dropped (seen-before) entities don't re-render correct location until
+    their new location is seen
+ - add display names for dropdown options, rename highlevel action
+ - handle what ants following trail do when they run off the end
+ - WASD panning not clipped to edge of world
  - figure out how to dig out chambers: can't carry out dirt
- - location tasks UX
-    - remove "towards:" dropdown for MOVE high level action
- - sidebar UI
-    - conditionals that are addable/editable
-    - edges listed for locations should be selectable from there
-    - locations listed for edges should be selectable
- - simulation
-    - implement conditional checking on outgoing edges
- - pheromone brush
-    - picking up trails in the middle should cause 50/50 split
-    - how to handle split trails in UI? As new location at split point?
- - world UX
-    - call out disconnected edges
-    - show pheromone level of trails
+
+
+ - - - - - - WEDNESDAY - - - - - -
+ - ants moving out of the way when they putdown can cause them to leave the location
+ - clean up levels on main menu
+ - make slightly harder level
+ - clean up sidebar UI based on new controls
+ - zooming:
+    - configure min and max zoom
+    - screen size in grid cells should be on the state, not the config
+    - zoom to mouse instead of center of screen
+
+
+ - - - - - - THURSDAY - - - - - -
+ - behaviors should support lists of child behaviors
+ - option for deleting behaviors in Task Editor
+ - conditionals with OR/AND
+ - init systems should be inside level creation
+
+
+ - - - - - - - BUGS - - - - - - -
+ - sending an ant through a location causes it to switch tasks to that location
+ - picked-up pupa never hatch and then die on putdown. Should just wait to hatch
+ - groups of ants can ignore gravity by climbing on each other
+ - ants sometimes don't fall when at clicked position
+ - default state is breaking level1
+
+
+ - - - - - - PHEROMONE TRAILS - - - - - -
  - "edge" cases
     - food search random walk
- - future features
-    - pheromones fading vs being permanent
-    - clicking edge infos selects (and centers) that location
-    - ants that lay trails themselves
-    - tool for clearing pheromone
-    - support categories of pheromone you can select and have different colors
+ - support categories of pheromone you can select and have different colors
 
 
  - - - - - - WORLD - - - - - -
- - add obelisk target entity for winning the level
- - make un-pickup-able entity that also doesn't obey gravity
- - fix food system to spawn larger food less frequently
- - grass entities that support ants but not dirt
  - black monolith
     - treat monolith as a location
  - big entities:
@@ -41,24 +52,16 @@
     - subdividing bigger entities on pickup
     - falling big entities should push down and/or crush solitary ants
  - fog of war:
-    - dropped (seen-before) entities don't re-render correct location until
-      their new location is seen
     - support partial rendering of big entities that are partially visible
  - add other entities: beetles, worms, spiders, aphids
- - compute old-age death for ants
- - zooming:
-    - configure min and max zoom
-    - screen size in grid cells should be on the state, not the config
 
 
  - - - - - - UI / UX - - - - - -
  - add pause functionality/button
  - change cursor based on userMode
- - Call out ants near death of old age
  - saving with local storage
  - audio system
  - let cmd/ctrl + left click == right click
- - zoom to mouse instead of center of screen
 
 
  - - - - - - LEVEL EDITOR - - - - - -
@@ -75,23 +78,9 @@
 
 
  - - - - - - TASK EDITOR - - - - - -
- - behaviors should support lists of child behaviors
- - explicitly return to parent behavior as a setting in the SWITCH_TASK behavior
- - option for deleting behaviors in Task Editor
- - conditionals with OR/AND
 
 
  - - - - - - LEVELS - - - - - -
- - init systems should be inside level creation
-
-
- - - - - - - - BUGS - - - - - - -
- - sending an ant through a location causes it to switch tasks to that location
- - picked-up pupa never hatch and then die on putdown. Should just wait to hatch
- - groups of ants can ignore gravity by climbing on each other
- - ants sometimes don't fall when at clicked position
- - ants moving out of the way when they putdown can cause them to leave the location
- - default state is breaking level1
 
 
  - - - - - - LIFTNG BIG ENTITIES - - - - - -

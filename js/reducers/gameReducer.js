@@ -58,6 +58,20 @@ const gameReducer = (game: GameState, action: Action): GameState => {
         fog,
       };
     }
+    case 'SET_PHEROMONE_STRENGTH': {
+      const {selected, strength} = action;
+      if (selected) {
+        return {
+          ...game,
+          selectedAntPheromoneStrength: strength,
+        };
+      } else {
+        return {
+          ...game,
+          allAntPheromoneStrength: strength,
+        };
+      }
+    }
     case 'SET_WORLD_SIZE': {
       const {width, height} = action;
       const nextWorldWidth = width != null ? width : game.worldWidth;

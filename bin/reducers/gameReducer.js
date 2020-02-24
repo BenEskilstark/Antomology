@@ -72,6 +72,21 @@ var gameReducer = function gameReducer(game, action) {
           fog: fog
         });
       }
+    case 'SET_PHEROMONE_STRENGTH':
+      {
+        var selected = action.selected,
+            strength = action.strength;
+
+        if (selected) {
+          return _extends({}, game, {
+            selectedAntPheromoneStrength: strength
+          });
+        } else {
+          return _extends({}, game, {
+            allAntPheromoneStrength: strength
+          });
+        }
+      }
     case 'SET_WORLD_SIZE':
       {
         var width = action.width,

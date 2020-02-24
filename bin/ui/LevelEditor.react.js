@@ -37,7 +37,7 @@ function Sidebar(props) {
 
   var entityPicker = React.createElement(Dropdown, {
     noNoneOption: true,
-    options: ['ANT', 'BACKGROUND', 'DIRT', 'EGG', 'FOOD', 'LARVA', 'OBELISK', 'PUPA', 'STONE'],
+    options: ['ANT', 'BACKGROUND', 'DIRT', 'EGG', 'FOOD', 'LARVA', 'OBELISK', 'PUPA', 'STONE', 'STUCK_STONE', 'TARGET', 'GRASS'],
     selected: editor.entityType,
     onChange: function onChange(entityType) {
       dispatch({ type: 'SET_EDITOR_ENTITY', entityType: entityType });

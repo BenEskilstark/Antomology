@@ -315,11 +315,14 @@ function DoActionCard(props: mixed): React.Node {
   let actionPreposition = '';
   let selectedObject = behavior.action.payload.object;
   switch (actionType) {
-    case 'MOVE':
-      actionPreposition = 'towards: ';
-      actionOptions = ['RANDOM', 'TRAIL']
-        .concat(getEntitiesByType(state.game, ['LOCATION']).map(l => l.name));
+    case 'MOVE': {
+      if (behavior.type === 'DO_ACTION') {
+        actionPreposition = 'towards: ';
+        actionOptions = ['RANDOM', 'TRAIL']
+          .concat(getEntitiesByType(state.game, ['LOCATION']).map(l => l.name));
+      }
       break;
+    }
     case 'PICKUP':
       actionOptions = ['DIRT', 'MARKED_DIRT', 'BLOCKER', 'FOOD', 'EGG', 'LARVA', 'PUPA'];
       break

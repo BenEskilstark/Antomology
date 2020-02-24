@@ -110,6 +110,9 @@ export type GameState = {
   STONE: Array<EntityID>,
   BACKGROUND: Array<EntityID>,
   OBELISK: Array<EntityID>,
+  GRASS: Array<EntityID>,
+  TARGET: Array<EntityID>,
+  STUCK_STONE: Array<EntityID>,
 
   // for faster collision detection
   grid: Array<Array<Array<EntityID>>>,
@@ -126,7 +129,8 @@ export type GameState = {
 export type EntityID = number;
 export type EntityType =
   'ANT' | 'DIRT' | 'FOOD' | 'EGG' | 'LARVA' | 'PUPA' | 'LOCATION' | 'DEAD_ANT' |
-  'PHEROMONE' | 'BACKGROUND' | 'STONE' | 'OBELISK';
+  'PHEROMONE' | 'BACKGROUND' | 'STONE' | 'OBELISK' |'STUCK_STONE' | 'GRASS' |
+  'TARGET';
 
 export type Entity = {
   id: EntityID,
@@ -343,5 +347,6 @@ export type Action =
   {type: 'SET_EDITOR_ALLOW_DELETE_BACKGROUND', allow: boolean} |
   {type: 'SET_EDITOR_ANT_SUBTYPE', subType: AntSubType} |
   {type: 'SET_KEY_PRESS', dir: 'up' | 'down' | 'left' | 'right', pressed: boolean} |
+  {type: 'SET_PHEROMONE_STRENGTH', selected: boolean, strength: number} |
   {type: 'SET_EDITOR_BACKGROUND_TYPE', backgroundType: 'SKY' | 'DIRT'};
 

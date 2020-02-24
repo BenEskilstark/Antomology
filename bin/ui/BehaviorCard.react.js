@@ -327,11 +327,15 @@ function DoActionCard(props) {
   var selectedObject = behavior.action.payload.object;
   switch (actionType) {
     case 'MOVE':
-      actionPreposition = 'towards: ';
-      actionOptions = ['RANDOM', 'TRAIL'].concat(getEntitiesByType(state.game, ['LOCATION']).map(function (l) {
-        return l.name;
-      }));
-      break;
+      {
+        if (behavior.type === 'DO_ACTION') {
+          actionPreposition = 'towards: ';
+          actionOptions = ['RANDOM', 'TRAIL'].concat(getEntitiesByType(state.game, ['LOCATION']).map(function (l) {
+            return l.name;
+          }));
+        }
+        break;
+      }
     case 'PICKUP':
       actionOptions = ['DIRT', 'MARKED_DIRT', 'BLOCKER', 'FOOD', 'EGG', 'LARVA', 'PUPA'];
       break;

@@ -175,6 +175,17 @@ var handleTick = function handleTick(game) {
       } else if (locs.length == 0 && ant.location != null) {
         ant.location = null;
       }
+
+      // if idle on pheromone, follow it
+      var pheromoneAtPosition = lookupInGrid(game.grid, ant.position).filter(function (id) {
+        return game.PHEROMONE.includes(id);
+      }).length > 0;
+      if (ant.task != null && ant.task.name === 'Idle' && pheromoneAtPosition) {
+        ant.taskIndex = 0;
+        ant.taskStack = [];
+        ant.task = createFollowTrailTask();
+      }
+
       // if blocked on a trail, pick up blocker and reverse
       if (ant.task != null && ant.task.name === 'Follow Trail' && ant.blocked) {
         var blockingEntity = ant.blockedBy;

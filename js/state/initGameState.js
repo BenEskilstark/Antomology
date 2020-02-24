@@ -176,6 +176,9 @@ const baseState = (worldWidth: number, worldHeight: number): GameState => {
     STONE: [],
     OBELISK: [],
     BACKGROUND: [],
+    TARGET: [],
+    GRASS: [],
+    STUCK_STONE: [],
 
     tasks: [],
     grid: [],

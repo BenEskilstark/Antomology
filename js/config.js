@@ -1,7 +1,7 @@
 // @flow
 
 const config = {
-  msPerTick: 150,
+  msPerTick: 100,
 
   // screen sizes in grid cells and in pixels:
   // grid size
@@ -16,7 +16,10 @@ const config = {
   colonyEntrance: 0, // DEPRECATED
 
   // fog-of-war
-  entitiesInFog: ['DIRT', 'FOOD', 'DEAD_ANT', 'BACKGROUND', 'STONE'],
+  entitiesInFog: [
+    'DIRT', 'FOOD', 'DEAD_ANT', 'BACKGROUND', 'STONE', 'STUCK_STONE',
+    'GRASS', 'TARGET',
+  ],
   antVisionRadius: 7,
 
   // gravity
@@ -25,19 +28,22 @@ const config = {
   fallingEntities: ['EGG', 'ANT', 'DIRT', 'LARVA', 'FOOD', 'STONE', 'OBELISK'],
   supportedEntities: ['ANT', 'DIRT'], // also stopped by supporting background behind
   climbingEntities: ['ANT'], // must be subset of supportedEntities
-  stopFallingEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'STONE', 'ANT', 'OBELISK'],
+  stopFallingEntities: [
+    'DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'STONE', 'ANT', 'OBELISK', 'STUCK_STONE',
+    'GRASS',
+  ],
 
   // food
-  foodSpawnRate: 0.02, // ~once per 5 seconds
+  foodSpawnRate: 0.002, // ~once per 50 seconds
   foodSpawnCalories : 1000,
 
   // selection
   maxSelectableAnts: 100000,
-  selectableEntities: ['ANT', 'EGG', 'LARVA', 'PUPA', 'OBELISK', 'LOCATION', 'PHEROMONE'],
+  selectableEntities: ['ANT', 'EGG', 'LARVA', 'PUPA', 'OBELISK', 'LOCATION'],
 
   // ant-specific values
   antPickupEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'DEAD_ANT', 'OBELISK'],
-  antBlockingEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'STONE'],
+  antBlockingEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'STONE', 'STUCK_STONE'],
   antEatEntities: ['FOOD', 'DEAD_ANT'],
   antStartingCalories: 4000,
   antCaloriesPerEat: 1000,

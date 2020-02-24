@@ -38,7 +38,7 @@ function Sidebar(props: {state: State, dispatch: Action => void}): React.Node {
       noNoneOption={true}
       options={[
         'ANT', 'BACKGROUND', 'DIRT', 'EGG', 'FOOD', 'LARVA',
-        'OBELISK', 'PUPA', 'STONE',
+        'OBELISK', 'PUPA', 'STONE', 'STUCK_STONE', 'TARGET', 'GRASS',
       ]}
       selected={editor.entityType}
       onChange={(entityType) => {

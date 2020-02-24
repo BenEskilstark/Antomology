@@ -24,14 +24,14 @@ const initFoodSpawnSystem = (store: Store): void => {
 
     if (Math.random() < config.foodSpawnRate) {
       let x = randomIn(0, state.game.worldWidth - 1);
-      let y = randomIn(0, state.game.worldHeight - 1);
-      if (
-        fastCollidesWith(state.game, {position: {x, y}, width: 1, height: 1})
-          .filter(e => config.antBlockingEntities.includes(e.type))
-          .length == 0
-      ) {
-        const food = makeFood({x, y}, config.foodSpawnCalories, 'Crumb');
-        store.dispatch({type: 'CREATE_ENTITY', entity: food});
+      let y = randomIn(state.game.worldHeight - 10, state.game.worldHeight - 1);
+      for (let i = 0; i < 5; i++) {
+        for (let j = 0; j < 5; j++) {
+          const food = makeFood(
+            {x: x + i, y: y - j}, config.foodSpawnCalories, 'Crumb'
+          );
+          store.dispatch({type: 'CREATE_ENTITY', entity: food});
+        }
       }
     }
   });

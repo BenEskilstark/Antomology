@@ -5,6 +5,7 @@ const {config} = require('../config');
 const Button = require('./components/Button.react');
 const RadioPicker = require('./components/RadioPicker.react');
 const Dropdown = require('./components/Dropdown.react');
+const Slider = require('./components/Slider.react');
 const StatusCard = require('./StatusCard.react');
 const {getSelectedAntIDs} = require('../selectors/selectors');
 const {useState, useMemo, useEffect} = React;
@@ -62,6 +63,17 @@ function GameSidebar(props: Props): React.Node {
           options={['PICKUP', 'EAT', 'FEED']}
           selected={game.antMode}
           onChange={(antMode) => dispatch({type: 'SET_ANT_MODE', antMode})}
+        />
+      </div>
+      <div>
+        <Slider
+          min={0}
+          max={config.pheromoneMaxQuantity}
+          value={game.selectedAntPheromoneStrength}
+          label={'Ant Pheromone Strength: '}
+          onChange={(strength) => {
+            dispatch({type: 'SET_PHEROMONE_STRENGTH', selected: true, strength});
+          }}
         />
       </div>
       <div

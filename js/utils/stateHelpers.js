@@ -77,6 +77,15 @@ function removeEntity(game: GameState, entity: Entity): void {
       deleteFromGrid(game.grid, {x, y}, entity.id);
     }
   }
+  // clean up locations
+  if (entity.type === 'LOCATION') {
+    for (const antID of game.ANT) {
+      const ant = game.entities[antID];
+      if (ant.location === entity.id) {
+        ant.location = null;
+      }
+    }
+  }
 }
 
 function moveEntity(game: GameState, entity: Entity, nextPos: Vector): void {
@@ -167,7 +176,7 @@ function antMakePheromone(
     prevPheromone.theta = theta;
   }
   const strength = game.selectedEntities.includes(ant.id)
-    ? game.selecteAntPheromoneStrength
+    ? game.selectedAntPheromoneStrength
     : game.allAntPheromoneStrength;
   const pheromoneAtPos = lookupInGrid(game.grid, nextPherPos)
     .map(id => game.entities[id])

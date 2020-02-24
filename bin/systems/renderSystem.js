@@ -315,25 +315,33 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
         ctx.fillRect(0, 0, _width2, _height2);
         break;
       }
-    case 'DIRT':
+    case 'STUCK_STONE':
       {
-        ctx.fillStyle = '#8B4513';
+        ctx.fillStyle = '#444444';
         var _width3 = entity.width + px / 2;
         var _height3 = entity.height + px / 2;
         ctx.fillRect(0, 0, _width3, _height3);
         break;
       }
+    case 'DIRT':
+      {
+        ctx.fillStyle = '#8B4513';
+        var _width4 = entity.width + px / 2;
+        var _height4 = entity.height + px / 2;
+        ctx.fillRect(0, 0, _width4, _height4);
+        break;
+      }
     case 'OBELISK':
       {
         ctx.fillStyle = 'black';
-        var _width4 = entity.width;
-        var _height4 = entity.height;
+        var _width5 = entity.width;
+        var _height5 = entity.height;
         if (state.game.selectedEntities.includes(entity.id)) {
           ctx.strokeStyle = 'red';
           ctx.lineWidth = 2 / (config.canvasWidth / config.width);
-          ctx.strokeRect(0, 0, _width4, _height4);
+          ctx.strokeRect(0, 0, _width5, _height5);
         }
-        ctx.fillRect(0, 0, _width4, _height4);
+        ctx.fillRect(0, 0, _width5, _height5);
         if (entity.heldBy.length > 0) {
           var numerator = entity.heldBy.length;
           var denominator = entity.toLift;
@@ -344,6 +352,32 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
           ctx.fillText(numerator + '/' + denominator, entity.width * 0.25, -1 * entity.height / 2);
           ctx.restore();
         }
+        break;
+      }
+    case 'TARGET':
+      {
+        ctx.strokeStyle = 'red';
+        ctx.fillStyle = 'red';
+        ctx.lineWidth = 3 * px;
+        var _radius = entity.width / 2;
+        ctx.beginPath();
+        ctx.arc(entity.width / 2, entity.height / 2, _radius, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(entity.width / 2, entity.height / 2, _radius * 2 / 3, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(entity.width / 2, entity.height / 2, _radius * 1 / 3, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.fill();
+        break;
+      }
+    case 'GRASS':
+      {
+        ctx.fillStyle = '#8fbc8f';
+        ctx.fillRect(0, 0, entity.width, entity.height);
         break;
       }
     case 'LOCATION':
@@ -377,8 +411,8 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
       {
         ctx.fillStyle = 'white';
         ctx.beginPath();
-        var _radius = entity.width / 2 * 0.4;
-        ctx.arc(entity.width / 2, entity.height / 2, _radius, 0, Math.PI * 2);
+        var _radius2 = entity.width / 2 * 0.4;
+        ctx.arc(entity.width / 2, entity.height / 2, _radius2, 0, Math.PI * 2);
         ctx.closePath();
         ctx.fill();
         if (state.game.selectedEntities.includes(entity.id)) {
@@ -397,8 +431,8 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
           ctx.fillStyle = 'rgba(250, 50, 0, 0.9)';
         }
         ctx.beginPath();
-        var _radius2 = entity.width / 2 * 0.5 + entity.calories / 10000;
-        ctx.arc(entity.width / 2, entity.height / 2, _radius2, 0, Math.PI * 2);
+        var _radius3 = entity.width / 2 * 0.5 + entity.calories / 10000;
+        ctx.arc(entity.width / 2, entity.height / 2, _radius3, 0, Math.PI * 2);
         ctx.closePath();
         ctx.fill();
         if (state.game.selectedEntities.includes(entity.id)) {
@@ -431,15 +465,15 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
         }
         // relative to center
         ctx.translate(entity.width / 2, entity.height / 2);
-        var _radius3 = entity.width / 2;
+        var _radius4 = entity.width / 2;
         ctx.beginPath();
-        ctx.moveTo(_radius3, 0);
-        ctx.lineTo(_radius3 / 3, -2 * _radius3 / 3);
-        ctx.lineTo(_radius3 / 3, -1 * _radius3 / 3);
-        ctx.lineTo(-1 * _radius3, -1 * _radius3 / 3);
-        ctx.lineTo(-1 * _radius3, _radius3 / 3);
-        ctx.lineTo(_radius3 / 3, _radius3 / 3);
-        ctx.lineTo(_radius3 / 3, 2 * _radius3 / 3);
+        ctx.moveTo(_radius4, 0);
+        ctx.lineTo(_radius4 / 3, -2 * _radius4 / 3);
+        ctx.lineTo(_radius4 / 3, -1 * _radius4 / 3);
+        ctx.lineTo(-1 * _radius4, -1 * _radius4 / 3);
+        ctx.lineTo(-1 * _radius4, _radius4 / 3);
+        ctx.lineTo(_radius4 / 3, _radius4 / 3);
+        ctx.lineTo(_radius4 / 3, 2 * _radius4 / 3);
         ctx.closePath();
         ctx.fill();
         ctx.stroke();

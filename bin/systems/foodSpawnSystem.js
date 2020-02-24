@@ -29,12 +29,12 @@ var initFoodSpawnSystem = function initFoodSpawnSystem(store) {
 
     if (Math.random() < config.foodSpawnRate) {
       var x = randomIn(0, state.game.worldWidth - 1);
-      var y = randomIn(0, state.game.worldHeight - 1);
-      if (fastCollidesWith(state.game, { position: { x: x, y: y }, width: 1, height: 1 }).filter(function (e) {
-        return config.antBlockingEntities.includes(e.type);
-      }).length == 0) {
-        var food = makeFood({ x: x, y: y }, config.foodSpawnCalories, 'Crumb');
-        store.dispatch({ type: 'CREATE_ENTITY', entity: food });
+      var y = randomIn(state.game.worldHeight - 10, state.game.worldHeight - 1);
+      for (var i = 0; i < 5; i++) {
+        for (var j = 0; j < 5; j++) {
+          var food = makeFood({ x: x + i, y: y - j }, config.foodSpawnCalories, 'Crumb');
+          store.dispatch({ type: 'CREATE_ENTITY', entity: food });
+        }
       }
     }
   });

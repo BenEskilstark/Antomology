@@ -10,7 +10,9 @@ const {makeLarva} = require('../entities/larva');
 const {makeLocation} = require('../entities/location');
 const {makeObelisk} = require('../entities/obelisk');
 const {makePupa} = require('../entities/pupa');
-const {makeStone} = require('../entities/stone');
+const {makeStone, makeStuckStone} = require('../entities/stone');
+const {makeGrass} = require('../entities/grass');
+const {makeTarget} = require('../entities/target');
 
 const {config} = require('../config');
 
@@ -47,6 +49,12 @@ const makeEntityByType = (
       return makePupa(gridPos, 'WORKER');
     case 'STONE':
       return makeStone(gridPos);
+    case 'STUCK_STONE':
+      return makeStuckStone(gridPos);
+    case 'GRASS':
+      return makeGrass(gridPos);
+    case 'TARGET':
+      return makeTarget(gridPos);
     default:
       console.error('no entity of type', entityType);
   }

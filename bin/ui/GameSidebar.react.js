@@ -8,6 +8,7 @@ var _require = require('../config'),
 var Button = require('./components/Button.react');
 var RadioPicker = require('./components/RadioPicker.react');
 var Dropdown = require('./components/Dropdown.react');
+var Slider = require('./components/Slider.react');
 var StatusCard = require('./StatusCard.react');
 
 var _require2 = require('../selectors/selectors'),
@@ -80,6 +81,19 @@ function GameSidebar(props) {
         selected: game.antMode,
         onChange: function onChange(antMode) {
           return dispatch({ type: 'SET_ANT_MODE', antMode: antMode });
+        }
+      })
+    ),
+    React.createElement(
+      'div',
+      null,
+      React.createElement(Slider, {
+        min: 0,
+        max: config.pheromoneMaxQuantity,
+        value: game.selectedAntPheromoneStrength,
+        label: 'Ant Pheromone Strength: ',
+        onChange: function onChange(strength) {
+          dispatch({ type: 'SET_PHEROMONE_STRENGTH', selected: true, strength: strength });
         }
       })
     ),
