@@ -145,8 +145,7 @@ var doAction = function doAction(game, ant, action) {
           // if required, stay inside location boundary
           if (constraint != null) {
             _freePositions = _freePositions.filter(function (pos) {
-              var inGrid = lookupInGrid(game.grid, pos);
-              return inGrid.includes(constraint.id);
+              return collides(_extends({}, ant, { position: pos }), constraint);
             });
           }
           loc = { position: oneOf(_freePositions) };
@@ -488,6 +487,9 @@ var doHighLevelAction = function doHighLevelAction(game, ant, action) {
       {
         doAction(game, ant, { type: 'PICKUP', payload: { object: object } });
         if (!ant.holding) {
+          console.log(ant.location);
+          console.log(getInnerLocation(ant.location));
+          console.log("--------");
           doAction(game, ant, {
             type: 'MOVE',
             payload: { object: 'RANDOM', constraint: getInnerLocation(ant.location) }

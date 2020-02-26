@@ -73,10 +73,17 @@ var rootReducer = function rootReducer(state, action) {
     case 'START_TICK':
     case 'STOP_TICK':
     case 'TICK':
-      if (!state.game) return state;
-      return _extends({}, state, {
-        game: tickReducer(state.game, action)
-      });
+      {
+        if (!state.game) return state;
+        var _game2 = tickReducer(state.game, action);
+        if (_game2.gameOver === 'win') {
+          // TODO replace this with game over system
+          console.log('game won');
+        }
+        return _extends({}, state, {
+          game: _game2
+        });
+      }
     case 'APPLY_GAME_STATE':
       var game = action.game;
 

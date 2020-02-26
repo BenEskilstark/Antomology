@@ -30,7 +30,9 @@ var _require5 = require('../utils/helpers'),
     normalIn = _require5.normalIn,
     oneOf = _require5.oneOf,
     deleteFromArray = _require5.deleteFromArray,
-    getInnerLocation = _require5.getInnerLocation;
+    getInnerLocation = _require5.getInnerLocation,
+    isInRadius = _require5.isInRadius,
+    clamp = _require5.clamp;
 
 var _require6 = require('../utils/stateHelpers'),
     insertInGrid = _require6.insertInGrid,
@@ -132,7 +134,10 @@ var handlePan = function handlePan(game) {
   if (game.arrowKeys.right) {
     nextViewPos.x += 1;
   }
-  game.viewPos = nextViewPos;
+  game.viewPos = {
+    x: clamp(nextViewPos.x, 0, game.worldWidth - config.width),
+    y: clamp(nextViewPos.y, 0, game.worldHeight - config.height)
+  };
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -209,6 +214,12 @@ var handleTick = function handleTick(game) {
           putDownEntity(game, ant);
         }
       }
+      if (ant.age > config.antMaxAge) {
+        ant.alive = false;
+        if (ant.holding) {
+          putDownEntity(game, ant);
+        }
+      }
       if (ant.holding != null && !heldEntityIDs.includes(ant.holding.id)) {
         heldEntityIDs.push(ant.holding.id);
       }
@@ -233,6 +244,7 @@ var handleTick = function handleTick(game) {
   updatePheromones(game);
   computeGravity(game);
   updateFoWVision(game);
+  computeLevelOver(game);
 
   // const time = performance.now() - startTime;
   // totalTime += time;
@@ -294,6 +306,21 @@ var updateHeldBigEntities = function updateHeldBigEntities(game, heldEntityIDs) 
         throw _iteratorError2;
       }
     }
+  }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// Ant Life Cycles
+///////////////////////////////////////////////////////////////////////////////
+
+var computeLevelOver = function computeLevelOver(game) {
+  var obelisk = game.entities[game.OBELISK[0]];
+  // TODO only supports one target
+  var target = game.entities[game.TARGET[0]];
+  if (!obelisk || !target) return;
+
+  if (collides(obelisk, target)) {
+    game.gameOver = 'win';
   }
 };
 
@@ -484,15 +511,15 @@ var computeGravity = function computeGravity(game) {
       var _iteratorError9 = undefined;
 
       try {
-        for (var _iterator9 = game[entityType][Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+        var _loop = function _loop() {
           var id = _step9.value;
 
           var entity = game.entities[id];
-          if (!entity.position) continue;
+          if (!entity.position) return 'continue';
           // TODO lifted (big)entities not affected by gravity for now
           var isBig = entity.toLift > 1;
           var isReadyToLift = entity.toLift <= entity.heldBy.length;
-          if (entity.lifted) continue;
+          if (entity.lifted) return 'continue';
           // if (isBig && isReadyToLift && !entity.isLifted) continue;
           var positionBeneath = subtract(entity.position, { x: 0, y: 1 });
           var entitiesBeneath = fastCollidesWith(game, _extends({}, entity, { position: positionBeneath })).filter(function (e) {
@@ -501,7 +528,9 @@ var computeGravity = function computeGravity(game) {
           var entitiesSupporting = [];
           if (config.supportedEntities.includes(entityType)) {
             entitiesSupporting = fastCollidesWith(game, entity).filter(function (e) {
-              return config.supportingBackgroundTypes.includes(e.subType);
+              return config.supportingBackgroundTypes.includes(e.subType) || config.supportingForegroundTypes.includes(e.type) && entity.type != 'DIRT' // TODO doesn't well handle what
+              // can climb on grass
+              ;
             });
             if (config.climbingEntities.includes(entity.type)) {
               entitiesSupporting = entitiesSupporting.concat(fastGetNeighbors(game, entity, true /* diagonal */).filter(function (e) {
@@ -512,6 +541,12 @@ var computeGravity = function computeGravity(game) {
           if (!entitiesSupporting.length > 0 && !entitiesBeneath && insideWorld(game, positionBeneath)) {
             moveEntity(game, entity, positionBeneath);
           }
+        };
+
+        for (var _iterator9 = game[entityType][Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+          var _ret = _loop();
+
+          if (_ret === 'continue') continue;
         }
       } catch (err) {
         _didIteratorError9 = true;
@@ -564,14 +599,44 @@ var updateFoWVision = function updateFoWVision(game) {
         for (var _iterator13 = game[entityType][Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
           var id = _step13.value;
 
-          var entity = game.entities[id];
-          if (entity.position == null) {
-            entity.visible = true; // held entities are visible
+          var _entity = game.entities[id];
+          if (_entity.position == null) {
+            _entity.visible = true; // held entities are visible
             continue;
           }
-          if (entity.visible) {
-            previouslyVisible.push(entity);
-            entity.visible = false;
+          if (_entity.visible) {
+            previouslyVisible.push(_entity);
+            _entity.visible = false;
+          }
+          if (_entity.lastSeenPos != null) {
+            var _iteratorNormalCompletion14 = true;
+            var _didIteratorError14 = false;
+            var _iteratorError14 = undefined;
+
+            try {
+              for (var _iterator14 = game.ANT[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
+                var _id3 = _step14.value;
+
+                var ant = game.entities[_id3];
+                if (isInRadius(ant.position, config.antVisionRadius, _entity.lastSeenPos)) {
+                  _entity.lastSeenPos = null;
+                  break;
+                }
+              }
+            } catch (err) {
+              _didIteratorError14 = true;
+              _iteratorError14 = err;
+            } finally {
+              try {
+                if (!_iteratorNormalCompletion14 && _iterator14.return) {
+                  _iterator14.return();
+                }
+              } finally {
+                if (_didIteratorError14) {
+                  throw _iteratorError14;
+                }
+              }
+            }
           }
         }
       } catch (err) {
@@ -610,10 +675,10 @@ var updateFoWVision = function updateFoWVision(game) {
 
   try {
     for (var _iterator11 = game.ANT[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
-      var _id3 = _step11.value;
+      var _id4 = _step11.value;
 
-      var ant = game.entities[_id3];
-      getEntitiesInRadius(game, ant.position, config.antVisionRadius).forEach(function (e) {
+      var _ant = game.entities[_id4];
+      getEntitiesInRadius(game, _ant.position, config.antVisionRadius).forEach(function (e) {
         return e.visible = true;
       });
     }
@@ -638,10 +703,10 @@ var updateFoWVision = function updateFoWVision(game) {
 
   try {
     for (var _iterator12 = previouslyVisible[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
-      var _entity = _step12.value;
+      var _entity2 = _step12.value;
 
-      if (!_entity.visible) {
-        _entity.lastSeenPos = _entity.position;
+      if (!_entity2.visible) {
+        _entity2.lastSeenPos = _entity2.position;
       }
     }
   } catch (err) {

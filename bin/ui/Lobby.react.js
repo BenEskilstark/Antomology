@@ -28,15 +28,15 @@ function Lobby(props) {
       }),
       React.createElement(Button, {
         label: 'Start Level 1',
-        onClick: function onClick() {
+        hotkey: 13 // enter
+        , onClick: function onClick() {
           dispatch({ type: 'START', level: 1 });
           dispatch({ type: 'START_TICK', updateSim: true });
         }
       }),
       React.createElement(Button, {
         label: 'Start Level 2',
-        hotkey: 13 // enter
-        , onClick: function onClick() {
+        onClick: function onClick() {
           dispatch({ type: 'START', level: 2 });
           dispatch({ type: 'START_TICK', updateSim: true });
         }

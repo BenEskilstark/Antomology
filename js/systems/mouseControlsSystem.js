@@ -176,14 +176,6 @@ const doPan = (
     y: -1 * config.height / config.canvasHeight,
   });
   const nextViewPos = subtract(state.game.viewPos, dragDiff);
-  if (
-    nextViewPos.x < 0 || nextViewPos.y < 0 ||
-    nextViewPos.x + config.width > state.game.worldWidth ||
-    nextViewPos.y + config.height > state.game.worldHeight
-  ) {
-    dispatch({type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos});
-    return;
-  }
   dispatch({type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos});
   dispatch({type: 'SET_VIEW_POS', viewPos: nextViewPos});
 }

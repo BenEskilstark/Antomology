@@ -70,11 +70,23 @@ const render = (state: State, ctx: any): void => {
     renderEntity(state, ctx, entity);
   }
 
+  // then grass
+  for (const id of game.GRASS) {
+    const entity = game.entities[id];
+    if (!entity.position) {
+      console.log("entity with no position:", entity);
+    }
+    if (!onScreen(game, entity.position)) continue;
+
+    renderEntity(state, ctx, entity);
+  }
+
   // render non-location, non-ant entities
   for (const id in game.entities) {
     const entity = game.entities[id];
     if (entity.position == null) continue;
     if (entity.type == 'BACKGROUND') continue;
+    if (entity.type == 'GRASS') continue;
     if (entity.type == 'LOCATION' || entity.type === 'ANT') continue;
     if (!onScreen(game, entity.position)) continue;
     let toRender = entity;

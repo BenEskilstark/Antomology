@@ -85,7 +85,7 @@ var render = function render(state, ctx) {
       renderEntity(state, ctx, _entity);
     }
 
-    // render non-location, non-ant entities
+    // then grass
   } catch (err) {
     _didIteratorError = true;
     _iteratorError = err;
@@ -101,35 +101,24 @@ var render = function render(state, ctx) {
     }
   }
 
-  for (var id in game.entities) {
-    var entity = game.entities[id];
-    if (entity.position == null) continue;
-    if (entity.type == 'BACKGROUND') continue;
-    if (entity.type == 'LOCATION' || entity.type === 'ANT') continue;
-    if (!onScreen(game, entity.position)) continue;
-    var toRender = entity;
-    if (!entity.visible && entity.lastSeenPos != null) {
-      toRender = _extends({}, entity, { position: entity.lastSeenPos });
-    }
-
-    renderEntity(state, ctx, toRender);
-  }
-  // then render ants
   var _iteratorNormalCompletion2 = true;
   var _didIteratorError2 = false;
   var _iteratorError2 = undefined;
 
   try {
-    for (var _iterator2 = game.ANT[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+    for (var _iterator2 = game.GRASS[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
       var _id2 = _step2.value;
 
       var _entity2 = game.entities[_id2];
-      if (_entity2.position == null) continue;
+      if (!_entity2.position) {
+        console.log("entity with no position:", _entity2);
+      }
       if (!onScreen(game, _entity2.position)) continue;
 
       renderEntity(state, ctx, _entity2);
     }
-    // render locations last so they go on top
+
+    // render non-location, non-ant entities
   } catch (err) {
     _didIteratorError2 = true;
     _iteratorError2 = err;
@@ -145,23 +134,36 @@ var render = function render(state, ctx) {
     }
   }
 
+  for (var id in game.entities) {
+    var entity = game.entities[id];
+    if (entity.position == null) continue;
+    if (entity.type == 'BACKGROUND') continue;
+    if (entity.type == 'GRASS') continue;
+    if (entity.type == 'LOCATION' || entity.type === 'ANT') continue;
+    if (!onScreen(game, entity.position)) continue;
+    var toRender = entity;
+    if (!entity.visible && entity.lastSeenPos != null) {
+      toRender = _extends({}, entity, { position: entity.lastSeenPos });
+    }
+
+    renderEntity(state, ctx, toRender);
+  }
+  // then render ants
   var _iteratorNormalCompletion3 = true;
   var _didIteratorError3 = false;
   var _iteratorError3 = undefined;
 
   try {
-    for (var _iterator3 = game.LOCATION[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+    for (var _iterator3 = game.ANT[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
       var _id3 = _step3.value;
 
       var _entity3 = game.entities[_id3];
       if (_entity3.position == null) continue;
-      if (_entity3.id === -1) continue; // don't render clicked location
       if (!onScreen(game, _entity3.position)) continue;
 
       renderEntity(state, ctx, _entity3);
     }
-
-    // render marquees
+    // render locations last so they go on top
   } catch (err) {
     _didIteratorError3 = true;
     _iteratorError3 = err;
@@ -173,6 +175,38 @@ var render = function render(state, ctx) {
     } finally {
       if (_didIteratorError3) {
         throw _iteratorError3;
+      }
+    }
+  }
+
+  var _iteratorNormalCompletion4 = true;
+  var _didIteratorError4 = false;
+  var _iteratorError4 = undefined;
+
+  try {
+    for (var _iterator4 = game.LOCATION[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+      var _id4 = _step4.value;
+
+      var _entity4 = game.entities[_id4];
+      if (_entity4.position == null) continue;
+      if (_entity4.id === -1) continue; // don't render clicked location
+      if (!onScreen(game, _entity4.position)) continue;
+
+      renderEntity(state, ctx, _entity4);
+    }
+
+    // render marquees
+  } catch (err) {
+    _didIteratorError4 = true;
+    _iteratorError4 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion4 && _iterator4.return) {
+        _iterator4.return();
+      }
+    } finally {
+      if (_didIteratorError4) {
+        throw _iteratorError4;
       }
     }
   }

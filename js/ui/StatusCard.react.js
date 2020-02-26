@@ -58,6 +58,10 @@ function AntCard(props: Props): React.Node {
     ? ' - Hungry'
     : '';
   const deadStr = ant.alive ? '' : 'DEAD ';
+  const oldAgeStr =
+    ant.age > config.antMaxAge * config.antOldAgeDeathWarningThreshold
+      ? ' - Old'
+      : '';
 
   return (
     <div
@@ -66,7 +70,7 @@ function AntCard(props: Props): React.Node {
       }}
     >
       <div><b>{deadStr}{ant.subType} {ant.type}</b></div>
-      <div>Calories: {ant.calories}{hungryStr}</div>
+      <div>Calories: {ant.calories}{hungryStr}{oldAgeStr}</div>
       <div>HP: 10/10</div>
       <div>
         Current Task:

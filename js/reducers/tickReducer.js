@@ -21,6 +21,8 @@ const {
   oneOf,
   deleteFromArray,
   getInnerLocation,
+  isInRadius,
+  clamp,
 } = require('../utils/helpers');
 const {
   insertInGrid,
@@ -111,7 +113,10 @@ const handlePan = (game: GameState): void => {
   if (game.arrowKeys.right) {
     nextViewPos.x += 1;
   }
-  game.viewPos = nextViewPos;
+  game.viewPos = {
+    x: clamp(nextViewPos.x, 0, game.worldWidth - config.width),
+    y: clamp(nextViewPos.y, 0, game.worldHeight - config.height),
+  };
 }
 
 
@@ -161,16 +166,16 @@ const handleTick = (game: GameState): GameState => {
     }
 
     // if blocked on a trail, pick up blocker and reverse
-    if (ant.task != null && ant.task.name === 'Follow Trail' && ant.blocked) {
-      const blockingEntity = ant.blockedBy;
-      if (!blockingEntity) {
-        console.error("no blocking entity on pheromone trail", ant);
-        break;
-      }
-      ant.task = createPickupEntityTask(blockingEntity);
-      ant.taskIndex = 0;
-      ant.taskStack = [{name: 'Follow Trail In Reverse', index: 0}];
-    }
+    // if (ant.task != null && ant.task.name === 'Follow Trail' && ant.blocked) {
+    //   const blockingEntity = ant.blockedBy;
+    //   if (!blockingEntity) {
+    //     console.error("no blocking entity on pheromone trail", ant);
+    //     break;
+    //   }
+    //   ant.task = createPickupEntityTask(blockingEntity);
+    //   ant.taskIndex = 0;
+    //   ant.taskStack = [{name: 'Follow Trail In Reverse', index: 0}];
+    // }
 
     ant.calories -= 1;
     if (ant.eggLayingCooldown > 0) {
@@ -178,6 +183,12 @@ const handleTick = (game: GameState): GameState => {
     }
     // ant starvation
     if (ant.calories <= 0) {
+      ant.alive = false;
+      if (ant.holding) {
+        putDownEntity(game, ant);
+      }
+    }
+    if (ant.age > config.antMaxAge) {
       ant.alive = false;
       if (ant.holding) {
         putDownEntity(game, ant);
@@ -193,6 +204,7 @@ const handleTick = (game: GameState): GameState => {
   updatePheromones(game);
   computeGravity(game);
   updateFoWVision(game);
+  computeLevelOver(game);
 
   // const time = performance.now() - startTime;
   // totalTime += time;
@@ -238,6 +250,21 @@ const updateHeldBigEntities = (
     }
   }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// Ant Life Cycles
+///////////////////////////////////////////////////////////////////////////////
+
+const computeLevelOver = (game): void => {
+  const obelisk = game.entities[game.OBELISK[0]];
+  // TODO only supports one target
+  const target = game.entities[game.TARGET[0]];
+  if (!obelisk || !target) return;
+
+  if (collides(obelisk, target)) {
+    game.gameOver = 'win';
+  }
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 // Ant Life Cycles
@@ -322,7 +349,14 @@ const computeGravity = (game: GameState): void => {
       let entitiesSupporting = [];
       if (config.supportedEntities.includes(entityType)) {
         entitiesSupporting = fastCollidesWith(game, entity)
-          .filter(e => config.supportingBackgroundTypes.includes(e.subType))
+          .filter(e => {
+            return (
+              config.supportingBackgroundTypes.includes(e.subType) ||
+              (config.supportingForegroundTypes.includes(e.type)
+                && entity.type != 'DIRT') // TODO doesn't well handle what
+                                          // can climb on grass
+            );
+          })
         if (config.climbingEntities.includes(entity.type)) {
           entitiesSupporting = entitiesSupporting
             .concat(
@@ -357,18 +391,32 @@ const updateFoWVision = (game: GameState): void => {
         previouslyVisible.push(entity);
         entity.visible = false;
       }
+      if (entity.lastSeenPos != null) {
+        for (const id of game.ANT) {
+          const ant = game.entities[id];
+          if (
+            isInRadius(ant.position, config.antVisionRadius, entity.lastSeenPos)
+          ) {
+            entity.lastSeenPos = null;
+            break;
+          }
+        }
+      }
     }
   }
+
   for (const id of game.ANT) {
     const ant = game.entities[id];
-    getEntitiesInRadius(game, ant.position, config.antVisionRadius)
-      .forEach(e => e.visible = true);
+    getEntitiesInRadius(
+      game, ant.position, config.antVisionRadius,
+    ).forEach(e => e.visible = true);
   }
   for (const entity of previouslyVisible) {
     if (!entity.visible) {
       entity.lastSeenPos = entity.position;
     }
   }
+
 }
 
 module.exports = {tickReducer};

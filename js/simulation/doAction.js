@@ -133,8 +133,7 @@ const doAction = (
         // if required, stay inside location boundary
         if (constraint != null) {
           freePositions = freePositions.filter(pos => {
-            const inGrid = lookupInGrid(game.grid, pos);
-            return inGrid.includes(constraint.id);
+            return collides({...ant, position: pos}, constraint);
           });
         }
         loc = {position: oneOf(freePositions)};
@@ -224,7 +223,15 @@ const doAction = (
         entityToPickup === 'PUPA' || entityToPickup === 'DEAD_ANT'
       ) {
         entityToPickup = oneOf(
-          fastGetNeighbors(game, ant).filter(e => e.type == entityToPickup)
+          fastGetNeighbors(game, ant)
+            .filter(e => e.type == entityToPickup)
+            .filter(e => {
+              if (constraint != null) {
+                collides(e, constraint);
+              } else {
+                return true;
+              }
+            });
         );
       } else if (entityToPickup != null && entityToPickup.position != null ) {
         entityToPickup = fastGetNeighbors(game, ant)
@@ -393,15 +400,16 @@ const doHighLevelAction = (
     // high level pickup moves around randomly inside location until
     // item type you want to pickup is encountered
     case 'PICKUP': {
+      const constraint = getInnerLocation(ant.location);
       doAction(
-        game, ant, {type: 'PICKUP', payload: {object}},
+        game, ant, {type: 'PICKUP', payload: {object, constraint}},
       );
       if (!ant.holding) {
         doAction(
           game, ant,
           {
             type: 'MOVE',
-            payload: {object: 'RANDOM', constraint: getInnerLocation(ant.location)}
+            payload: {object: 'RANDOM', constraint)}
           },
         );
       } else {

@@ -38,12 +38,9 @@ var _require11 = require('../utils/stateHelpers'),
 
 var tasks = require('../state/tasks');
 var graphTasks = require('../state/graphTasks');
-
-var _require12 = require('../levels/level1'),
-    level1 = _require12.level1;
-
-var _require13 = require('../levels/level2'),
-    level2 = _require13.level2;
+var level1 = require('../levels/level1');
+var level2 = require('../levels/level2');
+var level3 = require('../levels/level3');
 
 var initGameState = function initGameState(level) {
   switch (level) {
@@ -52,14 +49,22 @@ var initGameState = function initGameState(level) {
     case 0:
       return level0();
     case 1:
-      return _extends({}, level1(), baseState(50, 50), {
+      return _extends({}, baseState(50, 50), level1.level(), {
         time: 0,
-        tickInterval: null
+        tickInterval: null,
+        level: level
       });
     case 2:
-      return _extends({}, baseState(50, 50), level2(), {
+      return _extends({}, baseState(50, 50), level2.level(), {
         time: 0,
-        tickInterval: null
+        tickInterval: null,
+        level: level
+      });
+    case 3:
+      return _extends({}, baseState(50, 50), level3.level(), {
+        time: 0,
+        tickInterval: null,
+        level: level
       });
   }
 };
@@ -200,6 +205,8 @@ var baseState = function baseState(worldWidth, worldHeight) {
 
     tasks: [],
     grid: [],
+
+    gameOver: null,
 
     fog: true
   };

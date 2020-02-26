@@ -61,6 +61,7 @@ function AntCard(props) {
 
   var hungryStr = ant.calories < config.antStartingCalories * config.antStarvationWarningThreshold ? ' - Hungry' : '';
   var deadStr = ant.alive ? '' : 'DEAD ';
+  var oldAgeStr = ant.age > config.antMaxAge * config.antOldAgeDeathWarningThreshold ? ' - Old' : '';
 
   return React.createElement(
     'div',
@@ -86,7 +87,8 @@ function AntCard(props) {
       null,
       'Calories: ',
       ant.calories,
-      hungryStr
+      hungryStr,
+      oldAgeStr
     ),
     React.createElement(
       'div',

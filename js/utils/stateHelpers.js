@@ -181,7 +181,9 @@ function antMakePheromone(
   const pheromoneAtPos = lookupInGrid(game.grid, nextPherPos)
     .map(id => game.entities[id])
     .filter(e => e.type === 'PHEROMONE')
-    .filter(p => p.theta === theta)[0];
+    .filter(p => {
+      return p.theta === theta || prevPheromone == null
+    })[0];
 
   const inInnerLocation = ant.location != null
     ? collides(ant.location, ant)

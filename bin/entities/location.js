@@ -17,9 +17,9 @@ var makeLocation = function makeLocation(name, width, height, position) {
     task: null,
     visible: true
   });
-  // loc.task = createFindPheromoneTask();
+  loc.task = createFindPheromoneTask();
   // TODO update name on location name update
-  loc.task = _extends({}, createRandomMoveInLocationTask(loc.id), { name: loc.name });
+  // loc.task = {...createRandomMoveInLocationTask(loc.id), name: loc.name};
   return loc;
 };
 

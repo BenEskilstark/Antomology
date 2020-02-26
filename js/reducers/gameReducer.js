@@ -225,9 +225,13 @@ const gameReducer = (game: GameState, action: Action): GameState => {
     }
     case 'SET_VIEW_POS': {
       const {viewPos} = action;
+      const nextViewPos = {
+        x: clamp(viewPos.x, 0, game.worldWidth - config.width),
+        y: clamp(viewPos.y, 0, game.worldHeight - config.height),
+      };
       return {
         ...game,
-        viewPos,
+        viewPos: nextViewPos,
       };
     }
     case 'SET_KEY_PRESS': {

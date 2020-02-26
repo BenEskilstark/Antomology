@@ -90,6 +90,16 @@ function getInnerLocation(loc) {
   };
 }
 
+function isInRadius(center, radius, pos) {
+  var diff = {
+    x: Math.abs(center.x - pos.x),
+    y: Math.abs(center.y - pos.y)
+  };
+  var sumSqr = diff.x * diff.x + diff.y * diff.y;
+  // less than and not less than or equal to match FoW calculation
+  return sqrt(sumSqr) < radius;
+}
+
 module.exports = {
   randomIn: randomIn,
   normalIn: normalIn,
@@ -99,5 +109,6 @@ module.exports = {
   lookupInGrid: lookupInGrid,
   deleteFromGrid: deleteFromGrid,
   clamp: clamp,
-  getInnerLocation: getInnerLocation
+  getInnerLocation: getInnerLocation,
+  isInRadius: isInRadius
 };

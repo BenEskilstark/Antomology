@@ -62,12 +62,18 @@ const rootReducer = (state: State, action: Action): State => {
       return modalReducer(state, action);
     case 'START_TICK':
     case 'STOP_TICK':
-    case 'TICK':
+    case 'TICK': {
       if (!state.game) return state;
+      const game = tickReducer(state.game, action);
+      if (game.gameOver === 'win') {
+        // TODO replace this with game over system
+        console.log('game won');
+      }
       return {
         ...state,
-        game: tickReducer(state.game, action),
+        game,
       };
+    }
     case 'APPLY_GAME_STATE':
       const {game} = action;
       let maxEntityID = 0;

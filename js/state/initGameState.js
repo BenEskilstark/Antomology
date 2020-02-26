@@ -18,8 +18,9 @@ const {
 } = require('../utils/stateHelpers');
 const tasks = require('../state/tasks');
 const graphTasks = require('../state/graphTasks');
-const {level1} = require('../levels/level1');
-const {level2} = require('../levels/level2');
+const level1 = require('../levels/level1');
+const level2 = require('../levels/level2');
+const level3 = require('../levels/level3');
 
 import type {GameState} from '../types';
 
@@ -31,17 +32,27 @@ const initGameState = (level: number): GameState => {
       return level0();
     case 1:
       return {
-        ...level1(),
         ...baseState(50, 50),
+        ...level1.level(),
         time: 0,
         tickInterval: null,
+        level,
       };
     case 2:
       return {
         ...baseState(50, 50),
-        ...level2(),
+        ...level2.level(),
         time: 0,
         tickInterval: null,
+        level,
+      };
+    case 3:
+      return {
+        ...baseState(50, 50),
+        ...level3.level(),
+        time: 0,
+        tickInterval: null,
+        level,
       };
   }
 }
@@ -182,6 +193,8 @@ const baseState = (worldWidth: number, worldHeight: number): GameState => {
 
     tasks: [],
     grid: [],
+
+    gameOver: null,
 
     fog: true,
   };

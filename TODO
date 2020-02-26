@@ -1,33 +1,18 @@
 
- - - - - - - - - TUESDAY - - - - - - - -
- - make basic level
- - obelisk colliding with target wins level and returns to menu
- - compute old-age death for ants
- - Call out ants near death of old age
- - dropped (seen-before) entities don't re-render correct location until
-    their new location is seen
- - add display names for dropdown options, rename highlevel action
- - handle what ants following trail do when they run off the end
- - WASD panning not clipped to edge of world
- - figure out how to dig out chambers: can't carry out dirt
-
-
  - - - - - - WEDNESDAY - - - - - -
+ - pheromone trails are really finicky
+ - playtest level
  - ants moving out of the way when they putdown can cause them to leave the location
  - clean up levels on main menu
- - make slightly harder level
- - clean up sidebar UI based on new controls
- - zooming:
-    - configure min and max zoom
-    - screen size in grid cells should be on the state, not the config
-    - zoom to mouse instead of center of screen
+ - see how/whether held obelisk is blocked by dirt
 
 
  - - - - - - THURSDAY - - - - - -
- - behaviors should support lists of child behaviors
- - option for deleting behaviors in Task Editor
- - conditionals with OR/AND
- - init systems should be inside level creation
+ - clean up sidebar UI based on new controls
+
+
+ - - - - - - FRIDAY - - - - - - -
+ - FoW performance
 
 
  - - - - - - - BUGS - - - - - - -
@@ -35,7 +20,14 @@
  - picked-up pupa never hatch and then die on putdown. Should just wait to hatch
  - groups of ants can ignore gravity by climbing on each other
  - ants sometimes don't fall when at clicked position
- - default state is breaking level1
+ - ants might rotate a pheromone trail instead of stack on it
+
+
+ - - - - - - - - MENUS - - - - - - - - -
+ - add game over system
+ - on level win, pop modal to say you won
+ - go to next level from modal
+ - go back to main menu when you win the last level
 
 
  - - - - - - PHEROMONE TRAILS - - - - - -
@@ -45,8 +37,6 @@
 
 
  - - - - - - WORLD - - - - - -
- - black monolith
-    - treat monolith as a location
  - big entities:
     - support rotated big-entities
     - subdividing bigger entities on pickup
@@ -62,6 +52,11 @@
  - saving with local storage
  - audio system
  - let cmd/ctrl + left click == right click
+ - add display names for dropdown options, rename highlevel action
+ - zooming:
+    - configure min and max zoom
+    - screen size in grid cells should be on the state, not the config
+    - zoom to mouse instead of center of screen
 
 
  - - - - - - LEVEL EDITOR - - - - - -
@@ -78,6 +73,9 @@
 
 
  - - - - - - TASK EDITOR - - - - - -
+ - behaviors should support lists of child behaviors
+ - option for deleting behaviors in Task Editor
+ - conditionals with OR/AND
 
 
  - - - - - - LEVELS - - - - - -
@@ -103,6 +101,8 @@
 
  - - - - - - PERFORMANCE - - - - - -
  - another round of profiling
+ - FoW computation is very bad for performance
+    - can use a 'vision' entity
  - track down memory leaks
 
 
@@ -122,10 +122,11 @@
  - fix flow errors
  - MOVE action implementation sucks
  - get optional chaining working
- - switch dead ants/larva to their own entity type
+ - switch dead ants/larva to their own entity type, centralize ants dying fn
  - replace collides function with fastCollidesWith in tickReducer
  - antBlockingEntities should be renamed to moveBlockingEntities
  - passing around location names instead of ids is V dangerous
  - common function for ant switching tasks
  - condition for whether to render marquee is ridiculously overcomplicated
+ - init systems should be inside level creation
  - need hotkey configerator for handling key presses across the board

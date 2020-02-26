@@ -325,6 +325,9 @@ function DoActionCard(props: mixed): React.Node {
     }
     case 'PICKUP':
       actionOptions = ['DIRT', 'MARKED_DIRT', 'BLOCKER', 'FOOD', 'EGG', 'LARVA', 'PUPA'];
+      if (selectedObject == null) {
+        selectedObject = 'DIRT';
+      }
       break
     case 'PUTDOWN':
       break;

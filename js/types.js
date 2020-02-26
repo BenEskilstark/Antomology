@@ -119,6 +119,9 @@ export type GameState = {
 
   fog: boolean,
 
+  gameOver: 'win' | 'lose' | null,
+  level: number,
+
   tasks: Array<Task>, // tasks that can be assigned to ants
 };
 
