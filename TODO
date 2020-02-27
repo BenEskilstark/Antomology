@@ -3,8 +3,8 @@
  - ants moving out of the way when they putdown can cause them to leave the location
  - ants running off the end of trail should stop
  - clean up levels on main menu
- - see how/whether held obelisk is blocked by dirt
  - clean up sidebar UI based on new controls
+ - clean up held big entity
 
 
  - - - - - - FRIDAY - - - - - - -
@@ -17,6 +17,8 @@
  - groups of ants can ignore gravity by climbing on each other
  - ants sometimes don't fall when at clicked position
  - ants might rotate a pheromone trail instead of stack on it
+ - can't pick up larva any more
+ - off-by-one on big entity pick up says one more than are holding
 
 
  - - - - - - - - MENUS - - - - - - - - -
