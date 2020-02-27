@@ -88,12 +88,19 @@ function GameSidebar(props) {
       'div',
       null,
       React.createElement(Slider, {
-        min: 0,
+        min: -1 * config.pheromoneMaxQuantity,
         max: config.pheromoneMaxQuantity,
         value: game.selectedAntPheromoneStrength,
+        step: 20,
         label: 'Ant Pheromone Strength: ',
         onChange: function onChange(strength) {
           dispatch({ type: 'SET_PHEROMONE_STRENGTH', selected: true, strength: strength });
+        }
+      }),
+      React.createElement(Button, {
+        label: 'Set to 0',
+        onClick: function onClick() {
+          dispatch({ type: 'SET_PHEROMONE_STRENGTH', selected: true, strength: 0 });
         }
       })
     ),

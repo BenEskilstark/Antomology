@@ -170,36 +170,47 @@ function antMakePheromone(
 ): void {
   const prevPheromone = game.entities[ant.prevPheromone];
   const nextPherPos = ant.prevPosition;
-  let theta = 0;
-  if (prevPheromone != null) {
-    theta = vectorTheta(subtract(nextPherPos, prevPheromone.position));
-    prevPheromone.theta = theta;
-  }
-  const strength = game.selectedEntities.includes(ant.id)
-    ? game.selectedAntPheromoneStrength
-    : game.allAntPheromoneStrength;
-  const pheromoneAtPos = lookupInGrid(game.grid, nextPherPos)
-    .map(id => game.entities[id])
-    .filter(e => e.type === 'PHEROMONE')
-    .filter(p => {
-      return p.theta === theta || prevPheromone == null
-    })[0];
 
+  // don't make pheromones inside locations
   const inInnerLocation = ant.location != null
     ? collides(ant.location, ant)
     : false;
   if (inInnerLocation) {
     ant.prevPheromone = null;
-    return; // don't make pheromones inside locations
+    return;
   }
 
-  if (pheromoneAtPos != null) {
-    pheromoneAtPos.quantity = Math.max(
+  const strength = game.selectedEntities.includes(ant.id)
+    ? game.selectedAntPheromoneStrength
+    : game.allAntPheromoneStrength;
+
+  let theta = vectorTheta(subtract(ant.position, ant.prevPosition));
+  if (prevPheromone != null) {
+    theta = vectorTheta(subtract(nextPherPos, prevPheromone.position));
+  }
+  const pheromonesAtPos = lookupInGrid(game.grid, nextPherPos)
+    .map(id => game.entities[id])
+    .filter(e => e.type === 'PHEROMONE');
+  // pheromone deletion
+  if (pheromonesAtPos.length > 0 && strength < 0) {
+    for (let ph of pheromonesAtPos) {
+      ph.quantity = Math.max(0, strength + ph.quantity);
+    }
+    return;
+  }
+  const pheromoneInDirection = pheromonesAtPos
+    .filter(p => {
+      return p.theta === theta // || prevPheromone == null
+    })[0];
+
+
+  if (pheromoneInDirection != null) {
+    pheromoneInDirection.quantity = Math.min(
       config.pheromoneMaxQuantity,
-      config.pheromoneReinforcement + pheromoneAtPos.quantity,
+      strength + pheromoneInDirection.quantity,
     );
-    ant.prevPheromone = pheromoneAtPos.id;
-  } else {
+    ant.prevPheromone = pheromoneInDirection.id;
+  } else if (strength > 0) {
     const pheromone = makePheromone(
       nextPherPos,
       theta,
@@ -209,6 +220,9 @@ function antMakePheromone(
       strength,
     );
     addEntity(game, pheromone);
+    if (prevPheromone != null) {
+      prevPheromone.theta = theta;
+    }
     ant.prevPheromone = pheromone.id;
   }
 }

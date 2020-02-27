@@ -1,14 +1,14 @@
 
  - - - - - - WEDNESDAY - - - - - -
- - pheromone trails are really finicky
- - playtest level
  - ants moving out of the way when they putdown can cause them to leave the location
+ - ants running off the end of trail should stop
  - clean up levels on main menu
  - see how/whether held obelisk is blocked by dirt
+ - clean up sidebar UI based on new controls
+ - plan what to do thursday
 
 
  - - - - - - THURSDAY - - - - - -
- - clean up sidebar UI based on new controls
 
 
  - - - - - - FRIDAY - - - - - - -

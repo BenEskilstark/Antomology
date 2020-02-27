@@ -208,34 +208,69 @@ function antEatEntity(game, ant, toEat) {
 function antMakePheromone(game, ant) {
   var prevPheromone = game.entities[ant.prevPheromone];
   var nextPherPos = ant.prevPosition;
-  var theta = 0;
-  if (prevPheromone != null) {
-    theta = vectorTheta(subtract(nextPherPos, prevPheromone.position));
-    prevPheromone.theta = theta;
-  }
-  var strength = game.selectedEntities.includes(ant.id) ? game.selectedAntPheromoneStrength : game.allAntPheromoneStrength;
-  var pheromoneAtPos = lookupInGrid(game.grid, nextPherPos).map(function (id) {
-    return game.entities[id];
-  }).filter(function (e) {
-    return e.type === 'PHEROMONE';
-  }).filter(function (p) {
-    return p.theta === theta;
-  })[0];
 
+  // don't make pheromones inside locations
   var inInnerLocation = ant.location != null ? collides(ant.location, ant) : false;
   if (inInnerLocation) {
     ant.prevPheromone = null;
-    return; // don't make pheromones inside locations
+    return;
   }
 
-  if (pheromoneAtPos != null) {
-    pheromoneAtPos.quantity = Math.max(config.pheromoneMaxQuantity, config.pheromoneReinforcement + pheromoneAtPos.quantity);
-    ant.prevPheromone = pheromoneAtPos.id;
-  } else {
+  var strength = game.selectedEntities.includes(ant.id) ? game.selectedAntPheromoneStrength : game.allAntPheromoneStrength;
+
+  var theta = vectorTheta(subtract(ant.position, ant.prevPosition));
+  if (prevPheromone != null) {
+    theta = vectorTheta(subtract(nextPherPos, prevPheromone.position));
+  }
+  var pheromonesAtPos = lookupInGrid(game.grid, nextPherPos).map(function (id) {
+    return game.entities[id];
+  }).filter(function (e) {
+    return e.type === 'PHEROMONE';
+  });
+  // pheromone deletion
+  if (pheromonesAtPos.length > 0 && strength < 0) {
+    var _iteratorNormalCompletion2 = true;
+    var _didIteratorError2 = false;
+    var _iteratorError2 = undefined;
+
+    try {
+      for (var _iterator2 = pheromonesAtPos[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+        var ph = _step2.value;
+
+        ph.quantity = Math.max(0, strength + ph.quantity);
+      }
+    } catch (err) {
+      _didIteratorError2 = true;
+      _iteratorError2 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion2 && _iterator2.return) {
+          _iterator2.return();
+        }
+      } finally {
+        if (_didIteratorError2) {
+          throw _iteratorError2;
+        }
+      }
+    }
+
+    return;
+  }
+  var pheromoneInDirection = pheromonesAtPos.filter(function (p) {
+    return p.theta === theta; // || prevPheromone == null
+  })[0];
+
+  if (pheromoneInDirection != null) {
+    pheromoneInDirection.quantity = Math.min(config.pheromoneMaxQuantity, strength + pheromoneInDirection.quantity);
+    ant.prevPheromone = pheromoneInDirection.id;
+  } else if (strength > 0) {
     var pheromone = makePheromone(nextPherPos, theta, 1, // edge category
     0, // edgeID (placeholder)
     ant.prevPheromone, strength);
     addEntity(game, pheromone);
+    if (prevPheromone != null) {
+      prevPheromone.theta = theta;
+    }
     ant.prevPheromone = pheromone.id;
   }
 }

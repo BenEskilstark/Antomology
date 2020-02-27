@@ -280,6 +280,12 @@ var doAction = function doAction(game, ant, action) {
         } else if (entityToPickup === 'DIRT' || entityToPickup === 'FOOD' || entityToPickup === 'EGG' || entityToPickup === 'LARVA' || entityToPickup === 'PUPA' || entityToPickup === 'DEAD_ANT') {
           entityToPickup = oneOf(fastGetNeighbors(game, ant).filter(function (e) {
             return e.type == entityToPickup;
+          }).filter(function (e) {
+            if (constraint != null) {
+              return collides(e, constraint);
+            } else {
+              return true;
+            }
           }));
         } else if (entityToPickup != null && entityToPickup.position != null) {
           entityToPickup = fastGetNeighbors(game, ant).filter(function (e) {
@@ -485,14 +491,12 @@ var doHighLevelAction = function doHighLevelAction(game, ant, action) {
     // item type you want to pickup is encountered
     case 'PICKUP':
       {
-        doAction(game, ant, { type: 'PICKUP', payload: { object: object } });
+        var constraint = getInnerLocation(ant.location);
+        doAction(game, ant, { type: 'PICKUP', payload: { object: object, constraint: constraint } });
         if (!ant.holding) {
-          console.log(ant.location);
-          console.log(getInnerLocation(ant.location));
-          console.log("--------");
           doAction(game, ant, {
             type: 'MOVE',
-            payload: { object: 'RANDOM', constraint: getInnerLocation(ant.location) }
+            payload: { object: 'RANDOM', constraint: constraint }
           });
         } else {
           done = true;

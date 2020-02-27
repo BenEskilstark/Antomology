@@ -67,12 +67,19 @@ function GameSidebar(props: Props): React.Node {
       </div>
       <div>
         <Slider
-          min={0}
+          min={-1 * config.pheromoneMaxQuantity}
           max={config.pheromoneMaxQuantity}
           value={game.selectedAntPheromoneStrength}
+          step={20}
           label={'Ant Pheromone Strength: '}
           onChange={(strength) => {
             dispatch({type: 'SET_PHEROMONE_STRENGTH', selected: true, strength});
+          }}
+        />
+        <Button
+          label="Set to 0"
+          onClick={() => {
+            dispatch({type: 'SET_PHEROMONE_STRENGTH', selected: true, strength: 0});
           }}
         />
       </div>

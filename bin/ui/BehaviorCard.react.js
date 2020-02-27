@@ -64,6 +64,7 @@ function BehaviorCard(props) {
     React.createElement(Dropdown, {
       options: options,
       selected: behavior.type,
+      noNoneOption: true,
       onChange: function onChange(newType) {
         var newBehavior = transitionBehavior(behavior, newType);
         setBehavior(newBehavior);
@@ -304,6 +305,7 @@ function Conditional(props) {
     React.createElement(Dropdown, {
       options: comparatorOptions,
       selected: comparator,
+      noNoneOption: true,
       onChange: function onChange(newComparator) {
         behavior.condition.comparator = newComparator;
         setBehavior(behavior);
@@ -338,6 +340,10 @@ function DoActionCard(props) {
       }
     case 'PICKUP':
       actionOptions = ['DIRT', 'MARKED_DIRT', 'BLOCKER', 'FOOD', 'EGG', 'LARVA', 'PUPA'];
+      if (selectedObject == null) {
+        selectedObject = 'DIRT';
+        behavior.action.payload.object = selectedObject;
+      }
       break;
     case 'PUTDOWN':
       break;
@@ -345,6 +351,7 @@ function DoActionCard(props) {
       actionOptions = ['RANDOM', 'LARVA', 'QUEEN'];
       if (selectedObject == null) {
         selectedObject = 'RANDOM';
+        behavior.action.payload.object = selectedObject;
       }
       break;
     case 'IDLE':
@@ -352,11 +359,12 @@ function DoActionCard(props) {
       break;
     // TODO
   }
-  if (selectedObject == null) {
+  if (selectedObject == null && actionOptions.length > 0) {
     selectedObject = 'NONE';
+    console.log(actionType, 'NONE selected when you don\'t want it!!');
   }
   // for locations:
-  if (selectedObject.name != null) {
+  if (selectedObject != null && selectedObject.name != null) {
     selectedObject = selectedObject.name;
   }
   if (selectedObject === 'TRAIL') {

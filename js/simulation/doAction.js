@@ -227,11 +227,11 @@ const doAction = (
             .filter(e => e.type == entityToPickup)
             .filter(e => {
               if (constraint != null) {
-                collides(e, constraint);
+                return collides(e, constraint);
               } else {
                 return true;
               }
-            });
+            })
         );
       } else if (entityToPickup != null && entityToPickup.position != null ) {
         entityToPickup = fastGetNeighbors(game, ant)
@@ -409,7 +409,7 @@ const doHighLevelAction = (
           game, ant,
           {
             type: 'MOVE',
-            payload: {object: 'RANDOM', constraint)}
+            payload: {object: 'RANDOM', constraint}
           },
         );
       } else {

@@ -192,16 +192,16 @@ var handleTick = function handleTick(game) {
       }
 
       // if blocked on a trail, pick up blocker and reverse
-      if (ant.task != null && ant.task.name === 'Follow Trail' && ant.blocked) {
-        var blockingEntity = ant.blockedBy;
-        if (!blockingEntity) {
-          console.error("no blocking entity on pheromone trail", ant);
-          break;
-        }
-        ant.task = createPickupEntityTask(blockingEntity);
-        ant.taskIndex = 0;
-        ant.taskStack = [{ name: 'Follow Trail In Reverse', index: 0 }];
-      }
+      // if (ant.task != null && ant.task.name === 'Follow Trail' && ant.blocked) {
+      //   const blockingEntity = ant.blockedBy;
+      //   if (!blockingEntity) {
+      //     console.error("no blocking entity on pheromone trail", ant);
+      //     break;
+      //   }
+      //   ant.task = createPickupEntityTask(blockingEntity);
+      //   ant.taskIndex = 0;
+      //   ant.taskStack = [{name: 'Follow Trail In Reverse', index: 0}];
+      // }
 
       ant.calories -= 1;
       if (ant.eggLayingCooldown > 0) {
