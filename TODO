@@ -1,24 +1,27 @@
 
- - - - - - - THURSDAY - - - - - -
+ - - - - - - FRIDAY - - - - - - -
  - ants moving out of the way when they putdown can cause them to leave the location
- - ants running off the end of trail should stop
+ - selected ants running off the end of trail should stop
+ - use ant location for pheromone theta instead of prev pheromone
+ - need hotkey configerator for handling key presses across the board
+ - location changing size doesn't affect copy on ants (e.g. constraint)
  - clean up levels on main menu
  - clean up sidebar UI based on new controls
- - clean up held big entity
+ - can't pick up larva by clicking, but can via location task
+ - press and hold P to lay pheromone
+ - decide what to do Saturday
 
 
- - - - - - - FRIDAY - - - - - - -
- - FoW performance
+ - - - - - - SATURDAY - - - - - - -
 
 
  - - - - - - - BUGS - - - - - - -
  - sending an ant through a location causes it to switch tasks to that location
  - picked-up pupa never hatch and then die on putdown. Should just wait to hatch
- - groups of ants can ignore gravity by climbing on each other
  - ants sometimes don't fall when at clicked position
  - ants might rotate a pheromone trail instead of stack on it
- - can't pick up larva any more
- - off-by-one on big entity pick up says one more than are holding
+ - off-by-one on big entity pick up might say one more than are holding
+ - remaking a location with the same name should keep its task
 
 
  - - - - - - - - MENUS - - - - - - - - -
@@ -29,54 +32,45 @@
 
 
  - - - - - - PHEROMONE TRAILS - - - - - -
- - "edge" cases
-    - food search random walk
  - support categories of pheromone you can select and have different colors
+ - add UI/support for conditionals on pheromone categories
 
 
  - - - - - - WORLD - - - - - -
- - big entities:
-    - support rotated big-entities
-    - subdividing bigger entities on pickup
-    - falling big entities should push down and/or crush solitary ants
- - fog of war:
-    - support partial rendering of big entities that are partially visible
- - add other entities: beetles, worms, spiders, aphids
+ - idling ants should move a bit too
+ - FoW performance -- try to avoid background sky tiles
+
+
+ - - - - - - LOCATIONS - - - - - -
+ - tool for deleting locations
+ - default task for locations should be some sort of idling
 
 
  - - - - - - UI / UX - - - - - -
+ - add display names for dropdown options, rename highlevel action to DO
  - add pause functionality/button
  - change cursor based on userMode
  - saving with local storage
  - audio system
  - let cmd/ctrl + left click == right click
- - add display names for dropdown options, rename highlevel action
+ - show egg-laying cooldown for queen
+ - Sidebar cards placed over top of the game window
+ - UI that fills the window
  - zooming:
     - configure min and max zoom
     - screen size in grid cells should be on the state, not the config
     - zoom to mouse instead of center of screen
 
 
- - - - - - - LEVEL EDITOR - - - - - -
- - still can add pheromone trails
- - still can pan
- - palette for drawing out each entity type on mouse move
-    - allow specifying dimensions of obelisk
-    - mousedown creates entity, mouse move drags it, mouseup drops it in place
- - ability to set world size
-    - move viewport and fix zoom on making world smaller
- - action for making many entities at once faster
- - exporting levels
-    - make level exports compressed somehow
-
-
  - - - - - - TASK EDITOR - - - - - -
  - behaviors should support lists of child behaviors
  - option for deleting behaviors in Task Editor
- - conditionals with OR/AND
+ - cleaner UI around all behaviors
 
 
  - - - - - - LEVELS - - - - - -
+ - fix up level 1
+ - new harder level 2
 
 
  - - - - - - LIFTNG BIG ENTITIES - - - - - -
@@ -104,12 +98,40 @@
  - track down memory leaks
 
 
+ - - - - - ALPHA STRETCH GOALS - - - - - -
+ - add other entities: beetles, worms, spiders, aphids
+ - food search random walk
+ - big entities:
+    - support rotated big-entities
+    - subdividing bigger entities on pickup
+    - falling big entities should push down and/or crush solitary ants
+ - fog of war:
+    - support partial rendering of big entities that are partially visible
+ - groups of ants can ignore gravity by climbing on each other
+ - panning with mouse on the side of the screen
+ - conditionals with OR/AND
+ - better pathing for ants that involves random walk when they get stuck
+
+
  - - - - - - ACCESSIBILITY - - - - - -
  - test on firefox
    - fix dropdowns
    - fix selection weirdness
    - firefox uses ev.code == 'Enter' instead of keyCode
  - make UI elements screen-size responsive
+
+
+ - - - - - - LEVEL EDITOR - - - - - -
+ - still can add pheromone trails
+ - still can pan
+ - palette for drawing out each entity type on mouse move
+    - allow specifying dimensions of obelisk
+    - mousedown creates entity, mouse move drags it, mouseup drops it in place
+ - ability to set world size
+    - move viewport and fix zoom on making world smaller
+ - action for making many entities at once faster
+ - exporting levels
+    - make level exports compressed somehow
 
 
  - - - - - REFACTOR - - - - -
@@ -121,10 +143,8 @@
  - MOVE action implementation sucks
  - get optional chaining working
  - switch dead ants/larva to their own entity type, centralize ants dying fn
- - replace collides function with fastCollidesWith in tickReducer
  - antBlockingEntities should be renamed to moveBlockingEntities
  - passing around location names instead of ids is V dangerous
  - common function for ant switching tasks
  - condition for whether to render marquee is ridiculously overcomplicated
  - init systems should be inside level creation
- - need hotkey configerator for handling key presses across the board
