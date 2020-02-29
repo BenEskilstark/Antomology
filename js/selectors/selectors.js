@@ -230,6 +230,47 @@ const filterEntitiesByType = (
   return entities.filter(e => entityTypes.includes(e.type));
 }
 
+/////////////////////////////////////////////////////////////////
+// Gravity
+/////////////////////////////////////////////////////////////////
+
+const shouldFall = (game, entity): boolean => {
+  if (!config.fallingEntities.includes(entity.type)) return false;
+  if (!entity.position) return false;
+  if (entity.lifted) return false;
+  // TODO lifted (big)entities not affected by gravity for now
+  const isBig = entity.toLift > 1;
+  const isReadyToLift = entity.toLift <= entity.heldBy.length;
+  // if (isBig && isReadyToLift && !entity.isLifted) continue;
+  const positionBeneath = subtract(entity.position, {x: 0, y: 1});
+  const entitiesBeneath = fastCollidesWith(game, {...entity, position: positionBeneath})
+    .filter(e => config.stopFallingEntities.includes(e.type))
+    .length > 0;
+  let entitiesSupporting = [];
+  if (config.supportedEntities.includes(entity.type)) {
+    entitiesSupporting = fastCollidesWith(game, entity)
+      .filter(e => {
+        return (
+          config.supportingBackgroundTypes.includes(e.subType) ||
+          (config.supportingForegroundTypes.includes(e.type)
+            && entity.type != 'DIRT') // TODO doesn't well handle what
+                                      // can climb on grass
+        );
+      })
+    if (config.climbingEntities.includes(entity.type)) {
+      entitiesSupporting = entitiesSupporting
+        .concat(
+          fastGetNeighbors(game, entity, true /* diagonal */)
+          .filter(e => config.stopFallingEntities.includes(e.type))
+        );
+    }
+  }
+  return (
+    (!entitiesSupporting.length > 0 && !entitiesBeneath)
+    && insideWorld(game, positionBeneath)
+  );
+}
+
 const selectors = {
   getEntitiesByType,
   filterEntitiesByType,
@@ -243,6 +284,7 @@ const selectors = {
   getSelectedAntIDs,
   entitiesInMarquee,
   getEntitiesInRadius,
+  shouldFall,
 };
 window.selectors = selectors; // for testing
 

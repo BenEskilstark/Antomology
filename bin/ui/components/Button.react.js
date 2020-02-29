@@ -29,7 +29,7 @@ var Button = function (_React$Component) {
   _createClass(Button, [{
     key: 'componentWillUnmount',
     value: function componentWillUnmount() {
-      document.onkeydown = null;
+      // document.onkeydown = null;
     }
   }, {
     key: 'render',
@@ -39,11 +39,11 @@ var Button = function (_React$Component) {
       var id = props.id || props.label;
 
       if (props.hotkey != null) {
-        document.onkeydown = function (ev) {
-          if (ev.keyCode === props.hotkey && !props.disabled) {
-            props.onClick();
-          }
-        };
+        // document.onkeydown = (ev) => {
+        //   if (ev.keyCode === props.hotkey && !props.disabled) {
+        //     props.onClick();
+        //   }
+        // }
       }
 
       return React.createElement(

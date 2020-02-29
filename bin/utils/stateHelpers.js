@@ -168,6 +168,10 @@ function changeEntityType(game, entity, oldType, nextType) {
   entity.type = nextType;
 }
 
+////////////////////////////////////////////////////////////////////////
+// Ant Functions
+////////////////////////////////////////////////////////////////////////
+
 function pickUpEntity(game, ant, entityToPickup) {
   ant.holding = entityToPickup;
   ant.blocked = false;
@@ -210,6 +214,7 @@ function antMakePheromone(game, ant) {
   var nextPherPos = ant.prevPosition;
 
   // don't make pheromones inside locations
+  // NOTE: doesn't use getInnerLocation since pherome is created in prevPosition
   var inInnerLocation = ant.location != null ? collides(ant.location, ant) : false;
   if (inInnerLocation) {
     ant.prevPheromone = null;
@@ -218,10 +223,11 @@ function antMakePheromone(game, ant) {
 
   var strength = game.selectedEntities.includes(ant.id) ? game.selectedAntPheromoneStrength : game.allAntPheromoneStrength;
 
-  var theta = vectorTheta(subtract(ant.position, ant.prevPosition));
-  if (prevPheromone != null) {
-    theta = vectorTheta(subtract(nextPherPos, prevPheromone.position));
+  if (!game.hotKeys.keysDown['p'] && !game.hotKeys.keysDown['P']) {
+    strength = 0; // must be holding P to make pheromones
   }
+
+  var theta = vectorTheta(subtract(ant.position, ant.prevPosition));
   var pheromonesAtPos = lookupInGrid(game.grid, nextPherPos).map(function (id) {
     return game.entities[id];
   }).filter(function (e) {
@@ -268,11 +274,14 @@ function antMakePheromone(game, ant) {
     0, // edgeID (placeholder)
     ant.prevPheromone, strength);
     addEntity(game, pheromone);
-    if (prevPheromone != null) {
-      prevPheromone.theta = theta;
-    }
     ant.prevPheromone = pheromone.id;
   }
+}
+
+function antSwitchTask(game, ant, task, taskStack) {
+  ant.task = task;
+  ant.taskIndex = 0;
+  ant.taskStack = taskStack != null ? taskStack : [];
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -331,5 +340,6 @@ module.exports = {
   antEatEntity: antEatEntity,
   antMakePheromone: antMakePheromone,
 
-  maybeMoveEntity: maybeMoveEntity
+  maybeMoveEntity: maybeMoveEntity,
+  antSwitchTask: antSwitchTask
 };

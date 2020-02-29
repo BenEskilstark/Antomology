@@ -7,10 +7,12 @@ const {initKeyboardControlsSystem} = require('./keyboardControlsSystem');
 
 const initSystems = (store: Store): void => {
   let gameMode = store.getState().mode;
+  let prevGameState = store.getState().game;
   store.subscribe(() => {
     const nextGameMode = store.getState().mode;
+    const game = store.getState().game;
     // game systems
-    if (gameMode === 'MENU' && nextGameMode === 'GAME') {
+    if (prevGameState == null && game != null && nextGameMode === 'GAME') {
       initRenderSystem(store);
       initMouseControlsSystem(store);
       initKeyboardControlsSystem(store);
@@ -19,13 +21,14 @@ const initSystems = (store: Store): void => {
       // audio.play();
 
     // editor systems
-    } else if (gameMode === 'MENU' && nextGameMode === 'EDITOR') {
+    } else if (nextGameMode === 'EDITOR' && prevGameState == null && game != null) {
       initRenderSystem(store);
       initMouseControlsSystem(store);
       initKeyboardControlsSystem(store);
     }
 
     gameMode = nextGameMode;
+    prevGameState = game;
   });
 };
 

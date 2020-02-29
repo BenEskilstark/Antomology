@@ -19,13 +19,13 @@ const NumberField = (props) => {
   const [isFocused, setFocus] = useState(false);
 
   useEffect(() => {
-    document.onkeydown = (ev) => {
-      if (ev.keyCode == 13)  { // Enter
-        if (isFocused) {
-          submitValue(onChange, stateValue, onlyInt);
-        }
-      }
-    };
+    // document.onkeydown = (ev) => {
+    //   if (ev.keyCode == 13)  { // Enter
+    //     if (isFocused) {
+    //       submitValue(onChange, stateValue, onlyInt);
+    //     }
+    //   }
+    // };
   }, [isFocused, stateValue]);
 
 

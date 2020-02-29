@@ -430,22 +430,18 @@ var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
     if (state.game.antMode === 'EAT') {
       task.behaviorQueue.push(eatClicked);
     } else if (state.game.antMode === 'PICKUP') {
-      if (clickedEntity != null && (clickedEntity.type === 'LARVA' || clickedEntity.type === 'ANT')) {
-        task.behaviorQueue.push(createDoAction('FEED', null));
-      } else {
-        task.behaviorQueue.push({
-          type: 'IF',
-          condition: {
-            type: 'HOLDING',
-            comparator: 'EQUALS',
-            payload: {
-              object: 'NOTHING'
-            }
-          },
-          behavior: pickupClicked,
-          elseBehavior: putdownClicked
-        });
-      }
+      task.behaviorQueue.push({
+        type: 'IF',
+        condition: {
+          type: 'HOLDING',
+          comparator: 'EQUALS',
+          payload: {
+            object: 'NOTHING'
+          }
+        },
+        behavior: pickupClicked,
+        elseBehavior: putdownClicked
+      });
     } else if (state.game.antMode === 'FEED') {
       if (clickedEntity != null && clickedEntity.type === 'FOOD') {
         task.behaviorQueue.push({

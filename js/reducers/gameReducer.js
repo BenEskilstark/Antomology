@@ -25,8 +25,20 @@ const gameReducer = (game: GameState, action: Action): GameState => {
           return game.entities[l].name === entity.name;
         })[0];
         if (locationIDWithName != null) {
+          // is null for clicked location
+          const locationEntity = game.entities[locationIDWithName];
           removeEntity(game, game.entities[locationIDWithName]);
-          addEntity(game, {...entity, id: locationIDWithName});
+          const updatedLocation = {
+            ...entity, id: locationIDWithName,
+            task: locationEntity != null ? locationEntity.task : entity.task,
+          };
+          addEntity(game, updatedLocation);
+          for (const antID of game.ANT) {
+            const ant = game.entities[antID];
+            if (ant.location != null && ant.location.id === locationIDWithName) {
+              ant.location = updatedLocation;
+            }
+          }
         } else {
           addEntity(game, entity);
         }
@@ -233,11 +245,6 @@ const gameReducer = (game: GameState, action: Action): GameState => {
         ...game,
         viewPos: nextViewPos,
       };
-    }
-    case 'SET_KEY_PRESS': {
-      const {dir, pressed} = action;
-      game.arrowKeys[dir] = pressed;
-      return game;
     }
     case 'ZOOM': {
       const {out} = action;

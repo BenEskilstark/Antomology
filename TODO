@@ -1,27 +1,14 @@
 
- - - - - - - FRIDAY - - - - - - -
- - ants moving out of the way when they putdown can cause them to leave the location
- - selected ants running off the end of trail should stop
- - use ant location for pheromone theta instead of prev pheromone
- - need hotkey configerator for handling key presses across the board
- - location changing size doesn't affect copy on ants (e.g. constraint)
- - clean up levels on main menu
- - clean up sidebar UI based on new controls
- - can't pick up larva by clicking, but can via location task
- - press and hold P to lay pheromone
- - decide what to do Saturday
-
-
  - - - - - - SATURDAY - - - - - - -
+ - sending an ant through a location causes it to switch tasks to that location
+ - ants sometimes don't fall when at clicked position
+ - idling ants should move a bit too
 
 
  - - - - - - - BUGS - - - - - - -
- - sending an ant through a location causes it to switch tasks to that location
  - picked-up pupa never hatch and then die on putdown. Should just wait to hatch
- - ants sometimes don't fall when at clicked position
  - ants might rotate a pheromone trail instead of stack on it
  - off-by-one on big entity pick up might say one more than are holding
- - remaking a location with the same name should keep its task
 
 
  - - - - - - - - MENUS - - - - - - - - -
@@ -37,7 +24,6 @@
 
 
  - - - - - - WORLD - - - - - -
- - idling ants should move a bit too
  - FoW performance -- try to avoid background sky tiles
 
 
@@ -52,10 +38,16 @@
  - change cursor based on userMode
  - saving with local storage
  - audio system
- - let cmd/ctrl + left click == right click
  - show egg-laying cooldown for queen
  - Sidebar cards placed over top of the game window
  - UI that fills the window
+ - blip the clicked grid square when sending ants somewhere
+ - hotkeys:
+    - get meta key set up
+    - let cmd/ctrl + left click == right click
+    - get space set up
+    - init keyboard should be made to work at state level instead of game level
+    - set up button and number field to register their onkeydowns
  - zooming:
     - configure min and max zoom
     - screen size in grid cells should be on the state, not the config
@@ -71,6 +63,8 @@
  - - - - - - LEVELS - - - - - -
  - fix up level 1
  - new harder level 2
+ - clean up tasks inside levels
+ - clean up levels on main menu
 
 
  - - - - - - LIFTNG BIG ENTITIES - - - - - -

@@ -217,7 +217,7 @@ function LarvaCard(props) {
       'div',
       null,
       'Calories needed to hatch: ',
-      config.larvaEndCalories - larva.calories
+      config.larvaEndCalories
     ),
     React.createElement(
       'div',

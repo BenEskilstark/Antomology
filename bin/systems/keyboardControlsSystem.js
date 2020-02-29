@@ -3,28 +3,94 @@
 var _require = require('../config'),
     config = _require.config;
 
+var done = false;
 var initKeyboardControlsSystem = function initKeyboardControlsSystem(store) {
+  if (done) return;
+  done = true;
   var dispatch = store.dispatch;
 
-  // document.onkeydown = (ev) => {
-  // }
+  // TODO this doesn't register AT ALL!!!
+
+  document.onkeydown = function (ev) {
+    console.log(ev);
+    var state = store.getState();
+    if (state.game == null) return;
+    var dir = getUpDownLeftRight(ev);
+    if (dir != null) {
+      if (state.game.hotKeys.onKeyDown[dir] != null) {
+        state.game.hotKeys.onKeyDown[dir](store);
+      }
+      dispatch({ type: 'SET_KEY_PRESS', key: dir, pressed: true });
+      return;
+    }
+    if (ev.keyCode === 13) {
+      if (state.game.hotKeys.onKeyDown.enter != null) {
+        state.game.hotKeys.onKeyDown.enter(store);
+      }
+      dispatch({ type: 'SET_KEY_PRESS', key: 'enter', pressed: true });
+      return;
+    }
+    var character = String.fromCharCode(ev.keyCode);
+    if (character != null) {
+      if (state.game.hotKeys.onKeyDown[character] != null) {
+        state.game.hotKeys.onKeyDown[character](store);
+      }
+      dispatch({ type: 'SET_KEY_PRESS', key: character, pressed: true });
+    }
+  };
 
   document.onkeypress = function (ev) {
     var state = store.getState();
     if (state.game == null) return;
     var dir = getUpDownLeftRight(ev);
-    if (dir == null) return;
-
-    dispatch({ type: 'SET_KEY_PRESS', dir: dir, pressed: true });
+    if (dir != null) {
+      if (state.game.hotKeys.onKeyPress[dir] != null) {
+        state.game.hotKeys.onKeyPress[dir](store);
+      }
+      dispatch({ type: 'SET_KEY_PRESS', key: dir, pressed: true });
+      return;
+    }
+    if (ev.keyCode === 13) {
+      if (state.game.hotKeys.onKeyPress.enter != null) {
+        state.game.hotKeys.onKeyPress.enter(store);
+      }
+      dispatch({ type: 'SET_KEY_PRESS', key: 'enter', pressed: true });
+      return;
+    }
+    var character = String.fromCharCode(ev.keyCode).toUpperCase();
+    if (character != null) {
+      if (state.game.hotKeys.onKeyPress[character] != null) {
+        state.game.hotKeys.onKeyPress[character](store);
+      }
+      dispatch({ type: 'SET_KEY_PRESS', key: character, pressed: true });
+    }
   };
 
   document.onkeyup = function (ev) {
     var state = store.getState();
     if (state.game == null) return;
     var dir = getUpDownLeftRight(ev);
-    if (dir == null) return;
-
-    dispatch({ type: 'SET_KEY_PRESS', dir: dir, pressed: false });
+    if (dir != null) {
+      if (state.game.hotKeys.onKeyUp[dir] != null) {
+        state.game.hotKeys.onKeyUp[dir](store);
+      }
+      dispatch({ type: 'SET_KEY_PRESS', key: dir, pressed: false });
+      return;
+    }
+    if (ev.keyCode === 13) {
+      if (state.game.hotKeys.onKeyUp.enter != null) {
+        state.game.hotKeys.onKeyUp.enter(store);
+      }
+      dispatch({ type: 'SET_KEY_PRESS', key: 'enter', pressed: false });
+      return;
+    }
+    var character = String.fromCharCode(ev.keyCode);
+    if (character != null) {
+      if (state.game.hotKeys.onKeyUp[character] != null) {
+        state.game.hotKeys.onKeyUp[character](store);
+      }
+      dispatch({ type: 'SET_KEY_PRESS', key: character, pressed: false });
+    }
   };
 };
 

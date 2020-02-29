@@ -35,6 +35,7 @@ const {
   pickUpEntity,
   putDownEntity,
   maybeMoveEntity,
+  antSwitchTask,
 } = require('../utils/stateHelpers');
 const {
   fastCollidesWith,
@@ -45,6 +46,7 @@ const {
   filterEntitiesByType,
   insideWorld,
   getEntitiesInRadius,
+  shouldFall,
 } = require('../selectors/selectors');
 const {makeEgg} = require('../entities/egg');
 const {makeLarva} = require('../entities/larva');
@@ -101,16 +103,16 @@ const tickReducer = (game: GameState, action: Action): GameState => {
 ///////////////////////////////////////////////////////////////////////////////
 const handlePan = (game: GameState): void => {
   const nextViewPos = {...game.viewPos};
-  if (game.arrowKeys.up) {
+  if (game.hotKeys.keysDown.up) {
     nextViewPos.y += 1;
   }
-  if (game.arrowKeys.down) {
+  if (game.hotKeys.keysDown.down) {
     nextViewPos.y -= 1;
   }
-  if (game.arrowKeys.left) {
+  if (game.hotKeys.keysDown.left) {
     nextViewPos.x -= 1;
   }
-  if (game.arrowKeys.right) {
+  if (game.hotKeys.keysDown.right) {
     nextViewPos.x += 1;
   }
   game.viewPos = {
@@ -144,12 +146,10 @@ const handleTick = (game: GameState): GameState => {
     if (locs.length > 0 && (ant.location == null || locs[0].id != ant.location.id)) {
       if (collides(getInnerLocation(locs[0]), ant)) {
         ant.location = locs[0];
-        ant.task = locs[0].task;
-        ant.taskIndex = 0;
-        ant.taskStack = [
+        antSwitchTask(game, ant, locs[0].task, [
           {name: 'Follow Trail', index: 0},
           {name: 'Find Pheromone Trail', index: 0},
-        ];
+        ]);
       }
     } else if (locs.length == 0 && ant.location != null) {
       ant.location = null;
@@ -160,22 +160,8 @@ const handleTick = (game: GameState): GameState => {
       .filter(id => game.PHEROMONE.includes(id))
       .length > 0;
     if (ant.task != null && ant.task.name === 'Idle' && pheromoneAtPosition) {
-      ant.taskIndex = 0;
-      ant.taskStack = [];
-      ant.task = createFollowTrailTask();
+      antSwitchTask(game, ant, createFollowTrailTask());
     }
-
-    // if blocked on a trail, pick up blocker and reverse
-    // if (ant.task != null && ant.task.name === 'Follow Trail' && ant.blocked) {
-    //   const blockingEntity = ant.blockedBy;
-    //   if (!blockingEntity) {
-    //     console.error("no blocking entity on pheromone trail", ant);
-    //     break;
-    //   }
-    //   ant.task = createPickupEntityTask(blockingEntity);
-    //   ant.taskIndex = 0;
-    //   ant.taskStack = [{name: 'Follow Trail In Reverse', index: 0}];
-    // }
 
     ant.calories -= 1;
     if (ant.eggLayingCooldown > 0) {
@@ -336,40 +322,9 @@ const computeGravity = (game: GameState): void => {
   for (const entityType of config.fallingEntities) {
     for (const id of game[entityType]) {
       const entity = game.entities[id];
-      if (!entity.position) continue;
-      // TODO lifted (big)entities not affected by gravity for now
-      const isBig = entity.toLift > 1;
-      const isReadyToLift = entity.toLift <= entity.heldBy.length;
-      if (entity.lifted) continue;
-      // if (isBig && isReadyToLift && !entity.isLifted) continue;
-      const positionBeneath = subtract(entity.position, {x: 0, y: 1});
-      const entitiesBeneath = fastCollidesWith(game, {...entity, position: positionBeneath})
-        .filter(e => config.stopFallingEntities.includes(e.type))
-        .length > 0;
-      let entitiesSupporting = [];
-      if (config.supportedEntities.includes(entityType)) {
-        entitiesSupporting = fastCollidesWith(game, entity)
-          .filter(e => {
-            return (
-              config.supportingBackgroundTypes.includes(e.subType) ||
-              (config.supportingForegroundTypes.includes(e.type)
-                && entity.type != 'DIRT') // TODO doesn't well handle what
-                                          // can climb on grass
-            );
-          })
-        if (config.climbingEntities.includes(entity.type)) {
-          entitiesSupporting = entitiesSupporting
-            .concat(
-              fastGetNeighbors(game, entity, true /* diagonal */)
-              .filter(e => config.stopFallingEntities.includes(e.type))
-            );
-        }
-      }
-      if (
-        (!entitiesSupporting.length > 0 && !entitiesBeneath)
-        && insideWorld(game, positionBeneath)
-      ) {
-          moveEntity(game, entity, positionBeneath);
+      if (shouldFall(game, entity)) {
+        const positionBeneath = subtract(entity.position, {x: 0, y: 1});
+        moveEntity(game, entity, positionBeneath);
       }
     }
   }

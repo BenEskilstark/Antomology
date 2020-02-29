@@ -35,6 +35,7 @@ const {
   maybeMoveEntity,
   antEatEntity,
   antMakePheromone,
+  antSwitchTask,
 } = require('../utils/stateHelpers');
 const {
   fastCollidesWith,
@@ -45,6 +46,7 @@ const {
   filterEntitiesByType,
   insideWorld,
   getEntitiesInRadius,
+  shouldFall,
 } = require('../selectors/selectors');
 const {makeEgg} = require('../entities/egg');
 
@@ -115,7 +117,9 @@ const doAction = (
             loc = {position: add(ant.position, dir)};
           }
         } else {
-          obj = 'RANDOM';
+          antSwitchTask(game, ant, createIdleTask());
+          ant.taskIndex = -1; // HACK for switching tasks inside a task
+          break;
         }
       }
       if (obj === 'RANDOM') {
@@ -252,10 +256,8 @@ const doAction = (
             width: 1,
             height: 1,
           };
-          ant.taskStack = [];
-          ant.taskIndex = -1; // HACK to switch tasks inside a task
           const goToLocationBehavior = createGoToLocationBehavior(targetLoc);
-          ant.task = {
+          switchTask(game, ant, {
             name: 'Picking up ' + bigEntity.type,
             repeating: false,
             behaviorQueue: [
@@ -265,7 +267,8 @@ const doAction = (
                 task: 'Holding and Idle'
               }
             ],
-          };
+          });
+          ant.taskIndex = -1; // HACK to switch tasks inside a task
         }
       }
       break;
@@ -282,13 +285,16 @@ const doAction = (
         })
         .length === 0;
       if (collides(ant, locationToPutdown) && ant.holding != null && putDownFree) {
+        const toPutDown = ant.holding;
         putDownEntity(game, ant);
-        // move the ant out of the way
-        const freePositions = fastGetEmptyNeighborPositions(
-          game, ant, config.antBlockingEntities,
-        );
-        if (freePositions.length > 0) {
-          moveEntity(game, ant, freePositions[0]);
+        // move the ant out of the way if dropped entity won't fall
+        if (!shouldFall(game, toPutDown)) {
+          const freePositions = fastGetEmptyNeighborPositions(
+            game, ant, config.antBlockingEntities,
+          );
+          if (freePositions.length > 0) {
+            moveEntity(game, ant, freePositions[0]);
+          }
         }
       }
       break;

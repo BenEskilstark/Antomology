@@ -16,10 +16,12 @@ var _require4 = require('./keyboardControlsSystem'),
 
 var initSystems = function initSystems(store) {
   var gameMode = store.getState().mode;
+  var prevGameState = store.getState().game;
   store.subscribe(function () {
     var nextGameMode = store.getState().mode;
+    var game = store.getState().game;
     // game systems
-    if (gameMode === 'MENU' && nextGameMode === 'GAME') {
+    if (prevGameState == null && game != null && nextGameMode === 'GAME') {
       initRenderSystem(store);
       initMouseControlsSystem(store);
       initKeyboardControlsSystem(store);
@@ -28,13 +30,14 @@ var initSystems = function initSystems(store) {
       // audio.play();
 
       // editor systems
-    } else if (gameMode === 'MENU' && nextGameMode === 'EDITOR') {
+    } else if (nextGameMode === 'EDITOR' && prevGameState == null && game != null) {
       initRenderSystem(store);
       initMouseControlsSystem(store);
       initKeyboardControlsSystem(store);
     }
 
     gameMode = nextGameMode;
+    prevGameState = game;
   });
 };
 

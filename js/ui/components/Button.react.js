@@ -10,7 +10,7 @@ const React = require('React');
 class Button extends React.Component {
 
   componentWillUnmount() {
-    document.onkeydown = null;
+    // document.onkeydown = null;
   }
 
   render() {
@@ -18,11 +18,11 @@ class Button extends React.Component {
     const id = props.id || props.label;
 
     if (props.hotkey != null) {
-      document.onkeydown = (ev) => {
-        if (ev.keyCode === props.hotkey && !props.disabled) {
-          props.onClick();
-        }
-      }
+      // document.onkeydown = (ev) => {
+      //   if (ev.keyCode === props.hotkey && !props.disabled) {
+      //     props.onClick();
+      //   }
+      // }
     }
 
     return (

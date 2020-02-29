@@ -33,7 +33,9 @@ export type State = {
   game: ?GameState,
   editor: ?EditorState,
   modal: ?Modal,
+  hotKeys: Hotkeys,
 };
+
 
 export type EditorMode =
   'CREATE_ENTITY' | 'CREATE_LOCATION' | 'MARK_TRAIL' | 'MARQUEE_ENTITY' |
@@ -61,11 +63,12 @@ export type Mouse = {
   curPixel: Vector, // pixel position of mouse
   prevPixel: Vector,
 };
-export type ArrowKeys = {
-  up: boolean,
-  down: boolean,
-  left: boolean,
-  right: boolean,
+// uses left/right/up/down and enter/space/meta
+export type HotKeys = {
+  onKeyDown: {[key: string]: (store) => void},
+  onKeyUp: {[key: string]: (store) => void},
+  onKeyPress: {[key: string]: (store) => void},
+  keysDown: {[key: string]: boolean},
 };
 
 export type GameState = {
@@ -76,7 +79,7 @@ export type GameState = {
   antMode: AntMode, // what ants do at clicked entities
   userMode: UserMode,
   mouse: Mouse,
-  arrowKeys: ArrowKeys,
+  hotKeys: HotKeys,
 
   // UI-based partial state
   nextLocationName: string,
@@ -349,7 +352,13 @@ export type Action =
   {type: 'SET_WORLD_SIZE', width: ?number, height: ?number} |
   {type: 'SET_EDITOR_ALLOW_DELETE_BACKGROUND', allow: boolean} |
   {type: 'SET_EDITOR_ANT_SUBTYPE', subType: AntSubType} |
-  {type: 'SET_KEY_PRESS', dir: 'up' | 'down' | 'left' | 'right', pressed: boolean} |
+  {type: 'SET_KEY_PRESS', key: string, pressed: boolean} |
+  {
+    type: 'SET_HOTKEY',
+    press: 'onKeyUp' | 'onKeyDown' | 'onKeyPress',
+    key: string,
+    fn: (store) => void
+  } |
   {type: 'SET_PHEROMONE_STRENGTH', selected: boolean, strength: number} |
   {type: 'SET_EDITOR_BACKGROUND_TYPE', backgroundType: 'SKY' | 'DIRT'};
 

@@ -120,6 +120,10 @@ function changeEntityType(
   entity.type = nextType;
 }
 
+////////////////////////////////////////////////////////////////////////
+// Ant Functions
+////////////////////////////////////////////////////////////////////////
+
 function pickUpEntity(
   game: GameState, ant: Ant, entityToPickup: Entity,
 ): void {
@@ -172,6 +176,7 @@ function antMakePheromone(
   const nextPherPos = ant.prevPosition;
 
   // don't make pheromones inside locations
+  // NOTE: doesn't use getInnerLocation since pherome is created in prevPosition
   const inInnerLocation = ant.location != null
     ? collides(ant.location, ant)
     : false;
@@ -180,14 +185,15 @@ function antMakePheromone(
     return;
   }
 
-  const strength = game.selectedEntities.includes(ant.id)
+  let strength = game.selectedEntities.includes(ant.id)
     ? game.selectedAntPheromoneStrength
     : game.allAntPheromoneStrength;
 
-  let theta = vectorTheta(subtract(ant.position, ant.prevPosition));
-  if (prevPheromone != null) {
-    theta = vectorTheta(subtract(nextPherPos, prevPheromone.position));
+  if (!game.hotKeys.keysDown['p'] && !game.hotKeys.keysDown['P']) {
+    strength = 0; // must be holding P to make pheromones
   }
+
+  const theta = vectorTheta(subtract(ant.position, ant.prevPosition));
   const pheromonesAtPos = lookupInGrid(game.grid, nextPherPos)
     .map(id => game.entities[id])
     .filter(e => e.type === 'PHEROMONE');
@@ -220,11 +226,16 @@ function antMakePheromone(
       strength,
     );
     addEntity(game, pheromone);
-    if (prevPheromone != null) {
-      prevPheromone.theta = theta;
-    }
     ant.prevPheromone = pheromone.id;
   }
+}
+
+function antSwitchTask(
+  game: GameState, ant: Ant, task: Task, taskStack: ?Array<Object>,
+): void {
+  ant.task = task;
+  ant.taskIndex = 0;
+  ant.taskStack = taskStack != null ? taskStack : [];
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -286,4 +297,5 @@ module.exports = {
   antMakePheromone,
 
   maybeMoveEntity,
+  antSwitchTask,
 }

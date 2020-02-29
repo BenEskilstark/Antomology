@@ -36,14 +36,13 @@ var NumberField = function NumberField(props) {
       setFocus = _useState4[1];
 
   useEffect(function () {
-    document.onkeydown = function (ev) {
-      if (ev.keyCode == 13) {
-        // Enter
-        if (isFocused) {
-          submitValue(_onChange, stateValue, onlyInt);
-        }
-      }
-    };
+    // document.onkeydown = (ev) => {
+    //   if (ev.keyCode == 13)  { // Enter
+    //     if (isFocused) {
+    //       submitValue(onChange, stateValue, onlyInt);
+    //     }
+    //   }
+    // };
   }, [isFocused, stateValue]);
 
   return React.createElement('input', { type: 'text',

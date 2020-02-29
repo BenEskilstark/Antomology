@@ -140,7 +140,7 @@ function LarvaCard(props: Props): React.Node {
     >
       <div><b>{deadStr}{larva.type}</b></div>
       <div>Calories: {larva.calories}{hungryStr}</div>
-      <div>Calories needed to hatch: {config.larvaEndCalories - larva.calories}</div>
+      <div>Calories needed to hatch: {config.larvaEndCalories}</div>
       <div>HP: 10/10</div>
       <div>Will become: PUPA then {larva.subType} ANT</div>
       <DeselectButton {...props} />

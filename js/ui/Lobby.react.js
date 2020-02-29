@@ -25,7 +25,6 @@ function Lobby(props: Props): React.Node {
         />
         <Button
           label="Start Level 1"
-          hotkey={13} // enter
           onClick={() => {
             dispatch({type: 'START', level: 1});
             dispatch({type: 'START_TICK', updateSim: true});

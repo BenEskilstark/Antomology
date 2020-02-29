@@ -162,11 +162,11 @@ const baseState = (worldWidth: number, worldHeight: number): GameState => {
       curPixel: {x: 0, y: 0},
       prevPixel: {x: 0, y: 0},
     },
-    arrowKeys: {
-      up: false,
-      down: false,
-      left: false,
-      right: false,
+    hotKeys: {
+      onKeyDown: {},
+      onKeyPress: {},
+      onKeyUp: {},
+      keysDown: {},
     },
 
     worldWidth,
@@ -210,7 +210,6 @@ const baseState = (worldWidth: number, worldHeight: number): GameState => {
     tasks.createIdleTask(),
     tasks.createRandomMoveTask(),
     tasks.createLayEggTask(),
-    tasks.createHoldingAndIdleTask(),
     graphTasks.createFindPheromoneTask(),
     graphTasks.createFollowTrailTask(),
     graphTasks.createFollowTrailInReverseTask(),

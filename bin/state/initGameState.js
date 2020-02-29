@@ -174,11 +174,11 @@ var baseState = function baseState(worldWidth, worldHeight) {
       curPixel: { x: 0, y: 0 },
       prevPixel: { x: 0, y: 0 }
     },
-    arrowKeys: {
-      up: false,
-      down: false,
-      left: false,
-      right: false
+    hotKeys: {
+      onKeyDown: {},
+      onKeyPress: {},
+      onKeyUp: {},
+      keysDown: {}
     },
 
     worldWidth: worldWidth,
@@ -217,7 +217,7 @@ var baseState = function baseState(worldWidth, worldHeight) {
   addEntity(game, clickedLocation);
 
   // initial tasks
-  game.tasks = [tasks.createIdleTask(), tasks.createRandomMoveTask(), tasks.createLayEggTask(), tasks.createHoldingAndIdleTask(), graphTasks.createFindPheromoneTask(), graphTasks.createFollowTrailTask(), graphTasks.createFollowTrailInReverseTask(), {
+  game.tasks = [tasks.createIdleTask(), tasks.createRandomMoveTask(), tasks.createLayEggTask(), graphTasks.createFindPheromoneTask(), graphTasks.createFollowTrailTask(), graphTasks.createFollowTrailInReverseTask(), {
     name: 'Find Food',
     repeating: false,
     behaviorQueue: [{

@@ -44,7 +44,8 @@ var _require6 = require('../utils/stateHelpers'),
     putDownEntity = _require6.putDownEntity,
     maybeMoveEntity = _require6.maybeMoveEntity,
     antEatEntity = _require6.antEatEntity,
-    antMakePheromone = _require6.antMakePheromone;
+    antMakePheromone = _require6.antMakePheromone,
+    antSwitchTask = _require6.antSwitchTask;
 
 var _require7 = require('../selectors/selectors'),
     fastCollidesWith = _require7.fastCollidesWith,
@@ -54,7 +55,8 @@ var _require7 = require('../selectors/selectors'),
     getEntitiesByType = _require7.getEntitiesByType,
     filterEntitiesByType = _require7.filterEntitiesByType,
     insideWorld = _require7.insideWorld,
-    getEntitiesInRadius = _require7.getEntitiesInRadius;
+    getEntitiesInRadius = _require7.getEntitiesInRadius,
+    shouldFall = _require7.shouldFall;
 
 var _require8 = require('../entities/egg'),
     makeEgg = _require8.makeEgg;
@@ -127,7 +129,9 @@ var doAction = function doAction(game, ant, action) {
               loc = { position: add(ant.position, _dir) };
             }
           } else {
-            obj = 'RANDOM';
+            antSwitchTask(game, ant, createIdleTask());
+            ant.taskIndex = -1; // HACK for switching tasks inside a task
+            break;
           }
         }
         if (obj === 'RANDOM') {
@@ -307,17 +311,16 @@ var doAction = function doAction(game, ant, action) {
               width: 1,
               height: 1
             };
-            ant.taskStack = [];
-            ant.taskIndex = -1; // HACK to switch tasks inside a task
             var goToLocationBehavior = createGoToLocationBehavior(targetLoc);
-            ant.task = {
+            switchTask(game, ant, {
               name: 'Picking up ' + _bigEntity.type,
               repeating: false,
               behaviorQueue: [goToLocationBehavior, {
                 type: 'SWITCH_TASK',
                 task: 'Holding and Idle'
               }]
-            };
+            });
+            ant.taskIndex = -1; // HACK to switch tasks inside a task
           }
         }
         break;
@@ -332,11 +335,14 @@ var doAction = function doAction(game, ant, action) {
           return config.antBlockingEntities.includes(e.type) || e.type === 'PHEROMONE';
         }).length === 0;
         if (collides(ant, locationToPutdown) && ant.holding != null && putDownFree) {
+          var toPutDown = ant.holding;
           putDownEntity(game, ant);
-          // move the ant out of the way
-          var _freePositions2 = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities);
-          if (_freePositions2.length > 0) {
-            moveEntity(game, ant, _freePositions2[0]);
+          // move the ant out of the way if dropped entity won't fall
+          if (!shouldFall(game, toPutDown)) {
+            var _freePositions2 = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities);
+            if (_freePositions2.length > 0) {
+              moveEntity(game, ant, _freePositions2[0]);
+            }
           }
         }
         break;

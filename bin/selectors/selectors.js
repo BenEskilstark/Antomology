@@ -1,5 +1,7 @@
 'use strict';
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 var _require = require('../utils/errors'),
@@ -342,6 +344,38 @@ var filterEntitiesByType = function filterEntitiesByType(entities, entityTypes) 
   });
 };
 
+/////////////////////////////////////////////////////////////////
+// Gravity
+/////////////////////////////////////////////////////////////////
+
+var shouldFall = function shouldFall(game, entity) {
+  if (!config.fallingEntities.includes(entity.type)) return false;
+  if (!entity.position) return false;
+  if (entity.lifted) return false;
+  // TODO lifted (big)entities not affected by gravity for now
+  var isBig = entity.toLift > 1;
+  var isReadyToLift = entity.toLift <= entity.heldBy.length;
+  // if (isBig && isReadyToLift && !entity.isLifted) continue;
+  var positionBeneath = subtract(entity.position, { x: 0, y: 1 });
+  var entitiesBeneath = fastCollidesWith(game, _extends({}, entity, { position: positionBeneath })).filter(function (e) {
+    return config.stopFallingEntities.includes(e.type);
+  }).length > 0;
+  var entitiesSupporting = [];
+  if (config.supportedEntities.includes(entity.type)) {
+    entitiesSupporting = fastCollidesWith(game, entity).filter(function (e) {
+      return config.supportingBackgroundTypes.includes(e.subType) || config.supportingForegroundTypes.includes(e.type) && entity.type != 'DIRT' // TODO doesn't well handle what
+      // can climb on grass
+      ;
+    });
+    if (config.climbingEntities.includes(entity.type)) {
+      entitiesSupporting = entitiesSupporting.concat(fastGetNeighbors(game, entity, true /* diagonal */).filter(function (e) {
+        return config.stopFallingEntities.includes(e.type);
+      }));
+    }
+  }
+  return !entitiesSupporting.length > 0 && !entitiesBeneath && insideWorld(game, positionBeneath);
+};
+
 var selectors = {
   getEntitiesByType: getEntitiesByType,
   filterEntitiesByType: filterEntitiesByType,
@@ -354,7 +388,8 @@ var selectors = {
   collides: collides,
   getSelectedAntIDs: getSelectedAntIDs,
   entitiesInMarquee: entitiesInMarquee,
-  getEntitiesInRadius: getEntitiesInRadius
+  getEntitiesInRadius: getEntitiesInRadius,
+  shouldFall: shouldFall
 };
 window.selectors = selectors; // for testing
 

@@ -57,6 +57,16 @@ const rootReducer = (state: State, action: Action): State => {
         ...state,
         editor: editorReducer(state.editor, action),
       };
+    case 'SET_HOTKEY': {
+      const {key, press, fn} = action;
+      state.game.hotKeys[press][key] = fn;
+      return state;
+    }
+    case 'SET_KEY_PRESS': {
+      const {key, pressed} = action;
+      state.game.hotKeys.keysDown[key] = pressed;
+      return state;
+    }
     case 'SET_MODAL':
     case 'DISMISS_MODAL':
       return modalReducer(state, action);

@@ -44,7 +44,8 @@ var _require6 = require('../utils/stateHelpers'),
     changeEntityType = _require6.changeEntityType,
     pickUpEntity = _require6.pickUpEntity,
     putDownEntity = _require6.putDownEntity,
-    maybeMoveEntity = _require6.maybeMoveEntity;
+    maybeMoveEntity = _require6.maybeMoveEntity,
+    antSwitchTask = _require6.antSwitchTask;
 
 var _require7 = require('../selectors/selectors'),
     fastCollidesWith = _require7.fastCollidesWith,
@@ -54,7 +55,8 @@ var _require7 = require('../selectors/selectors'),
     getEntitiesByType = _require7.getEntitiesByType,
     filterEntitiesByType = _require7.filterEntitiesByType,
     insideWorld = _require7.insideWorld,
-    getEntitiesInRadius = _require7.getEntitiesInRadius;
+    getEntitiesInRadius = _require7.getEntitiesInRadius,
+    shouldFall = _require7.shouldFall;
 
 var _require8 = require('../entities/egg'),
     makeEgg = _require8.makeEgg;
@@ -122,16 +124,16 @@ var tickReducer = function tickReducer(game, action) {
 ///////////////////////////////////////////////////////////////////////////////
 var handlePan = function handlePan(game) {
   var nextViewPos = _extends({}, game.viewPos);
-  if (game.arrowKeys.up) {
+  if (game.hotKeys.keysDown.up) {
     nextViewPos.y += 1;
   }
-  if (game.arrowKeys.down) {
+  if (game.hotKeys.keysDown.down) {
     nextViewPos.y -= 1;
   }
-  if (game.arrowKeys.left) {
+  if (game.hotKeys.keysDown.left) {
     nextViewPos.x -= 1;
   }
-  if (game.arrowKeys.right) {
+  if (game.hotKeys.keysDown.right) {
     nextViewPos.x += 1;
   }
   game.viewPos = {
@@ -173,9 +175,7 @@ var handleTick = function handleTick(game) {
       if (locs.length > 0 && (ant.location == null || locs[0].id != ant.location.id)) {
         if (collides(getInnerLocation(locs[0]), ant)) {
           ant.location = locs[0];
-          ant.task = locs[0].task;
-          ant.taskIndex = 0;
-          ant.taskStack = [{ name: 'Follow Trail', index: 0 }, { name: 'Find Pheromone Trail', index: 0 }];
+          antSwitchTask(game, ant, locs[0].task, [{ name: 'Follow Trail', index: 0 }, { name: 'Find Pheromone Trail', index: 0 }]);
         }
       } else if (locs.length == 0 && ant.location != null) {
         ant.location = null;
@@ -186,22 +186,8 @@ var handleTick = function handleTick(game) {
         return game.PHEROMONE.includes(id);
       }).length > 0;
       if (ant.task != null && ant.task.name === 'Idle' && pheromoneAtPosition) {
-        ant.taskIndex = 0;
-        ant.taskStack = [];
-        ant.task = createFollowTrailTask();
+        antSwitchTask(game, ant, createFollowTrailTask());
       }
-
-      // if blocked on a trail, pick up blocker and reverse
-      // if (ant.task != null && ant.task.name === 'Follow Trail' && ant.blocked) {
-      //   const blockingEntity = ant.blockedBy;
-      //   if (!blockingEntity) {
-      //     console.error("no blocking entity on pheromone trail", ant);
-      //     break;
-      //   }
-      //   ant.task = createPickupEntityTask(blockingEntity);
-      //   ant.taskIndex = 0;
-      //   ant.taskStack = [{name: 'Follow Trail In Reverse', index: 0}];
-      // }
 
       ant.calories -= 1;
       if (ant.eggLayingCooldown > 0) {
@@ -511,42 +497,14 @@ var computeGravity = function computeGravity(game) {
       var _iteratorError9 = undefined;
 
       try {
-        var _loop = function _loop() {
+        for (var _iterator9 = game[entityType][Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
           var id = _step9.value;
 
           var entity = game.entities[id];
-          if (!entity.position) return 'continue';
-          // TODO lifted (big)entities not affected by gravity for now
-          var isBig = entity.toLift > 1;
-          var isReadyToLift = entity.toLift <= entity.heldBy.length;
-          if (entity.lifted) return 'continue';
-          // if (isBig && isReadyToLift && !entity.isLifted) continue;
-          var positionBeneath = subtract(entity.position, { x: 0, y: 1 });
-          var entitiesBeneath = fastCollidesWith(game, _extends({}, entity, { position: positionBeneath })).filter(function (e) {
-            return config.stopFallingEntities.includes(e.type);
-          }).length > 0;
-          var entitiesSupporting = [];
-          if (config.supportedEntities.includes(entityType)) {
-            entitiesSupporting = fastCollidesWith(game, entity).filter(function (e) {
-              return config.supportingBackgroundTypes.includes(e.subType) || config.supportingForegroundTypes.includes(e.type) && entity.type != 'DIRT' // TODO doesn't well handle what
-              // can climb on grass
-              ;
-            });
-            if (config.climbingEntities.includes(entity.type)) {
-              entitiesSupporting = entitiesSupporting.concat(fastGetNeighbors(game, entity, true /* diagonal */).filter(function (e) {
-                return config.stopFallingEntities.includes(e.type);
-              }));
-            }
-          }
-          if (!entitiesSupporting.length > 0 && !entitiesBeneath && insideWorld(game, positionBeneath)) {
+          if (shouldFall(game, entity)) {
+            var positionBeneath = subtract(entity.position, { x: 0, y: 1 });
             moveEntity(game, entity, positionBeneath);
           }
-        };
-
-        for (var _iterator9 = game[entityType][Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-          var _ret = _loop();
-
-          if (_ret === 'continue') continue;
         }
       } catch (err) {
         _didIteratorError9 = true;
@@ -599,16 +557,16 @@ var updateFoWVision = function updateFoWVision(game) {
         for (var _iterator13 = game[entityType][Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
           var id = _step13.value;
 
-          var _entity = game.entities[id];
-          if (_entity.position == null) {
-            _entity.visible = true; // held entities are visible
+          var entity = game.entities[id];
+          if (entity.position == null) {
+            entity.visible = true; // held entities are visible
             continue;
           }
-          if (_entity.visible) {
-            previouslyVisible.push(_entity);
-            _entity.visible = false;
+          if (entity.visible) {
+            previouslyVisible.push(entity);
+            entity.visible = false;
           }
-          if (_entity.lastSeenPos != null) {
+          if (entity.lastSeenPos != null) {
             var _iteratorNormalCompletion14 = true;
             var _didIteratorError14 = false;
             var _iteratorError14 = undefined;
@@ -618,8 +576,8 @@ var updateFoWVision = function updateFoWVision(game) {
                 var _id3 = _step14.value;
 
                 var ant = game.entities[_id3];
-                if (isInRadius(ant.position, config.antVisionRadius, _entity.lastSeenPos)) {
-                  _entity.lastSeenPos = null;
+                if (isInRadius(ant.position, config.antVisionRadius, entity.lastSeenPos)) {
+                  entity.lastSeenPos = null;
                   break;
                 }
               }
@@ -703,10 +661,10 @@ var updateFoWVision = function updateFoWVision(game) {
 
   try {
     for (var _iterator12 = previouslyVisible[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
-      var _entity2 = _step12.value;
+      var _entity = _step12.value;
 
-      if (!_entity2.visible) {
-        _entity2.lastSeenPos = _entity2.position;
+      if (!_entity.visible) {
+        _entity.lastSeenPos = _entity.position;
       }
     }
   } catch (err) {
