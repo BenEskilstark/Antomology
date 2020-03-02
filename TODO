@@ -1,7 +1,5 @@
 
  - - - - - - MONDAY - - - - - - -
- - picked-up pupa never hatch and then die on putdown. Should just wait to hatch
- - sending an ant through a location causes it to switch tasks to that location
  - ants sometimes don't fall when at clicked position
  - idling ants should move a bit too
  - add game over system
@@ -20,6 +18,7 @@
  - FoW performance -- try to avoid background sky tiles
  - off-by-one on big entity pick up might say one more than are holding
  - add pause functionality/button
+ - bring back reinforcing pheromone trails
 
 
 

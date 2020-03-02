@@ -9,10 +9,8 @@ var initKeyboardControlsSystem = function initKeyboardControlsSystem(store) {
   done = true;
   var dispatch = store.dispatch;
 
-  // TODO this doesn't register AT ALL!!!
 
   document.onkeydown = function (ev) {
-    console.log(ev);
     var state = store.getState();
     if (state.game == null) return;
     var dir = getUpDownLeftRight(ev);

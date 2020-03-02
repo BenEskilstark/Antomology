@@ -144,7 +144,10 @@ const handleTick = (game: GameState): GameState => {
       .filter(e => e.type === 'LOCATION')
       .filter(e => e.id != config.clickedPosition);
     if (locs.length > 0 && (ant.location == null || locs[0].id != ant.location.id)) {
-      if (collides(getInnerLocation(locs[0]), ant)) {
+      if (
+        collides(getInnerLocation(locs[0]), ant) &&
+        (ant.task == null || ant.task.name != 'Go To Clicked Location')
+      ) {
         ant.location = locs[0];
         antSwitchTask(game, ant, locs[0].task, [
           {name: 'Follow Trail', index: 0},
@@ -238,7 +241,7 @@ const updateHeldBigEntities = (
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Ant Life Cycles
+// Game over
 ///////////////////////////////////////////////////////////////////////////////
 
 const computeLevelOver = (game): void => {
@@ -282,7 +285,10 @@ const updateAntLifeCycles = (game): void => {
     }
 
     if (larva.calories >= config.larvaEndCalories) {
-      game.entities[id] = {...makePupa(larva.position, larva.subType), id};
+      game.entities[id] = {
+        ...makePupa(larva.position, larva.subType),
+        id, calories: larva.calories,
+      };
       changeEntityType(game, game.entities[id], 'LARVA', 'PUPA');
     }
   }
@@ -291,8 +297,11 @@ const updateAntLifeCycles = (game): void => {
   for (const id of game.PUPA) {
     const pupa = game.entities[id];
     pupa.age += 1;
-    if (pupa.age > config.pupaHatchAge) {
-      game.entities[id] = {...makeAnt(pupa.position, pupa.subType), id};
+    if (pupa.age > config.pupaHatchAge && pupa.position != null) {
+      game.entities[id] = {
+        ...makeAnt(pupa.position, pupa.subType),
+        id, calories: pupa.calories,
+      };
       changeEntityType(game, game.entities[id], 'PUPA', 'ANT');
     }
   }

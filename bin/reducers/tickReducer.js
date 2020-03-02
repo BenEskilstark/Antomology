@@ -173,7 +173,7 @@ var handleTick = function handleTick(game) {
         return e.id != config.clickedPosition;
       });
       if (locs.length > 0 && (ant.location == null || locs[0].id != ant.location.id)) {
-        if (collides(getInnerLocation(locs[0]), ant)) {
+        if (collides(getInnerLocation(locs[0]), ant) && (ant.task == null || ant.task.name != 'Go To Clicked Location')) {
           ant.location = locs[0];
           antSwitchTask(game, ant, locs[0].task, [{ name: 'Follow Trail', index: 0 }, { name: 'Find Pheromone Trail', index: 0 }]);
         }
@@ -296,7 +296,7 @@ var updateHeldBigEntities = function updateHeldBigEntities(game, heldEntityIDs) 
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-// Ant Life Cycles
+// Game over
 ///////////////////////////////////////////////////////////////////////////////
 
 var computeLevelOver = function computeLevelOver(game) {
@@ -369,7 +369,9 @@ var updateAntLifeCycles = function updateAntLifeCycles(game) {
       }
 
       if (larva.calories >= config.larvaEndCalories) {
-        game.entities[_id] = _extends({}, makePupa(larva.position, larva.subType), { id: _id });
+        game.entities[_id] = _extends({}, makePupa(larva.position, larva.subType), {
+          id: _id, calories: larva.calories
+        });
         changeEntityType(game, game.entities[_id], 'LARVA', 'PUPA');
       }
     }
@@ -400,8 +402,10 @@ var updateAntLifeCycles = function updateAntLifeCycles(game) {
 
       var pupa = game.entities[_id2];
       pupa.age += 1;
-      if (pupa.age > config.pupaHatchAge) {
-        game.entities[_id2] = _extends({}, makeAnt(pupa.position, pupa.subType), { id: _id2 });
+      if (pupa.age > config.pupaHatchAge && pupa.position != null) {
+        game.entities[_id2] = _extends({}, makeAnt(pupa.position, pupa.subType), {
+          id: _id2, calories: pupa.calories
+        });
         changeEntityType(game, game.entities[_id2], 'PUPA', 'ANT');
       }
     }
