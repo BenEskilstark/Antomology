@@ -217,7 +217,6 @@ function antMakePheromone(game, ant) {
   // don't make pheromones inside locations
   // NOTE: doesn't use getInnerLocation since pherome is created in prevPosition
   var inInnerLocation = ant.location != null ? collides(ant.location, ant) : false;
-  console.log(inInnerLocation, ant.location);
   if (inInnerLocation) {
     ant.prevPheromone = null;
     return;

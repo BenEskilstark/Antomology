@@ -1,6 +1,5 @@
 
  - - - - - - TUESDAY - - - - - - -
- - bring back reinforcing pheromone trails
  - support categories of pheromone you can select and have different colors
  - add UI/support for conditionals on pheromone categories
  - to think about
@@ -21,7 +20,7 @@
 
 
  - - - - - - - BUGS - - - - - - -
- - pheromone trails going too many spaces into locations while holding P
+ - ants switch task when passing through a location
  - off-by-one on big entity pick up might say one more than are holding
 
 
@@ -29,6 +28,7 @@
 
 
  - - - - - - PHEROMONE TRAILS - - - - - -
+ - bring back reinforcing pheromone trails
 
 
  - - - - - - WORLD - - - - - -
