@@ -6,6 +6,7 @@ const {
   createRandomMoveInLocationTask,
   createFindPheromoneTask,
 } = require('../state/graphTasks');
+const {createIdleTask} = require('../state/tasks');
 
 const makeLocation = (
   name: string,
@@ -26,7 +27,8 @@ const makeLocation = (
     task: null,
     visible: true,
   };
-  loc.task = createFindPheromoneTask();
+  // loc.task = createFindPheromoneTask();
+  loc.task = createIdleTask();
   // TODO update name on location name update
   // loc.task = {...createRandomMoveInLocationTask(loc.id), name: loc.name};
   return loc;

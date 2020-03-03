@@ -52,7 +52,8 @@ export type EditorState = {
 // Game State
 // -------------------------------------------------------------------------------
 
-export type UserMode = 'MARK_TRAIL' | 'CREATE_LOCATION' | 'SELECT' | 'PAN';
+export type UserMode =
+  'MARK_TRAIL' | 'CREATE_LOCATION' | 'SELECT' | 'PAN' | 'DELETE_LOCATION';
 export type AntMode = 'PICKUP' | 'FEED' | 'EAT';
 export type Mouse = {
   isLeftDown: boolean,

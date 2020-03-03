@@ -345,6 +345,28 @@ var filterEntitiesByType = function filterEntitiesByType(entities, entityTypes) 
 };
 
 /////////////////////////////////////////////////////////////////
+// Queen
+/////////////////////////////////////////////////////////////////
+
+var canLayEgg = function canLayEgg(game, ant) {
+  if (ant.subType != 'QUEEN') return 'Not Queen';
+  var nothingInTheWay = fastCollidesWith(game, ant).filter(function (e) {
+    return config.antBlockingEntities.includes(e.type);
+  }).length === 0;
+  if (!nothingInTheWay) return 'Egg laying position blocked';
+
+  var dirtBelow = lookupInGrid(game.grid, add(ant.position, { x: 0, y: -1 })).filter(function (id) {
+    var e = game.entities[id];
+    return e.type === 'DIRT' || e.type === 'STONE' || e.type === 'STUCK_STONE';
+  }).length > 0;
+  if (!dirtBelow) return 'No support below';
+
+  if (ant.eggLayingCooldown > 0) return 'Too soon since last egg laid';
+
+  return true;
+};
+
+/////////////////////////////////////////////////////////////////
 // Gravity
 /////////////////////////////////////////////////////////////////
 
@@ -373,6 +395,9 @@ var shouldFall = function shouldFall(game, entity) {
       }));
     }
   }
+  entitiesSupporting = entitiesSupporting.filter(function (e) {
+    return e.id != entity.id;
+  });
   return !entitiesSupporting.length > 0 && !entitiesBeneath && insideWorld(game, positionBeneath);
 };
 
@@ -389,7 +414,8 @@ var selectors = {
   getSelectedAntIDs: getSelectedAntIDs,
   entitiesInMarquee: entitiesInMarquee,
   getEntitiesInRadius: getEntitiesInRadius,
-  shouldFall: shouldFall
+  shouldFall: shouldFall,
+  canLayEgg: canLayEgg
 };
 window.selectors = selectors; // for testing
 

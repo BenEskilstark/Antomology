@@ -11,6 +11,12 @@ var Dropdown = require('./components/Dropdown.react');
 var Button = require('./components/Button.react');
 var TaskCard = require('./TaskCard.react');
 
+var _require2 = require('../selectors/selectors'),
+    canLayEgg = _require2.canLayEgg;
+
+var _require3 = require('../state/tasks'),
+    createLayEggTask = _require3.createLayEggTask;
+
 var useState = React.useState,
     useMemo = React.useMemo,
     useEffect = React.useEffect;
@@ -56,12 +62,28 @@ function AntCard(props) {
   var state = props.state,
       dispatch = props.dispatch,
       entity = props.entity;
+  var game = state.game;
 
   var ant = entity;
 
   var hungryStr = ant.calories < config.antStartingCalories * config.antStarvationWarningThreshold ? ' - Hungry' : '';
   var deadStr = ant.alive ? '' : 'DEAD ';
   var oldAgeStr = ant.age > config.antMaxAge * config.antOldAgeDeathWarningThreshold ? ' - Old' : '';
+
+  var canLay = canLayEgg(game, ant);
+  var layEggButton = React.createElement(
+    'div',
+    null,
+    React.createElement(Button, {
+      label: canLay === true ? "Lay Egg" : "Lay Egg (" + canLay + ")",
+      disabled: canLay !== true,
+      onClick: function onClick() {
+        dispatch({
+          type: 'ASSIGN_TASK', task: createLayEggTask(), ants: [ant.id]
+        });
+      }
+    })
+  );
 
   return React.createElement(
     'div',
@@ -98,19 +120,9 @@ function AntCard(props) {
     React.createElement(
       'div',
       null,
-      'Current Task:',
-      React.createElement(Dropdown, {
-        options: state.game.tasks.map(function (task) {
-          return task.name;
-        }),
-        selected: ant.task != null ? ant.task.name : null,
-        onChange: function onChange(nextTaskName) {
-          var nextTask = state.game.tasks.filter(function (t) {
-            return t.name === nextTaskName;
-          })[0];
-          dispatch({ type: 'ASSIGN_TASK', task: nextTask, ants: [ant.id] });
-        }
-      }),
+      'Current Task: ',
+      ant.task != null ? ant.task.name : 'None',
+      ant.subType === 'QUEEN' ? layEggButton : null,
       React.createElement(DeselectButton, props)
     )
   );
@@ -121,17 +133,21 @@ function DeselectButton(props) {
       dispatch = props.dispatch,
       entity = props.entity;
 
-  return React.createElement(Button, {
-    label: 'Deselect',
-    onClick: function onClick() {
-      dispatch({
-        type: 'SET_SELECTED_ENTITIES',
-        entityIDs: state.game.selectedEntities.filter(function (id) {
-          return id != entity.id;
-        })
-      });
-    }
-  });
+  return React.createElement(
+    'div',
+    null,
+    React.createElement(Button, {
+      label: 'Deselect',
+      onClick: function onClick() {
+        dispatch({
+          type: 'SET_SELECTED_ENTITIES',
+          entityIDs: state.game.selectedEntities.filter(function (id) {
+            return id != entity.id;
+          })
+        });
+      }
+    })
+  );
 }
 
 function EggCard(props) {

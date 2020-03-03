@@ -5,6 +5,7 @@ const {
 } = require('../utils/vectors');
 const {
   fastCollidesWith, collides, insideWorld, lookupInGrid, getNeighborPositions,
+  shouldFall,
 } = require('../selectors/selectors');
 const {config} = require('../config');
 const {getInnerLocation} = require('../utils/helpers');
@@ -266,7 +267,11 @@ function maybeMoveEntity(
   let occupied = fastCollidesWith(game, {...entity, position: nextPos})
     .filter(e => config.antBlockingEntities.includes(e.type))
     .length > 0;
-  if (!occupied && insideWorld(game, nextPos)) {
+  const defyingGravity = (
+    nextPos.y > entity.position.y &&
+    shouldFall(game, {...entity, position: nextPos})
+  );
+  if (!occupied && insideWorld(game, nextPos) && !defyingGravity) {
     moveEntity(game, entity, nextPos);
     if (debug) console.log("did the move");
     return true;

@@ -47,6 +47,7 @@ const {
   insideWorld,
   getEntitiesInRadius,
   shouldFall,
+  canLayEgg,
 } = require('../selectors/selectors');
 const {makeEgg} = require('../entities/egg');
 
@@ -69,33 +70,48 @@ const doAction = (
     // }
   }
 
+  // split out idle first since it could involve a random move
+  let obj = object;
+  if (actionType === 'IDLE') {
+    // unstack, similar to moving out of the way of placed dirt
+    const stackedAnts = fastCollidesWith(game, ant)
+      .filter(e => config.antBlockingEntities.includes(e.type) || e.type == 'ANT');
+    if (stackedAnts.length > 0) {
+      const freePositions = fastGetEmptyNeighborPositions(
+        game, ant, config.antBlockingEntities,
+      );
+      if (freePositions.length > 0) {
+        moveEntity(game, ant, oneOf(freePositions));
+      }
+    } else {
+      const rand = Math.random();
+      if (rand < 0.05) {
+        // only move if unselected
+        if (!game.selectedEntities.includes(ant.id)) {
+          actionType = 'MOVE';
+          obj = 'RANDOM';
+          if (ant.location != null) {
+            constraint = getInnerLocation(ant.location);
+          }
+        }
+      } else if (rand < 0.1) {
+        const factor = Math.random() < 0.5 ? 1 : -1;
+        ant.theta += factor * Math.PI/2;
+      } else {
+        ant.calories += 1; // calories don't go down if you fully idle
+      }
+    }
+    ant.prevPosition = {...ant.position};
+  }
+
   // then handle the actually-assigned action
   switch (actionType) {
     case 'IDLE': {
-      // unstack, similar to moving out of the way of placed dirt
-      const stackedAnts = fastCollidesWith(game, ant)
-        .filter(e => config.antBlockingEntities.includes(e.type) || e.type == 'ANT');
-      if (stackedAnts.length > 0) {
-        const freePositions = fastGetEmptyNeighborPositions(
-          game, ant, config.antBlockingEntities,
-        );
-        if (freePositions.length > 0) {
-          moveEntity(game, ant, oneOf(freePositions));
-        }
-      } else {
-        if (Math.random() < 0.05) {
-          const factor = Math.random() < 0.5 ? 1 : -1;
-          ant.theta += factor * Math.PI/2;
-        } else {
-          ant.calories += 1; // calories don't go down if you fully idle
-        }
-      }
-      ant.prevPosition = {...ant.position};
+      // placeholder
       break;
     }
     case 'MOVE': {
       let loc = object;
-      let obj = object;
       if (obj === 'TRAIL' || obj === 'REVERSE_TRAIL') {
         const pheromone = oneOf(
           lookupInGrid(game.grid, ant.position)
@@ -257,7 +273,7 @@ const doAction = (
             height: 1,
           };
           const goToLocationBehavior = createGoToLocationBehavior(targetLoc);
-          switchTask(game, ant, {
+          antSwitchTask(game, ant, {
             name: 'Picking up ' + bigEntity.type,
             repeating: false,
             behaviorQueue: [
@@ -352,16 +368,7 @@ const doAction = (
       break;
     }
     case 'LAY': {
-      if (ant.subType != 'QUEEN') {
-        break; // only queen lays eggs
-      }
-      const nothingInTheWay = fastCollidesWith(game, ant)
-        .filter(e => config.antBlockingEntities.includes(e.type))
-        .length === 0;
-      const dirtBelow = lookupInGrid(game.grid, add(ant.position, {x: 0, y: -1}))
-        .filter(id => game.entities[id].type === 'DIRT')
-        .length > 0;
-      if (nothingInTheWay && dirtBelow && ant.eggLayingCooldown <= 0) {
+      if (canLayEgg(game, ant) === true) {
         const egg = makeEgg(ant.position, 'WORKER'); // TODO
         addEntity(game, egg);
         // move the ant out of the way

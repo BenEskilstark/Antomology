@@ -27,7 +27,7 @@ function GameSidebar(props) {
   var selectedEntities = game.selectedEntities.map(function (id) {
     return game.entities[id];
   });
-  var antCards = selectedEntities.map(function (entity) {
+  var selectionCards = selectedEntities.map(function (entity) {
     return React.createElement(StatusCard, {
       state: state, entity: entity, dispatch: dispatch,
       key: 'statusCard_' + entity.id });
@@ -60,7 +60,7 @@ function GameSidebar(props) {
       'Left-click and drag will:',
       React.createElement(Dropdown, {
         noNoneOption: true,
-        options: ['SELECT', 'CREATE_LOCATION'],
+        options: ['SELECT', 'CREATE_LOCATION', 'DELETE_LOCATION'],
         selected: game.userMode,
         onChange: function onChange(userMode) {
           return dispatch({ type: 'SET_USER_MODE', userMode: userMode });
@@ -104,38 +104,41 @@ function GameSidebar(props) {
         }
       })
     ),
+    selectionCards
+  );
+}
+
+function AssignToAllAntsCard(game, dispatch, selectedEntities) {
+  return React.createElement(
+    'div',
+    {
+      style: {
+        border: '1px solid black'
+      }
+    },
     React.createElement(
       'div',
-      {
-        style: {
-          border: '1px solid black'
-        }
-      },
+      null,
       React.createElement(
-        'div',
+        'b',
         null,
-        React.createElement(
-          'b',
-          null,
-          'Selected Ants'
-        )
-      ),
-      'Assign to All Selected Ants:',
-      React.createElement(Dropdown, {
-        options: game.tasks.map(function (t) {
-          return t.name;
-        }),
-        selected: 'NONE',
-        onChange: function onChange(nextName) {
-          if (selectedEntities.length == 0) return;
-          var nextTask = game.tasks.filter(function (t) {
-            return t.name === nextName;
-          })[0];
-          dispatch({ type: 'ASSIGN_TASK', task: nextTask, ants: getSelectedAntIDs(game) });
-        }
+        'Selected Ants'
+      )
+    ),
+    'Assign to All Selected Ants:',
+    React.createElement(Dropdown, {
+      options: game.tasks.map(function (t) {
+        return t.name;
       }),
-      antCards
-    )
+      selected: 'NONE',
+      onChange: function onChange(nextName) {
+        if (selectedEntities.length == 0) return;
+        var nextTask = game.tasks.filter(function (t) {
+          return t.name === nextName;
+        })[0];
+        dispatch({ type: 'ASSIGN_TASK', task: nextTask, ants: getSelectedAntIDs(game) });
+      }
+    })
   );
 }
 

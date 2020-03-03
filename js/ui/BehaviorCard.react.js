@@ -56,6 +56,7 @@ function BehaviorCard(props: Props): React.Node {
     >
       <Dropdown
         options={options}
+        displayOptions={isHighLevel ? ['DO', 'IF'] : null}
         selected={behavior.type}
         noNoneOption={true}
         onChange={(newType) => {
@@ -287,6 +288,15 @@ function Conditional(
     />
   }
 
+  const addBehaviorButton = (
+    <Button
+      label="Add Behavior"
+      onClick={() => {
+
+      }}
+    />
+  );
+
   return (
     <span>
       Not: <Checkbox checked={condition.not} onChange={(check) => {
@@ -326,7 +336,7 @@ function DoActionCard(props: mixed): React.Node {
       break;
     }
     case 'PICKUP':
-      actionOptions = ['DIRT', 'MARKED_DIRT', 'BLOCKER', 'FOOD', 'EGG', 'LARVA', 'PUPA'];
+      actionOptions = ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA'];
       if (selectedObject == null) {
         selectedObject = 'DIRT';
         behavior.action.payload.object = selectedObject;
@@ -335,9 +345,9 @@ function DoActionCard(props: mixed): React.Node {
     case 'PUTDOWN':
       break;
     case 'FEED':
-      actionOptions = ['RANDOM', 'LARVA', 'QUEEN']
+      actionOptions = ['ANY', 'LARVA', 'QUEEN']
       if (selectedObject == null) {
-        selectedObject = 'RANDOM';
+        selectedObject = 'ANY';
         behavior.action.payload.object = selectedObject;
       }
       break;

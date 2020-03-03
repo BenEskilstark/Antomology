@@ -54,6 +54,14 @@ const gameReducer = (game: GameState, action: Action): GameState => {
     }
     case 'DESTROY_ENTITY': {
       const {id} = action;
+      if (game.LOCATION.includes(id)) {
+        for (const antID of game.ANT) {
+          const ant = game.entities[antID];
+          if (ant.location != null && ant.location.id === id) {
+            ant.location = null;
+          }
+        }
+      }
       removeEntity(game, game.entities[id]);
       return game;
     }

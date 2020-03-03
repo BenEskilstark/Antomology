@@ -231,6 +231,31 @@ const filterEntitiesByType = (
 }
 
 /////////////////////////////////////////////////////////////////
+// Queen
+/////////////////////////////////////////////////////////////////
+
+const canLayEgg = (game: GameState, ant: Ant): string | boolean => {
+  if (ant.subType != 'QUEEN') return 'Not Queen';
+  const nothingInTheWay = fastCollidesWith(game, ant)
+    .filter(e => config.antBlockingEntities.includes(e.type))
+    .length === 0;
+  if (!nothingInTheWay) return 'Egg laying position blocked';
+
+  const dirtBelow = lookupInGrid(game.grid, add(ant.position, {x: 0, y: -1}))
+    .filter(id => {
+      const e = game.entities[id];
+      return e.type === 'DIRT' || e.type === 'STONE' || e.type === 'STUCK_STONE';
+    })
+    .length > 0;
+  if (!dirtBelow) return 'No support below';
+
+  if (ant.eggLayingCooldown > 0) return 'Too soon since last egg laid';
+
+  return true;
+}
+
+
+/////////////////////////////////////////////////////////////////
 // Gravity
 /////////////////////////////////////////////////////////////////
 
@@ -265,6 +290,7 @@ const shouldFall = (game, entity): boolean => {
         );
     }
   }
+  entitiesSupporting = entitiesSupporting.filter(e => e.id != entity.id);
   return (
     (!entitiesSupporting.length > 0 && !entitiesBeneath)
     && insideWorld(game, positionBeneath)
@@ -285,6 +311,7 @@ const selectors = {
   entitiesInMarquee,
   getEntitiesInRadius,
   shouldFall,
+  canLayEgg,
 };
 window.selectors = selectors; // for testing
 

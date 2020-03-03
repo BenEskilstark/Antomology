@@ -9,6 +9,9 @@ var _require2 = require('../state/graphTasks'),
     createRandomMoveInLocationTask = _require2.createRandomMoveInLocationTask,
     createFindPheromoneTask = _require2.createFindPheromoneTask;
 
+var _require3 = require('../state/tasks'),
+    createIdleTask = _require3.createIdleTask;
+
 var makeLocation = function makeLocation(name, width, height, position) {
   var loc = _extends({}, makeEntity('LOCATION', width, height, position), {
     name: name,
@@ -17,7 +20,8 @@ var makeLocation = function makeLocation(name, width, height, position) {
     task: null,
     visible: true
   });
-  loc.task = createFindPheromoneTask();
+  // loc.task = createFindPheromoneTask();
+  loc.task = createIdleTask();
   // TODO update name on location name update
   // loc.task = {...createRandomMoveInLocationTask(loc.id), name: loc.name};
   return loc;

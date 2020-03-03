@@ -5,6 +5,8 @@ const {config} = require('../config');
 const Dropdown = require('./components/Dropdown.react');
 const Button = require('./components/Button.react');
 const TaskCard = require('./TaskCard.react');
+const {canLayEgg} = require('../selectors/selectors');
+const {createLayEggTask} = require('../state/tasks');
 
 const {useState, useMemo, useEffect} = React;
 
@@ -51,6 +53,7 @@ function StatusCard(props: Props): React.Node {
 
 function AntCard(props: Props): React.Node {
   const {state, dispatch, entity} = props;
+  const {game} = state;
   const ant = entity;
 
   const hungryStr =
@@ -63,6 +66,21 @@ function AntCard(props: Props): React.Node {
       ? ' - Old'
       : '';
 
+  const canLay = canLayEgg(game, ant);
+  const layEggButton = (
+    <div>
+    <Button
+      label={canLay === true ? "Lay Egg" : "Lay Egg (" + canLay + ")"}
+      disabled={canLay !== true}
+      onClick={() => {
+        dispatch({
+          type: 'ASSIGN_TASK', task: createLayEggTask(), ants: [ant.id]
+        });
+      }}
+    />
+    </div>
+  );
+
   return (
     <div
       style={{
@@ -73,15 +91,8 @@ function AntCard(props: Props): React.Node {
       <div>Calories: {ant.calories}{hungryStr}{oldAgeStr}</div>
       <div>HP: 10/10</div>
       <div>
-        Current Task:
-        <Dropdown
-          options={state.game.tasks.map(task => task.name)}
-          selected={ant.task != null ? ant.task.name : null}
-          onChange={(nextTaskName) => {
-            const nextTask = state.game.tasks.filter(t => t.name === nextTaskName)[0];
-            dispatch({type: 'ASSIGN_TASK', task: nextTask, ants: [ant.id]});
-          }}
-        />
+        Current Task: {ant.task != null ? ant.task.name : 'None'}
+        {ant.subType === 'QUEEN' ? layEggButton : null}
         <DeselectButton {...props} />
       </div>
     </div>
@@ -91,6 +102,7 @@ function AntCard(props: Props): React.Node {
 function DeselectButton(props: Props): React.Node {
   const {state, dispatch, entity} = props;
   return (
+    <div>
     <Button
       label="Deselect"
       onClick={() => {
@@ -100,6 +112,7 @@ function DeselectButton(props: Props): React.Node {
         });
       }}
     />
+    </div>
   );
 }
 

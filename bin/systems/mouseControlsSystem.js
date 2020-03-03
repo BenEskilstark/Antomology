@@ -257,6 +257,9 @@ var handleLeftClick = function handleLeftClick(state, dispatch, gridPos) {
       case 'MARK_TRAIL':
         createPheromoneTrail(game, dispatch, gridPos);
         break;
+      case 'DELETE_LOCATION':
+        deleteEntitiesUnderMouse(state, dispatch, gridPos, 'LOCATION');
+        break;
     }
   } else {
     switch (editor.editorMode) {

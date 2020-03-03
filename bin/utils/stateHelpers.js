@@ -14,7 +14,8 @@ var _require2 = require('../selectors/selectors'),
     collides = _require2.collides,
     insideWorld = _require2.insideWorld,
     lookupInGrid = _require2.lookupInGrid,
-    getNeighborPositions = _require2.getNeighborPositions;
+    getNeighborPositions = _require2.getNeighborPositions,
+    shouldFall = _require2.shouldFall;
 
 var _require3 = require('../config'),
     config = _require3.config;
@@ -310,7 +311,8 @@ function maybeMoveEntity(game, entity, nextPos, debug) {
   var occupied = fastCollidesWith(game, _extends({}, entity, { position: nextPos })).filter(function (e) {
     return config.antBlockingEntities.includes(e.type);
   }).length > 0;
-  if (!occupied && insideWorld(game, nextPos)) {
+  var defyingGravity = nextPos.y > entity.position.y && shouldFall(game, _extends({}, entity, { position: nextPos }));
+  if (!occupied && insideWorld(game, nextPos) && !defyingGravity) {
     moveEntity(game, entity, nextPos);
     if (debug) console.log("did the move");
     return true;

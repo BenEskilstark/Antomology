@@ -46,13 +46,17 @@ const deleteEntitiesUnderMouse = (
   state: State,
   dispatch: (Action) => Action,
   gridPos: Vector,
+  type: ?EntityType, // only delete entities of this type
 ): void => {
   const ids = lookupInGrid(state.game.grid, gridPos);
   for (const id of ids) {
-    if (!state.editor.allowDeleteBackground) {
+    if (state.editor != null && !state.editor.allowDeleteBackground) {
       if (state.game.BACKGROUND.includes(id)) {
         continue;
       }
+    }
+    if (type != null && state.game.entities[id].type !== type) {
+      continue;
     }
     dispatch({type: 'DESTROY_ENTITY', id});
   }

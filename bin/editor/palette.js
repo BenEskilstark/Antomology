@@ -35,7 +35,7 @@ var makeEntitiesInMarquee = function makeEntitiesInMarquee(state, dispatch, enti
   }
 };
 
-var deleteEntitiesUnderMouse = function deleteEntitiesUnderMouse(state, dispatch, gridPos) {
+var deleteEntitiesUnderMouse = function deleteEntitiesUnderMouse(state, dispatch, gridPos, type) {
   var ids = lookupInGrid(state.game.grid, gridPos);
   var _iteratorNormalCompletion = true;
   var _didIteratorError = false;
@@ -45,10 +45,13 @@ var deleteEntitiesUnderMouse = function deleteEntitiesUnderMouse(state, dispatch
     for (var _iterator = ids[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
       var id = _step.value;
 
-      if (!state.editor.allowDeleteBackground) {
+      if (state.editor != null && !state.editor.allowDeleteBackground) {
         if (state.game.BACKGROUND.includes(id)) {
           continue;
         }
+      }
+      if (type != null && state.game.entities[id].type !== type) {
+        continue;
       }
       dispatch({ type: 'DESTROY_ENTITY', id: id });
     }

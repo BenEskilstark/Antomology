@@ -1,54 +1,54 @@
 
- - - - - - - MONDAY - - - - - - -
- - ants sometimes don't fall when at clicked position
- - idling ants should move a bit too
- - add game over system
- - on level win, pop modal to say you won
- - go to next level from modal
- - go back to main menu when you win the last level
- - add display names for dropdown options, rename highlevel action to DO
- - tool for deleting locations
- - default task for locations should be some sort of idling
- - show egg-laying cooldown for queen
- - behaviors should support lists of child behaviors
- - decide for Tuesday
-
 
  - - - - - - TUESDAY - - - - - - -
- - FoW performance -- try to avoid background sky tiles
- - off-by-one on big entity pick up might say one more than are holding
- - add pause functionality/button
+ - game over
+    - add game over system
+    - on level win, pop modal to say you won
+    - go to next level from modal
+    - go back to main menu when you win the last level
  - bring back reinforcing pheromone trails
+ - support categories of pheromone you can select and have different colors
+ - add UI/support for conditionals on pheromone categories
+ - to think about
+    - FoW performance -- try to avoid background sky tiles
+    - What the UI will look like
+    - how to add other entities
+    - Level 2
+ - decide for Wednesday
 
 
 
  - - - - - - - BUGS - - - - - - -
+ - pheromone trails going too many spaces into locations while holding P
+ - off-by-one on big entity pick up might say one more than are holding
 
 
  - - - - - - - - MENUS - - - - - - - - -
 
 
  - - - - - - PHEROMONE TRAILS - - - - - -
- - support categories of pheromone you can select and have different colors
- - add UI/support for conditionals on pheromone categories
 
 
  - - - - - - WORLD - - - - - -
+ - add other entities: beetles, worms, spiders, aphids
 
 
  - - - - - - LOCATIONS - - - - - -
 
 
  - - - - - - UI / UX - - - - - -
- - change cursor based on userMode
- - saving with local storage
- - Sidebar cards placed over top of the game window
- - UI that fills the window
- - blip the clicked grid square when sending ants somewhere
+ - cursor
+    - change cursor based on userMode
+    - blip the clicked grid square when sending ants somewhere
+ - styling
+    - button css
+    - Sidebar cards placed over top of the game window
+    - cleaner UI around all behaviors
+    - better display names for all dropdowns
+    - canvas that fills the window
  - hotkeys:
     - get meta key set up
     - let cmd/ctrl + left click == right click
-    - get space set up
     - init keyboard should be made to work at state level instead of game level
     - set up button and number field to register their onkeydowns
  - zooming:
@@ -59,11 +59,12 @@
 
  - - - - - - TASK EDITOR - - - - - -
  - option for deleting behaviors in Task Editor
- - cleaner UI around all behaviors
 
 
  - - - - - - LEVELS - - - - - -
  - fix up level 1
+    - more food under ground, less above
+    - remove unneeded tasks from state
  - new harder level 2
  - clean up tasks inside levels
  - clean up levels on main menu
@@ -81,21 +82,7 @@
  - how to carry something up
 
 
- - - - - - - RENDERING - - - - - -
- - better anti-aliasing for dirt/everything
- - use sprites for entities
- - animations, marquees, etc. should be rendered >10fps
-
-
- - - - - - - PERFORMANCE - - - - - -
- - another round of profiling
- - FoW computation is very bad for performance
-    - can use a 'vision' entity
- - track down memory leaks
-
-
  - - - - - ALPHA STRETCH GOALS - - - - - -
- - add other entities: beetles, worms, spiders, aphids
  - food search random walk
  - big entities:
     - support rotated big-entities
@@ -108,6 +95,20 @@
  - conditionals with OR/AND
  - better pathing for ants that involves random walk when they get stuck
  - audio system
+ - saving with local storage
+
+
+ - - - - - - RENDERING - - - - - -
+ - better anti-aliasing for dirt/everything
+ - use sprites for entities
+ - animations, marquees, etc. should be rendered >10fps
+
+
+ - - - - - - PERFORMANCE - - - - - -
+ - another round of profiling
+ - FoW computation is very bad for performance
+    - can use a 'vision' entity
+ - track down memory leaks
 
 
  - - - - - - ACCESSIBILITY - - - - - -
@@ -136,6 +137,9 @@
    do-while inside a conditional while also only do the do-while as long as
    the outer condition is true. Also child tasks should be treated as part of
    this behavior stack
+ - behaviors should support lists of child behaviors
+    - Add Behavior button in Conditional behavior and else behavior fields
+    - conditional behavior and else should be arrays of behaviors
  - fix flow errors
  - MOVE action implementation sucks
  - get optional chaining working

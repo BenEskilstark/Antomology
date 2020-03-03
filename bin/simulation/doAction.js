@@ -56,7 +56,8 @@ var _require7 = require('../selectors/selectors'),
     filterEntitiesByType = _require7.filterEntitiesByType,
     insideWorld = _require7.insideWorld,
     getEntitiesInRadius = _require7.getEntitiesInRadius,
-    shouldFall = _require7.shouldFall;
+    shouldFall = _require7.shouldFall,
+    canLayEgg = _require7.canLayEgg;
 
 var _require8 = require('../entities/egg'),
     makeEgg = _require8.makeEgg;
@@ -80,34 +81,49 @@ var doAction = function doAction(game, ant, action) {
     // }
   }
 
+  // split out idle first since it could involve a random move
+  var obj = object;
+  if (actionType === 'IDLE') {
+    // unstack, similar to moving out of the way of placed dirt
+    var stackedAnts = fastCollidesWith(game, ant).filter(function (e) {
+      return config.antBlockingEntities.includes(e.type) || e.type == 'ANT';
+    });
+    if (stackedAnts.length > 0) {
+      var freePositions = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities);
+      if (freePositions.length > 0) {
+        moveEntity(game, ant, oneOf(freePositions));
+      }
+    } else {
+      var rand = Math.random();
+      if (rand < 0.05) {
+        // only move if unselected
+        if (!game.selectedEntities.includes(ant.id)) {
+          actionType = 'MOVE';
+          obj = 'RANDOM';
+          if (ant.location != null) {
+            constraint = getInnerLocation(ant.location);
+          }
+        }
+      } else if (rand < 0.1) {
+        var factor = Math.random() < 0.5 ? 1 : -1;
+        ant.theta += factor * Math.PI / 2;
+      } else {
+        ant.calories += 1; // calories don't go down if you fully idle
+      }
+    }
+    ant.prevPosition = _extends({}, ant.position);
+  }
+
   // then handle the actually-assigned action
   switch (actionType) {
     case 'IDLE':
       {
-        // unstack, similar to moving out of the way of placed dirt
-        var stackedAnts = fastCollidesWith(game, ant).filter(function (e) {
-          return config.antBlockingEntities.includes(e.type) || e.type == 'ANT';
-        });
-        if (stackedAnts.length > 0) {
-          var freePositions = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities);
-          if (freePositions.length > 0) {
-            moveEntity(game, ant, oneOf(freePositions));
-          }
-        } else {
-          if (Math.random() < 0.05) {
-            var factor = Math.random() < 0.5 ? 1 : -1;
-            ant.theta += factor * Math.PI / 2;
-          } else {
-            ant.calories += 1; // calories don't go down if you fully idle
-          }
-        }
-        ant.prevPosition = _extends({}, ant.position);
+        // placeholder
         break;
       }
     case 'MOVE':
       {
         var loc = object;
-        var obj = object;
         if (obj === 'TRAIL' || obj === 'REVERSE_TRAIL') {
           var pheromone = oneOf(lookupInGrid(game.grid, ant.position).map(function (id) {
             return game.entities[id];
@@ -312,7 +328,7 @@ var doAction = function doAction(game, ant, action) {
               height: 1
             };
             var goToLocationBehavior = createGoToLocationBehavior(targetLoc);
-            switchTask(game, ant, {
+            antSwitchTask(game, ant, {
               name: 'Picking up ' + _bigEntity.type,
               repeating: false,
               behaviorQueue: [goToLocationBehavior, {
@@ -447,16 +463,7 @@ var doAction = function doAction(game, ant, action) {
       }
     case 'LAY':
       {
-        if (ant.subType != 'QUEEN') {
-          break; // only queen lays eggs
-        }
-        var nothingInTheWay = fastCollidesWith(game, ant).filter(function (e) {
-          return config.antBlockingEntities.includes(e.type);
-        }).length === 0;
-        var dirtBelow = lookupInGrid(game.grid, add(ant.position, { x: 0, y: -1 })).filter(function (id) {
-          return game.entities[id].type === 'DIRT';
-        }).length > 0;
-        if (nothingInTheWay && dirtBelow && ant.eggLayingCooldown <= 0) {
+        if (canLayEgg(game, ant) === true) {
           var egg = makeEgg(ant.position, 'WORKER'); // TODO
           addEntity(game, egg);
           // move the ant out of the way

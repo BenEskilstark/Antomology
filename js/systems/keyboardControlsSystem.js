@@ -7,6 +7,21 @@ const initKeyboardControlsSystem = (store) => {
   done = true;
   const {dispatch} = store;
 
+  dispatch({
+    type: 'SET_HOTKEY',
+    press: 'onKeyDown',
+    key: 'space',
+    fn: (s) => {
+      const state = s.getState();
+      const isPaused = state.game.tickInterval == null;
+      if (isPaused) {
+        s.dispatch({type: 'START_TICK', updateSim: true});
+      } else {
+        s.dispatch({type: 'STOP_TICK'});
+      }
+    }
+  });
+
   document.onkeydown = (ev) => {
     const state = store.getState();
     if (state.game == null) return;
@@ -23,6 +38,13 @@ const initKeyboardControlsSystem = (store) => {
         state.game.hotKeys.onKeyDown.enter(store);
       }
       dispatch({type: 'SET_KEY_PRESS', key: 'enter', pressed: true});
+      return;
+    }
+    if (ev.keyCode === 32) {
+      if (state.game.hotKeys.onKeyDown.space != null) {
+        state.game.hotKeys.onKeyDown.space(store);
+      }
+      dispatch({type: 'SET_KEY_PRESS', key: 'space', pressed: true});
       return;
     }
     const character = String.fromCharCode(ev.keyCode);
@@ -52,6 +74,13 @@ const initKeyboardControlsSystem = (store) => {
       dispatch({type: 'SET_KEY_PRESS', key: 'enter', pressed: true});
       return;
     }
+    if (ev.keyCode === 32) {
+      if (state.game.hotKeys.onKeyPress.space != null) {
+        state.game.hotKeys.onKeyPress.space(store);
+      }
+      dispatch({type: 'SET_KEY_PRESS', key: 'space', pressed: true});
+      return;
+    }
     const character = String.fromCharCode(ev.keyCode).toUpperCase();
     if (character != null) {
       if (state.game.hotKeys.onKeyPress[character] != null) {
@@ -77,6 +106,13 @@ const initKeyboardControlsSystem = (store) => {
         state.game.hotKeys.onKeyUp.enter(store);
       }
       dispatch({type: 'SET_KEY_PRESS', key: 'enter', pressed: false});
+      return;
+    }
+    if (ev.keyCode === 32) {
+      if (state.game.hotKeys.onKeyUp.space != null) {
+        state.game.hotKeys.onKeyUp.space(store);
+      }
+      dispatch({type: 'SET_KEY_PRESS', key: 'space', pressed: false});
       return;
     }
     const character = String.fromCharCode(ev.keyCode);
