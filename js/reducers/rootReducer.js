@@ -47,6 +47,13 @@ const rootReducer = (state: State, action: Action): State => {
         }
       };
     }
+    case 'RETURN_TO_MENU':
+      return {
+        ...state,
+        mode: 'MENU',
+        game: null,
+        editor: null,
+      };
     case 'SET_EDITOR_MODE':
     case 'SET_EDITOR_ENTITY':
     case 'SET_EDITOR_ANT_SUBTYPE':
@@ -75,10 +82,6 @@ const rootReducer = (state: State, action: Action): State => {
     case 'TICK': {
       if (!state.game) return state;
       const game = tickReducer(state.game, action);
-      if (game.gameOver === 'win') {
-        // TODO replace this with game over system
-        console.log('game won');
-      }
       return {
         ...state,
         game,
@@ -122,6 +125,7 @@ const rootReducer = (state: State, action: Action): State => {
     case 'SET_KEY_PRESS':
     case 'SET_PHEROMONE_STRENGTH':
     case 'ZOOM':
+    case 'SET_GAME_OVER':
       if (!state.game) return state;
       return {
         ...state,

@@ -58,7 +58,7 @@ function Main(props: Props): React.Node {
 }
 
 function getModal(props: Props): React.Node {
-  if (!props.modal) {
+  if (!props.state.modal) {
     return null;
   }
   const {title, text, buttons} = props.state.modal;

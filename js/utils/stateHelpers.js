@@ -181,6 +181,7 @@ function antMakePheromone(
   const inInnerLocation = ant.location != null
     ? collides(ant.location, ant)
     : false;
+  console.log(inInnerLocation, ant.location);
   if (inInnerLocation) {
     ant.prevPheromone = null;
     return;

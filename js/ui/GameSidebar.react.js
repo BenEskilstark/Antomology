@@ -76,12 +76,6 @@ function GameSidebar(props: Props): React.Node {
             dispatch({type: 'SET_PHEROMONE_STRENGTH', selected: true, strength});
           }}
         />
-        <Button
-          label="Set to 0"
-          onClick={() => {
-            dispatch({type: 'SET_PHEROMONE_STRENGTH', selected: true, strength: 0});
-          }}
-        />
       </div>
       {selectionCards}
     </div>

@@ -1,21 +1,23 @@
 
-
  - - - - - - TUESDAY - - - - - - -
- - game over
-    - add game over system
-    - on level win, pop modal to say you won
-    - go to next level from modal
-    - go back to main menu when you win the last level
  - bring back reinforcing pheromone trails
  - support categories of pheromone you can select and have different colors
  - add UI/support for conditionals on pheromone categories
  - to think about
     - FoW performance -- try to avoid background sky tiles
     - What the UI will look like
-    - how to add other entities
+    - how to add other bug entities
     - Level 2
  - decide for Wednesday
 
+
+ - - - - - - WEDNESDAY - - - - - - -
+ - styling
+    - button css
+    - Sidebar cards placed over top of the game window
+    - cleaner UI around all behaviors
+    - better display names for all dropdowns
+    - canvas that fills the window
 
 
  - - - - - - - BUGS - - - - - - -
@@ -40,17 +42,6 @@
  - cursor
     - change cursor based on userMode
     - blip the clicked grid square when sending ants somewhere
- - styling
-    - button css
-    - Sidebar cards placed over top of the game window
-    - cleaner UI around all behaviors
-    - better display names for all dropdowns
-    - canvas that fills the window
- - hotkeys:
-    - get meta key set up
-    - let cmd/ctrl + left click == right click
-    - init keyboard should be made to work at state level instead of game level
-    - set up button and number field to register their onkeydowns
  - zooming:
     - configure min and max zoom
     - screen size in grid cells should be on the state, not the config
@@ -96,6 +87,10 @@
  - better pathing for ants that involves random walk when they get stuck
  - audio system
  - saving with local storage
+ - hotkeys:
+    - get meta key set up
+    - let cmd/ctrl + left click == right click
+    - set up button and number field to register their onkeydowns
 
 
  - - - - - - RENDERING - - - - - -
@@ -149,3 +144,4 @@
  - common function for ant switching tasks
  - condition for whether to render marquee is ridiculously overcomplicated
  - init systems should be inside level creation
+ - init keyboard should be made to work at state level instead of game level

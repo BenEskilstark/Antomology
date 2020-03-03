@@ -14,6 +14,9 @@ var _require3 = require('./mouseControlsSystem'),
 var _require4 = require('./keyboardControlsSystem'),
     initKeyboardControlsSystem = _require4.initKeyboardControlsSystem;
 
+var _require5 = require('./gameOverSystem'),
+    initGameOverSystem = _require5.initGameOverSystem;
+
 var initSystems = function initSystems(store) {
   var gameMode = store.getState().mode;
   var prevGameState = store.getState().game;
@@ -25,6 +28,7 @@ var initSystems = function initSystems(store) {
       initRenderSystem(store);
       initMouseControlsSystem(store);
       initKeyboardControlsSystem(store);
+      initGameOverSystem(store);
       // initFoodSpawnSystem(store);
       // const audio = document.getElementById('clayMusic1');
       // audio.play();

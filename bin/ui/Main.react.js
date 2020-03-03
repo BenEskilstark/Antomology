@@ -50,7 +50,7 @@ function Main(props) {
 }
 
 function getModal(props) {
-  if (!props.modal) {
+  if (!props.state.modal) {
     return null;
   }
   var _props$state$modal = props.state.modal,

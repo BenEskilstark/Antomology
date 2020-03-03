@@ -143,12 +143,12 @@ const handleTick = (game: GameState): GameState => {
     const locs = fastCollidesWith(game, ant)
       .filter(e => e.type === 'LOCATION')
       .filter(e => e.id != config.clickedPosition);
-    if (locs.length > 0 && (ant.location == null || locs[0].id != ant.location.id)) {
-      if (
-        collides(getInnerLocation(locs[0]), ant) &&
-        (ant.task == null || ant.task.name != 'Go To Clicked Location')
-      ) {
+    if (locs.length > 0 && collides(getInnerLocation(locs[0]), ant)) {
         ant.location = locs[0];
+        if (
+          (locs[0].id != ant.location.id) &&
+          (ant.task == null || ant.task.name != 'Go To Clicked Location')
+        ) {
         antSwitchTask(game, ant, locs[0].task, [
           {name: 'Follow Trail', index: 0},
           {name: 'Find Pheromone Trail', index: 0},

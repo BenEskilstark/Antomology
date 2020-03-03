@@ -58,6 +58,12 @@ var rootReducer = function rootReducer(state, action) {
           }
         });
       }
+    case 'RETURN_TO_MENU':
+      return _extends({}, state, {
+        mode: 'MENU',
+        game: null,
+        editor: null
+      });
     case 'SET_EDITOR_MODE':
     case 'SET_EDITOR_ENTITY':
     case 'SET_EDITOR_ANT_SUBTYPE':
@@ -93,10 +99,6 @@ var rootReducer = function rootReducer(state, action) {
       {
         if (!state.game) return state;
         var _game2 = tickReducer(state.game, action);
-        if (_game2.gameOver === 'win') {
-          // TODO replace this with game over system
-          console.log('game won');
-        }
         return _extends({}, state, {
           game: _game2
         });
@@ -139,6 +141,7 @@ var rootReducer = function rootReducer(state, action) {
     case 'SET_KEY_PRESS':
     case 'SET_PHEROMONE_STRENGTH':
     case 'ZOOM':
+    case 'SET_GAME_OVER':
       if (!state.game) return state;
       return _extends({}, state, {
         game: gameReducer(state.game, action)

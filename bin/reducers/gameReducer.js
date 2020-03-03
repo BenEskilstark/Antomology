@@ -133,6 +133,14 @@ var gameReducer = function gameReducer(game, action) {
           fog: fog
         });
       }
+    case 'SET_GAME_OVER':
+      {
+        var gameOver = action.gameOver;
+
+        return _extends({}, game, {
+          gameOver: gameOver
+        });
+      }
     case 'SET_PHEROMONE_STRENGTH':
       {
         var selected = action.selected,

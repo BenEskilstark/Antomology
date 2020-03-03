@@ -78,6 +78,13 @@ const gameReducer = (game: GameState, action: Action): GameState => {
         fog,
       };
     }
+    case 'SET_GAME_OVER': {
+      const {gameOver} = action;
+      return {
+        ...game,
+        gameOver,
+      };
+    }
     case 'SET_PHEROMONE_STRENGTH': {
       const {selected, strength} = action;
       if (selected) {

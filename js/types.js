@@ -351,6 +351,8 @@ export type Action =
   {type: 'SET_EDITOR_ENTITY', entityType: EntityType} |
   {type: 'APPLY_GAME_STATE', game: GameState} |
   {type: 'SET_WORLD_SIZE', width: ?number, height: ?number} |
+  {type: 'SET_GAME_OVER', gameOver: 'win' | 'lose' | null} |
+  {type: 'RETURN_TO_MENU'} |
   {type: 'SET_EDITOR_ALLOW_DELETE_BACKGROUND', allow: boolean} |
   {type: 'SET_EDITOR_ANT_SUBTYPE', subType: AntSubType} |
   {type: 'SET_KEY_PRESS', key: string, pressed: boolean} |

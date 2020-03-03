@@ -96,12 +96,6 @@ function GameSidebar(props) {
         onChange: function onChange(strength) {
           dispatch({ type: 'SET_PHEROMONE_STRENGTH', selected: true, strength: strength });
         }
-      }),
-      React.createElement(Button, {
-        label: 'Set to 0',
-        onClick: function onClick() {
-          dispatch({ type: 'SET_PHEROMONE_STRENGTH', selected: true, strength: 0 });
-        }
       })
     ),
     selectionCards
