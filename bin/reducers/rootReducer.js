@@ -141,6 +141,7 @@ var rootReducer = function rootReducer(state, action) {
     case 'SET_WORLD_SIZE':
     case 'SET_KEY_PRESS':
     case 'SET_PHEROMONE_STRENGTH':
+    case 'SET_PHEROMONE_CONDITION':
     case 'ZOOM':
     case 'SET_GAME_OVER':
       if (!state.game) return state;

@@ -1,5 +1,7 @@
 
 const {config} = require('../config');
+const {createLayEggTask} = require('../state/tasks');
+const {getQueen} = require('../selectors/selectors');
 
 let done = false;
 const initKeyboardControlsSystem = (store) => {
@@ -89,13 +91,22 @@ const initKeyboardControlsSystem = (store) => {
     fn: (s) => {
       const game = s.getState().game;
       if (game == null) return;
-      const queenID = game.ANT
-        .map(id => game.entities[id])
-        .filter(a => a.subType === 'QUEEN')
-        [0].id;
+      const queenID = getQueen(game).id;
       s.dispatch({type: 'SET_SELECTED_ENTITIES', entityIDs: [queenID]});
     }
   });
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'G',
+    fn: (s) => {
+      const game = s.getState().game;
+      if (game == null) return;
+      const queenID = getQueen(game).id;
+      s.dispatch({type: 'ASSIGN_TASK', task: createLayEggTask(), ants: [queenID]});
+    }
+  });
+
+
 
   //////////////////////////////////////////////////////////////////////////////
   // keypress event handling

@@ -48,7 +48,7 @@ function StatusCard(props) {
       card = React.createElement(PupaCard, props);
       break;
     case 'OBELISK':
-      card = React.createElement(TaskEditor, props);
+      // card = <TaskEditor {...props} />;
       break;
     case 'LOCATION':
       card = React.createElement(LocationCard, props);
@@ -81,7 +81,7 @@ function AntCard(props) {
     'div',
     null,
     React.createElement(Button, {
-      label: canLay === true ? "Lay Egg" : "Lay Egg (" + canLay + ")",
+      label: canLay === true ? "Lay Egg [G]" : "Lay Egg [G] (" + canLay + ")",
       disabled: canLay !== true,
       onClick: function onClick() {
         dispatch({
@@ -119,7 +119,10 @@ function AntCard(props) {
     React.createElement(
       'div',
       null,
-      'HP: 10/10'
+      'HP: ',
+      ant.hp,
+      '/',
+      config.antStartingHP
     ),
     React.createElement(
       'div',

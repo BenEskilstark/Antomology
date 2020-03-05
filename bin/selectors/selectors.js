@@ -348,6 +348,14 @@ var filterEntitiesByType = function filterEntitiesByType(entities, entityTypes) 
 // Queen
 /////////////////////////////////////////////////////////////////
 
+var getQueen = function getQueen(game) {
+  return game.ANT.map(function (id) {
+    return game.entities[id];
+  }).filter(function (a) {
+    return a.subType === 'QUEEN';
+  })[0];
+};
+
 var canLayEgg = function canLayEgg(game, ant) {
   if (ant.subType != 'QUEEN') return 'Not Queen';
   var nothingInTheWay = fastCollidesWith(game, ant).filter(function (e) {
@@ -415,7 +423,8 @@ var selectors = {
   entitiesInMarquee: entitiesInMarquee,
   getEntitiesInRadius: getEntitiesInRadius,
   shouldFall: shouldFall,
-  canLayEgg: canLayEgg
+  canLayEgg: canLayEgg,
+  getQueen: getQueen
 };
 window.selectors = selectors; // for testing
 

@@ -112,6 +112,9 @@ function InfoSidebar(props) {
   );
 }
 
+/////////////////////////////////////////////////////////////////////////////
+// Pheromones
+/////////////////////////////////////////////////////////////////////////////
 function PheromoneTab(props) {
   var state = props.state,
       dispatch = props.dispatch;
@@ -143,27 +146,51 @@ function PheromoneTab(props) {
       null,
       'Use negative trail strength to delete trails.'
     ),
-    React.createElement(
-      'div',
-      {
-        style: { borderTop: '1px solid black' }
-      },
-      'Type: Green [P]',
-      React.createElement(Slider, {
-        min: -1 * config.pheromoneMaxQuantity,
-        max: config.pheromoneMaxQuantity,
-        step: 20,
-        value: game.selectedAntPheromoneStrength,
-        label: 'Strength: ',
-        onChange: function onChange(strength) {
-          dispatch({ type: 'SET_PHEROMONE_STRENGTH', selected: true, strength: strength });
-        }
-      }),
-      'Condition:'
-    )
+    pheromoneCategory(game, dispatch, 1),
+    pheromoneCategory(game, dispatch, 2),
+    pheromoneCategory(game, dispatch, 3)
   );
 }
 
+function pheromoneCategory(game, dispatch, category) {
+  var strength = game.pheromones[category].strength;
+  var condition = game.pheromones[category].condition;
+  var label = '';
+  switch (category) {
+    case 1:
+      label = 'Green [P]';
+      break;
+    case 2:
+      label = 'Blue [O]';
+      break;
+    case 3:
+      label = 'Red [I]';
+      break;
+  }
+  return React.createElement(
+    'div',
+    {
+      style: { borderTop: '1px solid black' }
+    },
+    'Type: ',
+    label,
+    React.createElement(Slider, {
+      min: -1 * config.pheromoneMaxQuantity,
+      max: config.pheromoneMaxQuantity,
+      step: 20,
+      value: strength,
+      label: 'Strength: ',
+      onChange: function onChange(str) {
+        dispatch({ type: 'SET_PHEROMONE_STRENGTH', category: category, strength: str });
+      }
+    }),
+    'Condition:'
+  );
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// Locations
+/////////////////////////////////////////////////////////////////////////////
 function LocationTab(props) {
   var state = props.state,
       dispatch = props.dispatch;
@@ -199,6 +226,9 @@ function LocationTab(props) {
   );
 }
 
+/////////////////////////////////////////////////////////////////////////////
+// Status
+/////////////////////////////////////////////////////////////////////////////
 function StatusTab(props) {
   var state = props.state,
       dispatch = props.dispatch;
@@ -277,6 +307,9 @@ function StatusTab(props) {
   );
 }
 
+/////////////////////////////////////////////////////////////////////////////
+// Options
+/////////////////////////////////////////////////////////////////////////////
 function OptionsTab(props) {
   var state = props.state,
       dispatch = props.dispatch;

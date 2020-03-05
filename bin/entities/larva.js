@@ -13,7 +13,8 @@ var makeLarva = function makeLarva(position, subType) {
     calories: config.larvaStartingCalories,
     alive: true,
     subType: subType,
-    visible: true
+    visible: true,
+    hp: config.antStartingHP
   });
 };
 

@@ -74,6 +74,13 @@ export type HotKeys = {
 export type InfoTab =
   'Pheromones' | 'Locations' | 'Colony Status' | 'Options' | 'None';
 
+export type PheromoneCategories = {
+  [number]: {
+    strength: number,
+    condition: ?Condition,
+  }
+};
+
 export type GameState = {
   time: number,
   tickInterval: any, // when running, this is set
@@ -87,12 +94,11 @@ export type GameState = {
 
   // UI-based partial state
   nextLocationName: string,
-  prevPheromone: ?EntityID,
-  curEdge: ?EdgeID,
+  prevPheromone: ?EntityID, // DEPRECATED
+  curEdge: ?EdgeID, // DEPRECATED
 
   // pheromones for ants
-  allAntPheromoneStrength: number,
-  selectedAntPheromoneStrength: number,
+  pheromones: PheromoneCategories,
 
   edges: {[EdgeID]: Edge},
 
@@ -112,7 +118,6 @@ export type GameState = {
   EGG: Array<EntityID>,
   LARVA: Array<EntityID>,
   PUPA: Array<EntityID>,
-  DEAD_ANT: Array<EntityID>, // TODO: not actually implemented
   PHEROMONE: Array<EntityID>,
   STONE: Array<EntityID>,
   BACKGROUND: Array<EntityID>,
@@ -138,7 +143,7 @@ export type GameState = {
 
 export type EntityID = number;
 export type EntityType =
-  'ANT' | 'DIRT' | 'FOOD' | 'EGG' | 'LARVA' | 'PUPA' | 'LOCATION' | 'DEAD_ANT' |
+  'ANT' | 'DIRT' | 'FOOD' | 'EGG' | 'LARVA' | 'PUPA' | 'LOCATION' |
   'PHEROMONE' | 'BACKGROUND' | 'STONE' | 'OBELISK' |'STUCK_STONE' | 'GRASS' |
   'TARGET';
 
@@ -366,6 +371,6 @@ export type Action =
     key: string,
     fn: (store) => void
   } |
-  {type: 'SET_PHEROMONE_STRENGTH', selected: boolean, strength: number} |
+  {type: 'SET_PHEROMONE_STRENGTH', category: number, strength: number} |
   {type: 'SET_EDITOR_BACKGROUND_TYPE', backgroundType: 'SKY' | 'DIRT'};
 

@@ -34,7 +34,7 @@ function BehaviorCard(props: Props): React.Node {
     selectedSubject = behavior.action.type;
   } else if (behavior.type == 'IF' || behavior.type == 'WHILE') {
     subjects = [
-      'LOCATION', 'RANDOM', 'HOLDING', 'NEIGHBORING', 'BLOCKED',
+      'LOCATION', 'RANDOM', 'HOLDING', 'NEIGHBORING',
       'CALORIES', 'AGE', 'IS_QUEEN',
     ];
     selectedSubject = behavior.condition.type;
@@ -42,7 +42,9 @@ function BehaviorCard(props: Props): React.Node {
     subjects = state.game.tasks.map(t => t.name);
     selectedSubject = behavior.task;
   } else if (behavior.type == 'DO_HIGH_LEVEL_ACTION') {
-    subjects = ['MOVE', 'PICKUP', 'PUTDOWN', 'EAT', 'FEED', 'LAY', 'FIND_PHEROMONE'];
+    subjects = [
+      'IDLE', 'MOVE', 'PICKUP', 'PUTDOWN', 'EAT', 'FEED', 'LAY', 'FIND_PHEROMONE',
+    ];
     selectedSubject = behavior.action.type;
   }
 
@@ -67,6 +69,7 @@ function BehaviorCard(props: Props): React.Node {
       <Dropdown
         options={subjects}
         selected={selectedSubject}
+        noNoneOption={true}
         onChange={(nextSubject) => {
           if (
             behavior.type == 'DO_ACTION' || behavior.type == 'DO_HIGH_LEVEL_ACTION'
@@ -200,7 +203,7 @@ function transitionBehavior(behavior: Behavior, newType: string): Behavior {
     }
     case 'DO_HIGH_LEVEL_ACTION': {
       newBehavior.action = {
-        type: 'MOVE',
+        type: 'IDLE',
         payload: {
           object: 'RANDOM',
         },
@@ -230,11 +233,13 @@ function Conditional(
   }
   const comparator = condition.comparator;
   let comparatorOptions = ['EQUALS', 'LESS_THAN', 'GREATER_THAN'];
+  let comparatorDisplayOptions = ['=', '<', '>'];
   if (
     typeName == 'LOCATION' || typeName === 'HOLDING' ||
     typeName === 'NEIGHBORING' || typeName === 'BLOCKED'
   ) {
     comparatorOptions = ['EQUALS'];
+    comparatorDisplayOptions = ['='];
   }
   let objectField = 'True';
   if (typeName === 'RANDOM' || typeName === 'CALORIES' || typeName === 'AGE') {
@@ -277,7 +282,7 @@ function Conditional(
   if (typeName === 'NEIGHBORING') {
     objectField = <Dropdown
       options={
-        ['MARKED_DIRT', 'DIRT', 'FOOD', 'TRAIL', 'EGG', 'LARVA', 'PUPA', 'ANYTHING', 'NOTHING']
+        ['DIRT', 'FOOD', 'TRAIL', 'EGG', 'LARVA', 'PUPA', 'ANYTHING', 'NOTHING']
         .concat(getEntitiesByType(state.game, ['LOCATION']).map(l => l.name))
       }
       selected={conditionObject}
@@ -305,6 +310,7 @@ function Conditional(
       }} />
       <Dropdown
         options={comparatorOptions}
+        displayOptions={comparatorDisplayOptions}
         selected={comparator}
         noNoneOption={true}
         onChange={(newComparator) => {

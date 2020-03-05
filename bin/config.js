@@ -34,7 +34,7 @@ var config = {
 
   // selection
   maxSelectableAnts: 100000,
-  selectableEntities: ['ANT', 'EGG', 'LARVA', 'PUPA', 'OBELISK', 'LOCATION'],
+  selectableEntities: ['ANT', 'EGG', 'LARVA', 'PUPA', 'LOCATION'],
 
   // ant-specific values
   antPickupEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'DEAD_ANT', 'OBELISK'],
@@ -45,6 +45,7 @@ var config = {
   antMaxCalories: 6000,
   antStarvationWarningThreshold: 0.3,
   antOldAgeDeathWarningThreshold: 0.8,
+  antStartingHP: 10,
 
   // life-cycle related
   eggLayingCooldown: 50,
@@ -55,7 +56,7 @@ var config = {
   pupaHatchAge: 200,
 
   // pheromones
-  pheromoneStartingQuantity: 100,
+  pheromoneStartingQuantity: 1000,
   pheromoneMaxQuantity: 1800,
   pheromoneReinforcement: 10
 };

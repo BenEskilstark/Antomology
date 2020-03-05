@@ -42,7 +42,7 @@ function BehaviorCard(props) {
     subjects = ['MOVE', 'PICKUP', 'PUTDOWN', 'IDLE', 'EAT', 'FEED', 'LAY'];
     selectedSubject = behavior.action.type;
   } else if (behavior.type == 'IF' || behavior.type == 'WHILE') {
-    subjects = ['LOCATION', 'RANDOM', 'HOLDING', 'NEIGHBORING', 'BLOCKED', 'CALORIES', 'AGE', 'IS_QUEEN'];
+    subjects = ['LOCATION', 'RANDOM', 'HOLDING', 'NEIGHBORING', 'CALORIES', 'AGE', 'IS_QUEEN'];
     selectedSubject = behavior.condition.type;
   } else if (behavior.type == 'SWITCH_TASK') {
     subjects = state.game.tasks.map(function (t) {
@@ -50,7 +50,7 @@ function BehaviorCard(props) {
     });
     selectedSubject = behavior.task;
   } else if (behavior.type == 'DO_HIGH_LEVEL_ACTION') {
-    subjects = ['MOVE', 'PICKUP', 'PUTDOWN', 'EAT', 'FEED', 'LAY', 'FIND_PHEROMONE'];
+    subjects = ['IDLE', 'MOVE', 'PICKUP', 'PUTDOWN', 'EAT', 'FEED', 'LAY', 'FIND_PHEROMONE'];
     selectedSubject = behavior.action.type;
   }
 
@@ -74,6 +74,7 @@ function BehaviorCard(props) {
     React.createElement(Dropdown, {
       options: subjects,
       selected: selectedSubject,
+      noNoneOption: true,
       onChange: function onChange(nextSubject) {
         if (behavior.type == 'DO_ACTION' || behavior.type == 'DO_HIGH_LEVEL_ACTION') {
           behavior.action.type = nextSubject;
@@ -212,7 +213,7 @@ function transitionBehavior(behavior, newType) {
     case 'DO_HIGH_LEVEL_ACTION':
       {
         newBehavior.action = {
-          type: 'MOVE',
+          type: 'IDLE',
           payload: {
             object: 'RANDOM'
           }
@@ -239,8 +240,10 @@ function Conditional(props) {
   }
   var comparator = condition.comparator;
   var comparatorOptions = ['EQUALS', 'LESS_THAN', 'GREATER_THAN'];
+  var comparatorDisplayOptions = ['=', '<', '>'];
   if (typeName == 'LOCATION' || typeName === 'HOLDING' || typeName === 'NEIGHBORING' || typeName === 'BLOCKED') {
     comparatorOptions = ['EQUALS'];
+    comparatorDisplayOptions = ['='];
   }
   var objectField = 'True';
   if (typeName === 'RANDOM' || typeName === 'CALORIES' || typeName === 'AGE') {
@@ -284,7 +287,7 @@ function Conditional(props) {
   }
   if (typeName === 'NEIGHBORING') {
     objectField = React.createElement(Dropdown, {
-      options: ['MARKED_DIRT', 'DIRT', 'FOOD', 'TRAIL', 'EGG', 'LARVA', 'PUPA', 'ANYTHING', 'NOTHING'].concat(getEntitiesByType(state.game, ['LOCATION']).map(function (l) {
+      options: ['DIRT', 'FOOD', 'TRAIL', 'EGG', 'LARVA', 'PUPA', 'ANYTHING', 'NOTHING'].concat(getEntitiesByType(state.game, ['LOCATION']).map(function (l) {
         return l.name;
       })),
       selected: conditionObject,
@@ -310,6 +313,7 @@ function Conditional(props) {
       } }),
     React.createElement(Dropdown, {
       options: comparatorOptions,
+      displayOptions: comparatorDisplayOptions,
       selected: comparator,
       noNoneOption: true,
       onChange: function onChange(newComparator) {

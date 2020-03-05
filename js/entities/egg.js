@@ -11,6 +11,7 @@ const makeEgg = (position: Vector, subType: AntSubType): Egg => {
     subType,
     visible: true,
     alive: true,
+    hp: config.antStartingHP,
   };
 };
 

@@ -29,6 +29,7 @@ var makeAnt = function makeAnt(position, subType) {
     blockedBy: null,
     location: null,
     alive: true,
+    hp: config.antStartingHP,
     visible: true,
     eggLayingCooldown: 0,
     prevPheromone: null

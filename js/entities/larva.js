@@ -12,6 +12,7 @@ const makeLarva = (position: Vector, subType: AntSubType): Larva => {
     alive: true,
     subType,
     visible: true,
+    hp: config.antStartingHP,
   };
 };
 

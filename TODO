@@ -1,35 +1,34 @@
 
 
  - - - - - - THURSDAY - - - - - - -
- - add hotkey for laying an egg
- - remove DEAD_ANT entity
- - game over if queen dies
- - add HP to ants
  - "Ticker" system for hovering text temporarily
- - renaming locations
-    - make sure ant locations are up to date
-    - make sure location's task's name is updated
- - support categories of pheromone you can select and have different colors
-    - category strengths on game state
-    - card for each category
-    - render system for each category
-    - checking for each hotkey type in antMakePheromone function
-    - conditions on pheromone trails
+ - pheromone categories
+    - conditions on pheromone UI
+    - check condition before following trail
+    - only follow trail with same category of trail you've been following
+    - don't delete pheromones of different strength
  - to think about
-    - what should obelisk status card say
     - FoW performance -- try to avoid background sky tiles
     - how to add other bug entities
     - Level 2
 
 
+ - - - - - - FRIDAY - - - - - - -
+ - hovercard with info about what mouse is over
+    - system that tracks mouse location and dispatches action to set hovercard
+    - foreground dirt, background dirt, grass, food, stone, stuck_stone
+    - obelisk, target
+ - blip the clicked grid square when sending ants somewhere
+
  - - - - - - - BUGS - - - - - - -
- - deleting a location that is also selected crashes everything
- - status counters not registering for non-ants
  - ants switch task when passing through a location
  - off-by-one on big entity pick up might say one more than are holding
+ - fog on target entity overlaps with fog on background dirt
+ - number input disallows 0.0X
 
 
  - - - - - - - - MENUS - - - - - - - - -
+ - add instructions to options menu
 
 
  - - - - - - PHEROMONE TRAILS - - - - - -
@@ -49,8 +48,6 @@
     - cleaner UI around all behaviors
  - cursor
     - change cursor based on userMode
-    - blip the clicked grid square when sending ants somewhere
-    - hovercard with info about what mouse is over
  - zooming:
     - configure min and max zoom
     - screen size in grid cells should be on the state, not the config
@@ -63,9 +60,10 @@
 
  - - - - - - LEVELS - - - - - -
  - fix up level 1
-    - fix for level size of 75 * 50
+    - fix for level size of 60 x 40
     - more food under ground, less above
     - remove unneeded tasks from state
+    - ants need full hp
  - new harder level 2
  - clean up tasks inside levels
  - clean up levels on main menu
@@ -102,6 +100,7 @@
     - get meta key set up
     - let cmd/ctrl + left click == right click
     - set up button and number field to register their onkeydowns
+ - have dead selected ants say how they died
 
 
  - - - - - - RENDERING - - - - - -
@@ -156,3 +155,4 @@
  - condition for whether to render marquee is ridiculously overcomplicated
  - init systems should be inside level creation
  - init keyboard should be made to work at state level instead of game level
+ - level editor is not resilient to updating properties of entities

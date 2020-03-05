@@ -144,14 +144,26 @@ const baseState = (worldWidth: number, worldHeight: number): GameState => {
     tickInterval: null,
     antMode: 'PICKUP',
     userMode: 'SELECT',
-    infoTab: 'None',
+    infoTab: 'Options',
 
     nextLocationName: 'Give Locations Unique Names',
     prevPheromone: null,
     curEdge: null,
 
-    allAntPheromoneStrength: 0,
-    selectedAntPheromoneStrength: config.pheromoneStartingQuantity,
+    pheromones: {
+      '1': {
+        strength: config.pheromoneStartingQuantity,
+        condition: null,
+      },
+      '2': {
+        strength: config.pheromoneStartingQuantity,
+        condition: null,
+      },
+      '3': {
+        strength: config.pheromoneStartingQuantity,
+        condition: null,
+      },
+    },
 
     edges: {},
 

@@ -11,6 +11,7 @@ const makePupa = (position: Vector, subType: AntSubType): Pupa => {
     subType,
     visible: true,
     alive: true,
+    hp: config.antStartingHP,
   };
 };
 

@@ -54,6 +54,7 @@ const gameReducer = (game: GameState, action: Action): GameState => {
     }
     case 'DESTROY_ENTITY': {
       const {id} = action;
+      game.selectedEntities = game.selectedEntities.filter(i => i != id);
       if (game.LOCATION.includes(id)) {
         for (const antID of game.ANT) {
           const ant = game.entities[antID];
@@ -85,19 +86,15 @@ const gameReducer = (game: GameState, action: Action): GameState => {
         gameOver,
       };
     }
+    case 'SET_PHEROMONE_CONDITION': {
+      const {category, condition} = action;
+      game.pheromones[category].condition = condition;
+      return game;
+    }
     case 'SET_PHEROMONE_STRENGTH': {
-      const {selected, strength} = action;
-      if (selected) {
-        return {
-          ...game,
-          selectedAntPheromoneStrength: strength,
-        };
-      } else {
-        return {
-          ...game,
-          allAntPheromoneStrength: strength,
-        };
-      }
+      const {category, strength} = action;
+      game.pheromones[category].strength = strength;
+      return game;
     }
     case 'SET_WORLD_SIZE': {
       const {width, height} = action;
@@ -166,7 +163,9 @@ const gameReducer = (game: GameState, action: Action): GameState => {
     }
     case 'UPDATE_LOCATION_NAME': {
       const {id, newName} = action;
-      game.entities[id].name = newName;
+      const loc = game.entities[id];
+      loc.name = newName;
+      loc.task.name = newName;
       return game;
     }
     case 'UPDATE_NEXT_LOCATION_NAME': {

@@ -87,6 +87,9 @@ var gameReducer = function gameReducer(game, action) {
       {
         var id = action.id;
 
+        game.selectedEntities = game.selectedEntities.filter(function (i) {
+          return i != id;
+        });
         if (game.LOCATION.includes(id)) {
           var _iteratorNormalCompletion2 = true;
           var _didIteratorError2 = false;
@@ -141,20 +144,21 @@ var gameReducer = function gameReducer(game, action) {
           gameOver: gameOver
         });
       }
+    case 'SET_PHEROMONE_CONDITION':
+      {
+        var category = action.category,
+            condition = action.condition;
+
+        game.pheromones[category].condition = condition;
+        return game;
+      }
     case 'SET_PHEROMONE_STRENGTH':
       {
-        var selected = action.selected,
+        var _category = action.category,
             strength = action.strength;
 
-        if (selected) {
-          return _extends({}, game, {
-            selectedAntPheromoneStrength: strength
-          });
-        } else {
-          return _extends({}, game, {
-            allAntPheromoneStrength: strength
-          });
-        }
+        game.pheromones[_category].strength = strength;
+        return game;
       }
     case 'SET_WORLD_SIZE':
       {
@@ -257,7 +261,9 @@ var gameReducer = function gameReducer(game, action) {
         var _id3 = action.id,
             newName = action.newName;
 
-        game.entities[_id3].name = newName;
+        var loc = game.entities[_id3];
+        loc.name = newName;
+        loc.task.name = newName;
         return game;
       }
     case 'UPDATE_NEXT_LOCATION_NAME':
@@ -273,9 +279,9 @@ var gameReducer = function gameReducer(game, action) {
         var _task2 = action.task,
             _id4 = action.id;
 
-        var loc = game.entities[_id4];
-        loc.task.repeating = false;
-        loc.task.behaviorQueue = _task2.behaviorQueue;
+        var _loc = game.entities[_id4];
+        _loc.task.repeating = false;
+        _loc.task.behaviorQueue = _task2.behaviorQueue;
         return game;
       }
     case 'ASSIGN_TASK':

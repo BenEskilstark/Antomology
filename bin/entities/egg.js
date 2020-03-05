@@ -11,7 +11,9 @@ var _require2 = require('../config'),
 var makeEgg = function makeEgg(position, subType) {
   return _extends({}, makeEntity('EGG', 1, 1, position), {
     subType: subType,
-    visible: true
+    visible: true,
+    alive: true,
+    hp: config.antStartingHP
   });
 };
 

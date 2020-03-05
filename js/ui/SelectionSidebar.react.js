@@ -5,6 +5,7 @@ const {config} = require('../config');
 const Button = require('./components/Button.react');
 const Dropdown = require('./components/Dropdown.react');
 const StatusCard = require('./StatusCard.react');
+const {useState} = React;
 
 import type {State, Action} from '../types';
 
@@ -18,6 +19,9 @@ const PADDING = 4;
 function SelectionSidebar(props: Props): React.Node {
   const {state, dispatch} = props;
   const {game} = state;
+
+  const [selectionHidden, setSelectionHidden] = useState(false);
+
   const selectionCards = game.selectedEntities
     .map(id => game.entities[id])
     .filter(e => e.type != 'LOCATION')
@@ -29,7 +33,11 @@ function SelectionSidebar(props: Props): React.Node {
     ));
   const selectedAntsLabel = selectionCards.length > 0
     ? <div style={{backgroundColor: 'white', padding: '3px', marginTop: 4}}>
-        <b>Selected Ants:</b>
+        <b>Selected Ants</b>{" (" + selectionCards.length + ")"}<b>:</b>
+        <Button
+          label={selectionHidden ? 'Show Selection' : 'Hide Selection'}
+          onClick={() => setSelectionHidden(!selectionHidden)}
+        />
       </div>
     : null;
 
@@ -41,6 +49,7 @@ function SelectionSidebar(props: Props): React.Node {
         left: config.canvasWidth - (400 + PADDING),
         top: PADDING,
         overflowY: 'scroll',
+        overflowX: 'hidden',
       }}
     >
       <div
@@ -60,7 +69,7 @@ function SelectionSidebar(props: Props): React.Node {
         />
       </div>
       {selectedAntsLabel}
-      {selectionCards}
+      {!selectionHidden ? selectionCards : null}
     </div>
   );
 }

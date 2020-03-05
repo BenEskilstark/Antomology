@@ -234,6 +234,13 @@ const filterEntitiesByType = (
 // Queen
 /////////////////////////////////////////////////////////////////
 
+const getQueen = (game: GameState): Ant => {
+  return game.ANT
+    .map(id => game.entities[id])
+    .filter(a => a.subType === 'QUEEN')
+    [0];
+}
+
 const canLayEgg = (game: GameState, ant: Ant): string | boolean => {
   if (ant.subType != 'QUEEN') return 'Not Queen';
   const nothingInTheWay = fastCollidesWith(game, ant)
@@ -312,6 +319,7 @@ const selectors = {
   getEntitiesInRadius,
   shouldFall,
   canLayEgg,
+  getQueen,
 };
 window.selectors = selectors; // for testing
 

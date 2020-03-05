@@ -76,7 +76,7 @@ function AntCard(props: Props): React.Node {
   const layEggButton = (
     <div>
     <Button
-      label={canLay === true ? "Lay Egg" : "Lay Egg (" + canLay + ")"}
+      label={canLay === true ? "Lay Egg [G]" : "Lay Egg [G] (" + canLay + ")"}
       disabled={canLay !== true}
       onClick={() => {
         dispatch({
@@ -93,7 +93,7 @@ function AntCard(props: Props): React.Node {
     >
       <div><b>{deadStr}{ant.subType} {ant.type}</b></div>
       <div>Calories: {ant.calories}{hungryStr}{oldAgeStr}</div>
-      <div>HP: 10/10</div>
+      <div>HP: {ant.hp}/{config.antStartingHP}</div>
       <div>
         Current Task: {ant.task != null ? ant.task.name : 'None'}
         {ant.subType === 'QUEEN' ? layEggButton : null}

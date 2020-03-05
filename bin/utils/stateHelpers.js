@@ -222,10 +222,21 @@ function antMakePheromone(game, ant) {
     return;
   }
 
-  var strength = game.selectedEntities.includes(ant.id) ? game.selectedAntPheromoneStrength : game.allAntPheromoneStrength;
-
-  if (!game.hotKeys.keysDown['p'] && !game.hotKeys.keysDown['P']) {
-    strength = 0; // must be holding P to make pheromones
+  var strength = 0;
+  var category = 1;
+  if (game.selectedEntities.includes(ant.id)) {
+    if (game.hotKeys.keysDown['P']) {
+      strength = game.pheromones[1].strength;
+      category = 1;
+    }
+    if (game.hotKeys.keysDown['O']) {
+      strength = game.pheromones[2].strength;
+      category = 2;
+    }
+    if (game.hotKeys.keysDown['I']) {
+      strength = game.pheromones[3].strength;
+      category = 3;
+    }
   }
 
   var theta = vectorTheta(subtract(ant.position, ant.prevPosition));
@@ -271,8 +282,7 @@ function antMakePheromone(game, ant) {
     pheromoneInDirection.quantity = Math.min(config.pheromoneMaxQuantity, strength + pheromoneInDirection.quantity);
     ant.prevPheromone = pheromoneInDirection.id;
   } else if (strength > 0) {
-    var pheromone = makePheromone(nextPherPos, theta, 1, // edge category
-    0, // edgeID (placeholder)
+    var pheromone = makePheromone(nextPherPos, theta, category, 0, // edgeID (placeholder) DEPRECATED
     ant.prevPheromone, strength);
     addEntity(game, pheromone);
     ant.prevPheromone = pheromone.id;

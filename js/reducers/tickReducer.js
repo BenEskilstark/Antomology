@@ -47,6 +47,7 @@ const {
   insideWorld,
   getEntitiesInRadius,
   shouldFall,
+  getQueen,
 } = require('../selectors/selectors');
 const {makeEgg} = require('../entities/egg');
 const {makeLarva} = require('../entities/larva');
@@ -169,19 +170,18 @@ const handleTick = (game: GameState): GameState => {
     if (ant.eggLayingCooldown > 0) {
       ant.eggLayingCooldown -= 1;
     }
-    // ant starvation
-    if (ant.calories <= 0) {
+
+    // ways ants can die
+    if (
+      ant.calories <= 0 || ant.hp <= 0 ||
+      (ant.subType != 'QUEEN' && ant.age > config.antMaxAge)
+    ) {
       ant.alive = false;
       if (ant.holding) {
         putDownEntity(game, ant);
       }
     }
-    if (ant.age > config.antMaxAge) {
-      ant.alive = false;
-      if (ant.holding) {
-        putDownEntity(game, ant);
-      }
-    }
+
     if (ant.holding != null && !heldEntityIDs.includes(ant.holding.id)) {
       heldEntityIDs.push(ant.holding.id);
     }
@@ -251,6 +251,11 @@ const handleTick = (game: GameState): GameState => {
 
     if (collides(obelisk, target)) {
       game.gameOver = 'win';
+    }
+
+    const queen = getQueen(game);
+    if (!queen.alive) {
+      game.gameOver = 'lose';
     }
   };
 

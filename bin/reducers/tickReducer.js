@@ -56,7 +56,8 @@ var _require7 = require('../selectors/selectors'),
     filterEntitiesByType = _require7.filterEntitiesByType,
     insideWorld = _require7.insideWorld,
     getEntitiesInRadius = _require7.getEntitiesInRadius,
-    shouldFall = _require7.shouldFall;
+    shouldFall = _require7.shouldFall,
+    getQueen = _require7.getQueen;
 
 var _require8 = require('../entities/egg'),
     makeEgg = _require8.makeEgg;
@@ -193,19 +194,15 @@ var handleTick = function handleTick(game) {
       if (ant.eggLayingCooldown > 0) {
         ant.eggLayingCooldown -= 1;
       }
-      // ant starvation
-      if (ant.calories <= 0) {
+
+      // ways ants can die
+      if (ant.calories <= 0 || ant.hp <= 0 || ant.subType != 'QUEEN' && ant.age > config.antMaxAge) {
         ant.alive = false;
         if (ant.holding) {
           putDownEntity(game, ant);
         }
       }
-      if (ant.age > config.antMaxAge) {
-        ant.alive = false;
-        if (ant.holding) {
-          putDownEntity(game, ant);
-        }
-      }
+
       if (ant.holding != null && !heldEntityIDs.includes(ant.holding.id)) {
         heldEntityIDs.push(ant.holding.id);
       }
@@ -307,6 +304,11 @@ var computeLevelOver = function computeLevelOver(game) {
 
   if (collides(obelisk, target)) {
     game.gameOver = 'win';
+  }
+
+  var queen = getQueen(game);
+  if (!queen.alive) {
+    game.gameOver = 'lose';
   }
 };
 

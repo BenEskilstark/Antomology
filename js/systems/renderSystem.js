@@ -401,11 +401,19 @@ const renderEntity = (
     case 'PHEROMONE': {
       ctx.save();
       const alpha = 0.75 * (entity.quantity / config.pheromoneMaxQuantity) + 0.25;
-      ctx.fillStyle = "rgba(0, 200, 0, " + alpha + ")";
-      ctx.strokeStyle = "rgba(0, 200, 0, " + alpha + ")";
-      if (state.game.selectedEntities.includes(entity.id)) {
-        ctx.strokeStyle = '#FF6347';
+      if (entity.category === 1) {
+        ctx.fillStyle = "rgba(0, 200, 0, " + alpha + ")";
+        ctx.strokeStyle = "rgba(0, 200, 0, " + alpha + ")";
+      } else if (entity.category === 2) {
+        ctx.fillStyle = "rgba(0, 0, 200, " + alpha + ")";
+        ctx.strokeStyle = "rgba(0, 0, 200, " + alpha + ")";
+      } else if (entity.category === 3) {
+        ctx.fillStyle = "rgba(200, 0, 0, " + alpha + ")";
+        ctx.strokeStyle = "rgba(200, 0, 0, " + alpha + ")";
       }
+      // if (state.game.selectedEntities.includes(entity.id)) {
+      //  ctx.strokeStyle = '#FF6347';
+      // }
       // relative to center
       ctx.translate(entity.width / 2, entity.height / 2);
       const radius = entity.width / 2;

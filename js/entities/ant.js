@@ -27,6 +27,7 @@ const makeAnt = (position: Vector, subType: AntSubType): Ant => {
     blockedBy: null,
     location: null,
     alive: true,
+    hp: config.antStartingHP,
     visible: true,
     eggLayingCooldown: 0,
     prevPheromone: null,

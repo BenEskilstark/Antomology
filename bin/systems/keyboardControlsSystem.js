@@ -3,6 +3,12 @@
 var _require = require('../config'),
     config = _require.config;
 
+var _require2 = require('../state/tasks'),
+    createLayEggTask = _require2.createLayEggTask;
+
+var _require3 = require('../selectors/selectors'),
+    getQueen = _require3.getQueen;
+
 var done = false;
 var initKeyboardControlsSystem = function initKeyboardControlsSystem(store) {
   if (done) return;
@@ -114,12 +120,18 @@ var initKeyboardControlsSystem = function initKeyboardControlsSystem(store) {
     fn: function fn(s) {
       var game = s.getState().game;
       if (game == null) return;
-      var queenID = game.ANT.map(function (id) {
-        return game.entities[id];
-      }).filter(function (a) {
-        return a.subType === 'QUEEN';
-      })[0].id;
+      var queenID = getQueen(game).id;
       s.dispatch({ type: 'SET_SELECTED_ENTITIES', entityIDs: [queenID] });
+    }
+  });
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'G',
+    fn: function fn(s) {
+      var game = s.getState().game;
+      if (game == null) return;
+      var queenID = getQueen(game).id;
+      s.dispatch({ type: 'ASSIGN_TASK', task: createLayEggTask(), ants: [queenID] });
     }
   });
 

@@ -112,6 +112,9 @@ function InfoSidebar(props: Props): React.Node {
   );
 }
 
+/////////////////////////////////////////////////////////////////////////////
+// Pheromones
+/////////////////////////////////////////////////////////////////////////////
 function PheromoneTab(props: Props) {
   const {state, dispatch} = props;
   const {game} = state;
@@ -132,27 +135,51 @@ function PheromoneTab(props: Props) {
       <div>
         Use negative trail strength to delete trails.
       </div>
-      <div
-        style={{borderTop: '1px solid black'}}
-      >
-      Type: Green [P]
-      <Slider
-        min={-1 * config.pheromoneMaxQuantity}
-        max={config.pheromoneMaxQuantity}
-        step={20}
-        value={game.selectedAntPheromoneStrength}
-        label={'Strength: '}
-        onChange={(strength) => {
-          dispatch({type: 'SET_PHEROMONE_STRENGTH', selected: true, strength});
-        }}
-      />
-      Condition:
-      </div>
-
+      {pheromoneCategory(game, dispatch, 1)}
+      {pheromoneCategory(game, dispatch, 2)}
+      {pheromoneCategory(game, dispatch, 3)}
     </div>
   );
 }
 
+function pheromoneCategory(game: GameState, dispatch, category) {
+  const strength = game.pheromones[category].strength;
+  const condition = game.pheromones[category].condition;
+  let label = '';
+  switch (category) {
+    case 1:
+      label = 'Green [P]';
+      break;
+    case 2:
+      label = 'Blue [O]';
+      break;
+    case 3:
+      label = 'Red [I]';
+      break;
+  }
+  return (
+    <div
+      style={{borderTop: '1px solid black'}}
+    >
+      Type: {label}
+      <Slider
+        min={-1 * config.pheromoneMaxQuantity}
+        max={config.pheromoneMaxQuantity}
+        step={20}
+        value={strength}
+        label={'Strength: '}
+        onChange={(str) => {
+          dispatch({type: 'SET_PHEROMONE_STRENGTH', category, strength: str});
+        }}
+      />
+      Condition:
+    </div>
+  );
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// Locations
+/////////////////////////////////////////////////////////////////////////////
 function LocationTab(props: Props) {
   const {state, dispatch} = props;
   const {game} = state;
@@ -179,6 +206,9 @@ function LocationTab(props: Props) {
   );
 }
 
+/////////////////////////////////////////////////////////////////////////////
+// Status
+/////////////////////////////////////////////////////////////////////////////
 function StatusTab(props: Props) {
   const {state, dispatch} = props;
   const {game} = state;
@@ -235,6 +265,9 @@ function StatusTab(props: Props) {
   );
 }
 
+/////////////////////////////////////////////////////////////////////////////
+// Options
+/////////////////////////////////////////////////////////////////////////////
 function OptionsTab(props: Props) {
   const {state, dispatch} = props;
   const {game} = state;
