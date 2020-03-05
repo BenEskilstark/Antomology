@@ -10,6 +10,7 @@ const makePupa = (position: Vector, subType: AntSubType): Pupa => {
     ...makeEntity('PUPA', 1, 1, position),
     subType,
     visible: true,
+    alive: true,
   };
 };
 

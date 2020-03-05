@@ -1,6 +1,7 @@
 
 
  - - - - - - THURSDAY - - - - - - -
+ - add hotkey for laying an egg
  - remove DEAD_ANT entity
  - game over if queen dies
  - add HP to ants
@@ -22,6 +23,8 @@
 
 
  - - - - - - - BUGS - - - - - - -
+ - deleting a location that is also selected crashes everything
+ - status counters not registering for non-ants
  - ants switch task when passing through a location
  - off-by-one on big entity pick up might say one more than are holding
 

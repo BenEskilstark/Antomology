@@ -10,6 +10,7 @@ const makeEgg = (position: Vector, subType: AntSubType): Egg => {
     ...makeEntity('EGG', 1, 1, position),
     subType,
     visible: true,
+    alive: true,
   };
 };
 
