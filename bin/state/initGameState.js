@@ -156,6 +156,7 @@ var baseState = function baseState(worldWidth, worldHeight) {
     tickInterval: null,
     antMode: 'PICKUP',
     userMode: 'SELECT',
+    infoTab: 'None',
 
     nextLocationName: 'Give Locations Unique Names',
     prevPheromone: null,

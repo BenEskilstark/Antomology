@@ -144,6 +144,7 @@ const baseState = (worldWidth: number, worldHeight: number): GameState => {
     tickInterval: null,
     antMode: 'PICKUP',
     userMode: 'SELECT',
+    infoTab: 'None',
 
     nextLocationName: 'Give Locations Unique Names',
     prevPheromone: null,

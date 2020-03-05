@@ -118,6 +118,22 @@ const createFollowTrailInReverseTask = (): Task => {
   };
 };
 
+const createHighLevelIdleTask = (): Task => {
+  return {
+    name: 'Idle',
+    repeating: false,
+    behaviorQueue:  [
+      {
+        type: 'DO_HIGH_LEVEL_ACTION',
+        action: {
+          type: 'IDLE',
+          payload: {object: null},
+        }
+      }
+    ]
+  };
+};
+
 
 module.exports = {
   createRandomMoveInLocationTask,
@@ -125,4 +141,5 @@ module.exports = {
   createFollowTrailTask,
   createFollowTrailInReverseTask,
   createPickupEntityTask,
+  createHighLevelIdleTask,
 }

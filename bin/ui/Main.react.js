@@ -10,16 +10,18 @@ var Lobby = require('./Lobby.react');
 var LevelEditor = require('./LevelEditor.react');
 var Button = require('./components/Button.react');
 
+var widthDiff = 400;
+
 function Main(props) {
 
   var canvasDiv = document.getElementById('canvasWrapper');
   if (canvasDiv != null) {
     var rect = canvasDiv.getBoundingClientRect();
-    if (rect.height < rect.width) {
+    if (rect.height < rect.width + widthDiff) {
       config.canvasHeight = rect.height;
-      config.canvasWidth = rect.height;
+      config.canvasWidth = rect.height + widthDiff;
     } else {
-      config.canvasHeight = rect.width;
+      config.canvasHeight = rect.width - widthDiff;
       config.canvasWidth = rect.width;
     }
   }

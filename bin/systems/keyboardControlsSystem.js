@@ -9,6 +9,9 @@ var initKeyboardControlsSystem = function initKeyboardControlsSystem(store) {
   done = true;
   var dispatch = store.dispatch;
 
+  //////////////////////////////////////////////////////////////////////////////
+  // Register hotkeys
+  //////////////////////////////////////////////////////////////////////////////
 
   dispatch({
     type: 'SET_HOTKEY',
@@ -25,6 +28,104 @@ var initKeyboardControlsSystem = function initKeyboardControlsSystem(store) {
     }
   });
 
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'E',
+    fn: function fn(s) {
+      return s.dispatch({ type: 'SET_ANT_MODE', antMode: 'EAT' });
+    }
+  });
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'F',
+    fn: function fn(s) {
+      return s.dispatch({ type: 'SET_ANT_MODE', antMode: 'FEED' });
+    }
+  });
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'R',
+    fn: function fn(s) {
+      return s.dispatch({ type: 'SET_ANT_MODE', antMode: 'PICKUP' });
+    }
+  });
+
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'Z',
+    fn: function fn(s) {
+      return s.dispatch({ type: 'SET_USER_MODE', userMode: 'SELECT' });
+    }
+  });
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'C',
+    fn: function fn(s) {
+      return s.dispatch({ type: 'SET_USER_MODE', userMode: 'CREATE_LOCATION' });
+    }
+  });
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'X',
+    fn: function fn(s) {
+      return s.dispatch({ type: 'SET_USER_MODE', userMode: 'DELETE_LOCATION' });
+    }
+  });
+
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'U',
+    fn: function fn(s) {
+      return s.dispatch({ type: 'SET_INFO_TAB', infoTab: 'Colony Status' });
+    }
+  });
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'L',
+    fn: function fn(s) {
+      return s.dispatch({ type: 'SET_INFO_TAB', infoTab: 'Locations' });
+    }
+  });
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'H',
+    fn: function fn(s) {
+      return s.dispatch({ type: 'SET_INFO_TAB', infoTab: 'Pheromones' });
+    }
+  });
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'K',
+    fn: function fn(s) {
+      return s.dispatch({ type: 'SET_INFO_TAB', infoTab: 'Options' });
+    }
+  });
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'N',
+    fn: function fn(s) {
+      return s.dispatch({ type: 'SET_INFO_TAB', infoTab: 'None' });
+    }
+  });
+
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'Q',
+    fn: function fn(s) {
+      var game = s.getState().game;
+      if (game == null) return;
+      var queenID = game.ANT.map(function (id) {
+        return game.entities[id];
+      }).filter(function (a) {
+        return a.subType === 'QUEEN';
+      })[0].id;
+      s.dispatch({ type: 'SET_SELECTED_ENTITIES', entityIDs: [queenID] });
+    }
+  });
+
+  //////////////////////////////////////////////////////////////////////////////
+  // keypress event handling
+  //////////////////////////////////////////////////////////////////////////////
   document.onkeydown = function (ev) {
     var state = store.getState();
     if (state.game == null) return;
@@ -50,7 +151,7 @@ var initKeyboardControlsSystem = function initKeyboardControlsSystem(store) {
       dispatch({ type: 'SET_KEY_PRESS', key: 'space', pressed: true });
       return;
     }
-    var character = String.fromCharCode(ev.keyCode);
+    var character = String.fromCharCode(ev.keyCode).toUpperCase();
     if (character != null) {
       if (state.game.hotKeys.onKeyDown[character] != null) {
         state.game.hotKeys.onKeyDown[character](store);
@@ -118,7 +219,7 @@ var initKeyboardControlsSystem = function initKeyboardControlsSystem(store) {
       dispatch({ type: 'SET_KEY_PRESS', key: 'space', pressed: false });
       return;
     }
-    var character = String.fromCharCode(ev.keyCode);
+    var character = String.fromCharCode(ev.keyCode).toUpperCase();
     if (character != null) {
       if (state.game.hotKeys.onKeyUp[character] != null) {
         state.game.hotKeys.onKeyUp[character](store);

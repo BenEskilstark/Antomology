@@ -204,6 +204,13 @@ const gameReducer = (game: GameState, action: Action): GameState => {
         userMode,
       };
     }
+    case 'SET_INFO_TAB': {
+      const {infoTab} = action;
+      return {
+        ...game,
+        infoTab,
+      };
+    }
     case 'SET_ANT_MODE': {
       const {antMode} = action;
       return {

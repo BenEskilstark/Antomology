@@ -128,6 +128,7 @@ var rootReducer = function rootReducer(state, action) {
     case 'ASSIGN_TASK':
     case 'SET_USER_MODE':
     case 'SET_ANT_MODE':
+    case 'SET_INFO_TAB':
     case 'SET_MOUSE_DOWN':
     case 'SET_MOUSE_POS':
     case 'UPDATE_THETA':

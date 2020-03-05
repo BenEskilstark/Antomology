@@ -2,7 +2,8 @@
 
 const React = require('react');
 const Canvas = require('./Canvas.react');
-const GameSidebar = require('./GameSidebar.react');
+const InfoSidebar = require('./InfoSidebar.react');
+const SelectionSidebar = require('./SelectionSidebar.react');
 
 import type {Action, State} from '../types';
 
@@ -16,11 +17,17 @@ type Props = {
 function Game(props: Props): React.Node {
 
   return (
-    <div className="background" id="background">
+    <div
+      className="background" id="background"
+      style={{
+        position: 'relative',
+      }}
+    >
       <Canvas
         width={props.width} height={props.height}
       />
-      <GameSidebar state={props.state} dispatch={props.dispatch} />
+      <InfoSidebar state={props.state} dispatch={props.dispatch} />
+      <SelectionSidebar state={props.state} dispatch={props.dispatch} />
     </div>
   );
 }

@@ -18,6 +18,12 @@ type Props = {
   dispatch: (action: Action) => Action,
 }
 
+const cardStyle = {
+  backgroundColor: 'white',
+  padding: '3px',
+  marginTop: 1,
+}
+
 function StatusCard(props: Props): React.Node {
   const {state, dispatch, entity} = props;
   let card = null;
@@ -35,7 +41,7 @@ function StatusCard(props: Props): React.Node {
       card = <PupaCard {...props} />;
       break;
     case 'OBELISK':
-      card = <TaskEditor {...props} />;
+      // card = <TaskEditor {...props} />;
       break;
     case 'LOCATION':
       card = <LocationCard {...props} />;
@@ -83,9 +89,7 @@ function AntCard(props: Props): React.Node {
 
   return (
     <div
-      style={{
-        border: '1px solid black',
-      }}
+      style={cardStyle}
     >
       <div><b>{deadStr}{ant.subType} {ant.type}</b></div>
       <div>Calories: {ant.calories}{hungryStr}{oldAgeStr}</div>
@@ -122,9 +126,7 @@ function EggCard(props: Props): React.Node {
 
   return (
     <div
-      style={{
-        border: '1px solid black',
-      }}
+      style={cardStyle}
     >
       <div><b>{egg.type}</b></div>
       <div>Time to hatch: {config.eggHatchAge - egg.age}</div>
@@ -147,9 +149,7 @@ function LarvaCard(props: Props): React.Node {
 
   return (
     <div
-      style={{
-        border: '1px solid black',
-      }}
+      style={cardStyle}
     >
       <div><b>{deadStr}{larva.type}</b></div>
       <div>Calories: {larva.calories}{hungryStr}</div>
@@ -167,9 +167,7 @@ function PupaCard(props: Props): React.Node {
 
   return (
     <div
-      style={{
-        border: '1px solid black',
-      }}
+      style={cardStyle}
     >
       <div><b>{pupa.type}</b></div>
       <div>Time to hatch: {config.pupaHatchAge - pupa.age}</div>
@@ -217,12 +215,10 @@ function LocationCard(props: Props): React.Node {
 
   return (
     <div
-      style={{
-        border: '1px solid black',
-      }}
+      style={cardStyle}
     >
       <div>
-        <b>LOCATION:</b><input type='text' value={loc.name}
+        Name: <input type='text' value={loc.name}
           onChange={(ev) => {
             dispatch({
               type: 'UPDATE_LOCATION_NAME',
@@ -232,7 +228,7 @@ function LocationCard(props: Props): React.Node {
           }} />
       </div>
       <div>
-        TASK:
+        Task:
         <TaskCard
           state={state}
           dispatch={dispatch}
@@ -286,6 +282,7 @@ function TaskEditor(props: Props): React.Node {
       className="taskEditor"
       style={{
         border: '1px solid black',
+        backgroundColor: 'white',
       }}
     >
       <div><b>THE OBELISK</b></div>

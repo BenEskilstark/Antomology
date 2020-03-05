@@ -5,8 +5,8 @@ const {makeEntity} = require('./entity');
 const {
   createRandomMoveInLocationTask,
   createFindPheromoneTask,
+  createHighLevelIdleTask,
 } = require('../state/graphTasks');
-const {createIdleTask} = require('../state/tasks');
 
 const makeLocation = (
   name: string,
@@ -28,8 +28,8 @@ const makeLocation = (
     visible: true,
   };
   // loc.task = createFindPheromoneTask();
-  loc.task = createIdleTask();
   // TODO update name on location name update
+  loc.task = {...createHighLevelIdleTask(), name: loc.name};;
   // loc.task = {...createRandomMoveInLocationTask(loc.id), name: loc.name};
   return loc;
 };

@@ -22,6 +22,12 @@ var useState = React.useState,
     useEffect = React.useEffect;
 
 
+var cardStyle = {
+  backgroundColor: 'white',
+  padding: '3px',
+  marginTop: 1
+};
+
 function StatusCard(props) {
   var state = props.state,
       dispatch = props.dispatch,
@@ -88,9 +94,7 @@ function AntCard(props) {
   return React.createElement(
     'div',
     {
-      style: {
-        border: '1px solid black'
-      }
+      style: cardStyle
     },
     React.createElement(
       'div',
@@ -160,9 +164,7 @@ function EggCard(props) {
   return React.createElement(
     'div',
     {
-      style: {
-        border: '1px solid black'
-      }
+      style: cardStyle
     },
     React.createElement(
       'div',
@@ -208,9 +210,7 @@ function LarvaCard(props) {
   return React.createElement(
     'div',
     {
-      style: {
-        border: '1px solid black'
-      }
+      style: cardStyle
     },
     React.createElement(
       'div',
@@ -261,9 +261,7 @@ function PupaCard(props) {
   return React.createElement(
     'div',
     {
-      style: {
-        border: '1px solid black'
-      }
+      style: cardStyle
     },
     React.createElement(
       'div',
@@ -337,18 +335,12 @@ function LocationCard(props) {
   return React.createElement(
     'div',
     {
-      style: {
-        border: '1px solid black'
-      }
+      style: cardStyle
     },
     React.createElement(
       'div',
       null,
-      React.createElement(
-        'b',
-        null,
-        'LOCATION:'
-      ),
+      'Name: ',
       React.createElement('input', { type: 'text', value: loc.name,
         onChange: function onChange(ev) {
           dispatch({
@@ -361,7 +353,7 @@ function LocationCard(props) {
     React.createElement(
       'div',
       null,
-      'TASK:',
+      'Task:',
       React.createElement(TaskCard, {
         state: state,
         dispatch: dispatch,
@@ -439,7 +431,8 @@ function TaskEditor(props) {
     {
       className: 'taskEditor',
       style: {
-        border: '1px solid black'
+        border: '1px solid black',
+        backgroundColor: 'white'
       }
     },
     React.createElement(

@@ -71,6 +71,8 @@ export type HotKeys = {
   onKeyPress: {[key: string]: (store) => void},
   keysDown: {[key: string]: boolean},
 };
+export type InfoTab =
+  'Pheromones' | 'Locations' | 'Colony Status' | 'Options' | 'None';
 
 export type GameState = {
   time: number,
@@ -79,6 +81,7 @@ export type GameState = {
   // mouse interactions
   antMode: AntMode, // what ants do at clicked entities
   userMode: UserMode,
+  infoTab: InfoTab,
   mouse: Mouse,
   hotKeys: HotKeys,
 
@@ -337,6 +340,7 @@ export type Action =
   {type: 'UPDATE_LOCATION_TASK', task: Task, id: EntityID} |
   {type: 'ASSIGN_TASK', task: Task, ants: Array<EntityID>} |
   {type: 'SET_USER_MODE', userMode: UserMode} |
+  {type: 'SET_INFO_TAB', infoTab: InfoTab} |
   {type: 'SET_ANT_MODE', antMode: AntMode} |
   {type: 'SET_MOUSE_DOWN', isLeft: boolean, isDown: boolean, downPos: Vector} |
   {type: 'UPDATE_THETA', id: EntityID, theta: Radian} |

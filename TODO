@@ -1,22 +1,24 @@
 
- - - - - - - TUESDAY - - - - - - -
+
+ - - - - - - THURSDAY - - - - - - -
+ - remove DEAD_ANT entity
+ - game over if queen dies
+ - add HP to ants
+ - "Ticker" system for hovering text temporarily
+ - renaming locations
+    - make sure ant locations are up to date
+    - make sure location's task's name is updated
  - support categories of pheromone you can select and have different colors
- - add UI/support for conditionals on pheromone categories
+    - category strengths on game state
+    - card for each category
+    - render system for each category
+    - checking for each hotkey type in antMakePheromone function
+    - conditions on pheromone trails
  - to think about
+    - what should obelisk status card say
     - FoW performance -- try to avoid background sky tiles
-    - What the UI will look like
     - how to add other bug entities
     - Level 2
- - decide for Wednesday
-
-
- - - - - - - WEDNESDAY - - - - - - -
- - styling
-    - button css
-    - Sidebar cards placed over top of the game window
-    - cleaner UI around all behaviors
-    - better display names for all dropdowns
-    - canvas that fills the window
 
 
  - - - - - - - BUGS - - - - - - -
@@ -39,9 +41,13 @@
 
 
  - - - - - - UI / UX - - - - - -
+ - styling
+    - button css
+    - cleaner UI around all behaviors
  - cursor
     - change cursor based on userMode
     - blip the clicked grid square when sending ants somewhere
+    - hovercard with info about what mouse is over
  - zooming:
     - configure min and max zoom
     - screen size in grid cells should be on the state, not the config
@@ -54,6 +60,7 @@
 
  - - - - - - LEVELS - - - - - -
  - fix up level 1
+    - fix for level size of 75 * 50
     - more food under ground, less above
     - remove unneeded tasks from state
  - new harder level 2
@@ -87,6 +94,7 @@
  - better pathing for ants that involves random walk when they get stuck
  - audio system
  - saving with local storage
+ - make canvas truly full screen and fully responsive
  - hotkeys:
     - get meta key set up
     - let cmd/ctrl + left click == right click

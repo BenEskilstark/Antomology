@@ -399,6 +399,10 @@ const doHighLevelAction = (
   let done = false;
 
   switch (actionType) {
+    case 'IDLE': {
+      doAction(game, ant, {type: 'IDLE', payload: {object: null}});
+      break;
+    }
     // high level move is a random move inside a location
     case 'MOVE': {
       doAction(

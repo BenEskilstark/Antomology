@@ -14,16 +14,18 @@ type Props = {
   dispatch: (action: Action) => Action
 };
 
+const widthDiff = 400;
+
 function Main(props: Props): React.Node {
 
   const canvasDiv = document.getElementById('canvasWrapper');
   if (canvasDiv != null) {
     const rect = canvasDiv.getBoundingClientRect();
-    if (rect.height < rect.width) {
+    if (rect.height < rect.width + widthDiff) {
       config.canvasHeight = rect.height;
-      config.canvasWidth = rect.height;
+      config.canvasWidth = rect.height + widthDiff;
     } else {
-      config.canvasHeight = rect.width;
+      config.canvasHeight = rect.width - widthDiff;
       config.canvasWidth = rect.width;
     }
   }

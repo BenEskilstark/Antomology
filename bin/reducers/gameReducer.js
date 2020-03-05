@@ -326,6 +326,14 @@ var gameReducer = function gameReducer(game, action) {
           userMode: userMode
         });
       }
+    case 'SET_INFO_TAB':
+      {
+        var infoTab = action.infoTab;
+
+        return _extends({}, game, {
+          infoTab: infoTab
+        });
+      }
     case 'SET_ANT_MODE':
       {
         var antMode = action.antMode;

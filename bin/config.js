@@ -5,10 +5,10 @@ var config = {
 
   // screen sizes in grid cells and in pixels:
   // grid size
-  width: 50,
-  height: 50,
+  width: 60,
+  height: 40,
   // canvas size
-  canvasWidth: 800,
+  canvasWidth: 1200,
   canvasHeight: 800,
 
   // hardcoded location ids:

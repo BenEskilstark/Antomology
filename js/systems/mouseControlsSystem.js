@@ -28,6 +28,7 @@ const initMouseControlsSystem = (store) => {
 
   let canvas = null;
   document.onmouseup = (ev) => {
+    if (ev.target.id != 'canvas') return;
     const state = store.getState();
     if (state.game == null) return;
     const gridPos = getClickedPos(state.game, ev);
@@ -46,6 +47,7 @@ const initMouseControlsSystem = (store) => {
   }
 
   document.onmousedown = (ev) => {
+    if (ev.target.id != 'canvas') return;
     const state = store.getState();
     if (state.game == null) return;
     const gridPos = getClickedPos(state.game, ev);
@@ -330,6 +332,12 @@ const selectEntities = (
       if (!clickedIDs.includes(ph)) {
         clickedIDs.push(ph);
       }
+    }
+    const didSelectLocation = clickedEntities
+      .filter(e => e.type === 'LOCATION')
+      .length > 0;
+    if (didSelectLocation) {
+      dispatch({type: 'SET_INFO_TAB', infoTab: 'Locations'});
     }
     dispatch({
       type: 'SET_SELECTED_ENTITIES',
