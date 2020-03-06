@@ -19,12 +19,16 @@
     - foreground dirt, background dirt, grass, food, stone, stuck_stone
     - obelisk, target
  - blip the clicked grid square when sending ants somewhere
+ - have selected ants freeze in place on idle
 
  - - - - - - - BUGS - - - - - - -
  - ants switch task when passing through a location
+    - have selected ants NOT take on tasks of locations until you deselect
  - off-by-one on big entity pick up might say one more than are holding
- - fog on target entity overlaps with fog on background dirt
  - number input disallows 0.0X
+ - quit to menu + go into level loses supression of right click context menu
+ - restarting the game looks like it's making multiple tickIntervals
+ - deleting location isn't correctly re-assigning task to ants in that location
 
 
  - - - - - - - - MENUS - - - - - - - - -
