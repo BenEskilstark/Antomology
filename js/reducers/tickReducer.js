@@ -149,10 +149,13 @@ const handleTick = (game: GameState): GameState => {
     ) {
       if (collides(getInnerLocation(locs[0]), ant)) {
         ant.location = locs[0];
-        antSwitchTask(game, ant, locs[0].task, [
-          {name: 'Follow Trail', index: 0},
-          {name: 'Find Pheromone Trail', index: 0},
-        ]);
+        // don't assign the task yet if the ant is selected
+        if (!game.selectedEntities.includes(ant.id)) {
+          antSwitchTask(game, ant, locs[0].task, [
+            {name: 'Follow Trail', index: 0},
+            {name: 'Find Pheromone Trail', index: 0},
+          ]);
+        }
       }
     } else if (locs.length == 0 && ant.location != null) {
       ant.location = null;

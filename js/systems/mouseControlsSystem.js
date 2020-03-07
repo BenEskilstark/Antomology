@@ -27,11 +27,12 @@ const initMouseControlsSystem = (store) => {
   const {dispatch} = store;
 
   let canvas = null;
+
   document.onmouseup = (ev) => {
     if (ev.target.id != 'canvas') return;
     const state = store.getState();
     if (state.game == null) return;
-    const gridPos = getClickedPos(state.game, ev);
+    const gridPos = getClickedPos(state.game, ev, canvas);
 
     if (ev.button == 0) { // left click
       dispatch({type: 'SET_MOUSE_DOWN', isLeft: true, isDown: false});
@@ -50,7 +51,7 @@ const initMouseControlsSystem = (store) => {
     if (ev.target.id != 'canvas') return;
     const state = store.getState();
     if (state.game == null) return;
-    const gridPos = getClickedPos(state.game, ev);
+    const gridPos = getClickedPos(state.game, ev, canvas);
     if (gridPos == null) return;
     const {game} = state;
 
@@ -100,10 +101,17 @@ const initMouseControlsSystem = (store) => {
   }
 
   document.onmousemove = (ev) => {
+    if (canvas == null) {
+      canvas = document.getElementById('canvas');
+      if (canvas != null) {
+        // don't open the normal right-click menu
+        canvas.addEventListener('contextmenu', (ev) => ev.preventDefault());
+      }
+    }
     const state = store.getState();
     if (state.game == null) return;
-    const gridPos = getClickedPos(state.game, ev);
-    const canvasPos = getMousePixel(ev);
+    const gridPos = getClickedPos(state.game, ev, canvas);
+    const canvasPos = getMousePixel(ev, canvas);
     if (gridPos == null) return;
     handleMouseMove(state, dispatch, gridPos, canvasPos);
   }
@@ -111,7 +119,7 @@ const initMouseControlsSystem = (store) => {
   document.onwheel = (ev) => {
     const state = store.getState();
     if (state.game == null) return;
-    const gridPos = getClickedPos(state.game, ev);
+    const gridPos = getClickedPos(state.game, ev, canvas);
     if (gridPos == null) return;
     store.dispatch({type: 'ZOOM', out: ev.wheelDelta < 0 ? 1 : -1});
   }
@@ -450,20 +458,14 @@ const handleRightClick = (
 ////////////////////////////////////////////////////////////////////////////
 // click -> position helpers
 ////////////////////////////////////////////////////////////////////////////
-let canvas = null;
-const getClickedPos = (game, ev, noFloor): ?Vector => {
-  const pixel = getMousePixel(ev);
+const getClickedPos = (game, ev, canvas): ?Vector => {
+  const pixel = getMousePixel(ev, canvas);
   if (pixel == null) return null;
-  return canvasToGrid(game, pixel, noFloor);
+  return canvasToGrid(game, pixel, false /* noFloor */);
 };
-const getMousePixel = (ev): ?Vector => {
+const getMousePixel = (ev, canvas): ?Vector => {
   if (!canvas) {
-    canvas = document.getElementById('canvas');
-    // don't open the normal right-click menu
-    canvas.addEventListener('contextmenu', (ev) => ev.preventDefault());
-    if (!canvas) {
-      return null;
-    }
+    return null;
   }
   const rect = canvas.getBoundingClientRect();
 

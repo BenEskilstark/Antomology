@@ -352,6 +352,7 @@ function OptionsTab(props) {
       React.createElement(Button, {
         label: 'Quit to Menu',
         onClick: function onClick() {
+          dispatch({ type: 'STOP_TICK' });
           dispatch({ type: 'RETURN_TO_MENU' });
         }
       })

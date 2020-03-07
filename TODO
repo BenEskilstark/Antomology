@@ -1,6 +1,7 @@
 
 
- - - - - - - THURSDAY - - - - - - -
+ - - - - - - SATURDAY - - - - - - -
+ - blip the clicked grid square when sending ants somewhere
  - "Ticker" system for hovering text temporarily
  - pheromone categories
     - conditions on pheromone UI
@@ -13,26 +14,10 @@
     - Level 2
 
 
- - - - - - - FRIDAY - - - - - - -
- - hovercard with info about what mouse is over
-    - system that tracks mouse location and dispatches action to set hovercard
-    - foreground dirt, background dirt, grass, food, stone, stuck_stone
-    - obelisk, target
- - blip the clicked grid square when sending ants somewhere
- - have selected ants freeze in place on idle
-
  - - - - - - - BUGS - - - - - - -
- - ants switch task when passing through a location
-    - have selected ants NOT take on tasks of locations until you deselect
  - off-by-one on big entity pick up might say one more than are holding
  - number input disallows 0.0X
- - quit to menu + go into level loses supression of right click context menu
- - restarting the game looks like it's making multiple tickIntervals
- - deleting location isn't correctly re-assigning task to ants in that location
-
-
- - - - - - - - - MENUS - - - - - - - - -
- - add instructions to options menu
+ - number input has submit on enter turned off
 
 
  - - - - - - PHEROMONE TRAILS - - - - - -
@@ -47,6 +32,11 @@
 
 
  - - - - - - UI / UX - - - - - -
+ - add instructions to options menu
+ - hovercard with info about what mouse is over
+    - system that tracks mouse location and dispatches action to set hovercard
+    - foreground dirt, background dirt, grass, food, stone, stuck_stone
+    - obelisk, target
  - styling
     - button css
     - cleaner UI around all behaviors
@@ -82,7 +72,10 @@
     - how to compute ants falling off
  - putting down:
     - ants should get out of the way and let it fall
- - how to carry something up
+ - how toA carry something up
+
+
+ - - - - - - - - MENUS - - - - - - - - -
 
 
  - - - - - ALPHA STRETCH GOALS - - - - - -

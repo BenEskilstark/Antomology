@@ -301,6 +301,7 @@ function OptionsTab(props: Props) {
         <Button
           label="Quit to Menu"
           onClick={() => {
+            dispatch({type: 'STOP_TICK'});
             dispatch({type: 'RETURN_TO_MENU'});
           }}
         />

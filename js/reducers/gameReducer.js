@@ -4,10 +4,12 @@ const {config} = require('../config');
 const {
   addEntity,
   removeEntity,
+  antSwitchTask,
 } = require('../utils/stateHelpers');
 const {clamp} = require('../utils/helpers');
 const {createEdge} = require('../entities/edge');
 const {insideWorld} = require('../selectors/selectors');
+const {createIdleTask} = require('../state/tasks');
 
 import type {State, GameState, Action} from '../types';
 
@@ -55,21 +57,45 @@ const gameReducer = (game: GameState, action: Action): GameState => {
     case 'DESTROY_ENTITY': {
       const {id} = action;
       game.selectedEntities = game.selectedEntities.filter(i => i != id);
+      const entity = game.entities[id];
       if (game.LOCATION.includes(id)) {
         for (const antID of game.ANT) {
           const ant = game.entities[antID];
           if (ant.location != null && ant.location.id === id) {
             ant.location = null;
           }
+          if (ant.task != null && ant.task.name == entity.task.name) {
+            antSwitchTask(game, ant, createIdleTask());
+          }
         }
       }
-      removeEntity(game, game.entities[id]);
+      removeEntity(game, entity);
       return game;
     }
     case 'SET_SELECTED_ENTITIES': {
+      const {entityIDs} = action;
+      const prevSelected = [...game.selectedEntities];
+
+      // deselected ants inside a location should take up that task
+      for (const id of prevSelected) {
+        if (!entityIDs.includes(id)) {
+          const ant = game.entities[id];
+          if (ant.type != 'ANT') continue;
+          if (
+            ant.location != null &&
+            (ant.task == null || ant.task.name != ant.location.task.name)
+          ) {
+            antSwitchTask(game, ant, ant.location.task, [
+              {name: 'Follow Trail', index: 0},
+              {name: 'Find Pheromone Trail', index: 0},
+            ]);
+          }
+        }
+      }
+
       return {
         ...game,
-        selectedEntities: action.entityIDs,
+        selectedEntities: entityIDs,
       };
     }
     case 'TOGGLE_FOG': {

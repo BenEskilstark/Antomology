@@ -49,11 +49,12 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
 
 
   var canvas = null;
+
   document.onmouseup = function (ev) {
     if (ev.target.id != 'canvas') return;
     var state = store.getState();
     if (state.game == null) return;
-    var gridPos = getClickedPos(state.game, ev);
+    var gridPos = getClickedPos(state.game, ev, canvas);
 
     if (ev.button == 0) {
       // left click
@@ -74,7 +75,7 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
     if (ev.target.id != 'canvas') return;
     var state = store.getState();
     if (state.game == null) return;
-    var gridPos = getClickedPos(state.game, ev);
+    var gridPos = getClickedPos(state.game, ev, canvas);
     if (gridPos == null) return;
     var game = state.game;
 
@@ -126,10 +127,19 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
   };
 
   document.onmousemove = function (ev) {
+    if (canvas == null) {
+      canvas = document.getElementById('canvas');
+      if (canvas != null) {
+        // don't open the normal right-click menu
+        canvas.addEventListener('contextmenu', function (ev) {
+          return ev.preventDefault();
+        });
+      }
+    }
     var state = store.getState();
     if (state.game == null) return;
-    var gridPos = getClickedPos(state.game, ev);
-    var canvasPos = getMousePixel(ev);
+    var gridPos = getClickedPos(state.game, ev, canvas);
+    var canvasPos = getMousePixel(ev, canvas);
     if (gridPos == null) return;
     handleMouseMove(state, dispatch, gridPos, canvasPos);
   };
@@ -137,7 +147,7 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
   document.onwheel = function (ev) {
     var state = store.getState();
     if (state.game == null) return;
-    var gridPos = getClickedPos(state.game, ev);
+    var gridPos = getClickedPos(state.game, ev, canvas);
     if (gridPos == null) return;
     store.dispatch({ type: 'ZOOM', out: ev.wheelDelta < 0 ? 1 : -1 });
   };
@@ -484,22 +494,14 @@ var handleRightClick = function handleRightClick(state, dispatch, gridPos) {
 ////////////////////////////////////////////////////////////////////////////
 // click -> position helpers
 ////////////////////////////////////////////////////////////////////////////
-var canvas = null;
-var getClickedPos = function getClickedPos(game, ev, noFloor) {
-  var pixel = getMousePixel(ev);
+var getClickedPos = function getClickedPos(game, ev, canvas) {
+  var pixel = getMousePixel(ev, canvas);
   if (pixel == null) return null;
-  return canvasToGrid(game, pixel, noFloor);
+  return canvasToGrid(game, pixel, false /* noFloor */);
 };
-var getMousePixel = function getMousePixel(ev) {
+var getMousePixel = function getMousePixel(ev, canvas) {
   if (!canvas) {
-    canvas = document.getElementById('canvas');
-    // don't open the normal right-click menu
-    canvas.addEventListener('contextmenu', function (ev) {
-      return ev.preventDefault();
-    });
-    if (!canvas) {
-      return null;
-    }
+    return null;
   }
   var rect = canvas.getBoundingClientRect();
 
