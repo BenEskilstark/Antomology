@@ -3,12 +3,6 @@
 var _require = require('../config'),
     config = _require.config;
 
-var _require2 = require('../state/tasks'),
-    createLayEggTask = _require2.createLayEggTask;
-
-var _require3 = require('../selectors/selectors'),
-    getQueen = _require3.getQueen;
-
 var initKeyboardControlsSystem = function initKeyboardControlsSystem(store) {
   var dispatch = store.dispatch;
 

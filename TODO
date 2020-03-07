@@ -1,17 +1,28 @@
 
 
  - - - - - - SATURDAY - - - - - - -
- - blip the clicked grid square when sending ants somewhere
- - "Ticker" system for hovering text temporarily
  - pheromone categories
     - conditions on pheromone UI
     - check condition before following trail
     - only follow trail with same category of trail you've been following
     - don't delete pheromones of different strength
+ - "Ticker" system for hovering text temporarily
  - to think about
-    - FoW performance -- try to avoid background sky tiles
     - how to add other bug entities
     - Level 2
+
+
+ - - - - - - LEVEL EDITOR - - - - - -
+ - exporting levels
+    - save editor actions in a queue that can be replayed to load the level
+    - need native action for marquee entity creation
+    - can add undo/redo very easily with this
+ - still can pan
+ - palette for drawing out each entity type on mouse move
+    - allow specifying dimensions of obelisk
+    - mousedown creates entity, mouse move drags it, mouseup drops it in place
+ - ability to set world size
+    - move viewport and fix zoom on making world smaller
 
 
  - - - - - - - BUGS - - - - - - -
@@ -21,7 +32,11 @@
 
 
  - - - - - - PHEROMONE TRAILS - - - - - -
- - bring back reinforcing pheromone trails
+
+
+ - - - - - - - FOG OF WAR - - - - - - -
+ - track ant vision radii in the grid as entities (no overlaps!)
+ - only redraw the screen inside ant vision radii
 
 
  - - - - - - WORLD - - - - - -
@@ -32,6 +47,7 @@
 
 
  - - - - - - UI / UX - - - - - -
+ - blip the clicked grid square when sending ants somewhere
  - add instructions to options menu
  - hovercard with info about what mouse is over
     - system that tracks mouse location and dispatches action to set hovercard
@@ -98,6 +114,9 @@
     - let cmd/ctrl + left click == right click
     - set up button and number field to register their onkeydowns
  - have dead selected ants say how they died
+ - add pheromone trails in level editor
+ - assign tasks to locations in level editor
+ - bring back reinforcing pheromone trails
 
 
  - - - - - - RENDERING - - - - - -
@@ -108,8 +127,6 @@
 
  - - - - - - PERFORMANCE - - - - - -
  - another round of profiling
- - FoW computation is very bad for performance
-    - can use a 'vision' entity
  - track down memory leaks
 
 
@@ -119,19 +136,6 @@
    - fix selection weirdness
    - firefox uses ev.code == 'Enter' instead of keyCode
  - make UI elements screen-size responsive
-
-
- - - - - - - LEVEL EDITOR - - - - - -
- - still can add pheromone trails
- - still can pan
- - palette for drawing out each entity type on mouse move
-    - allow specifying dimensions of obelisk
-    - mousedown creates entity, mouse move drags it, mouseup drops it in place
- - ability to set world size
-    - move viewport and fix zoom on making world smaller
- - action for making many entities at once faster
- - exporting levels
-    - make level exports compressed somehow
 
 
  - - - - - REFACTOR - - - - -

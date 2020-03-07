@@ -18,6 +18,8 @@ var config = {
   // fog-of-war
   entitiesInFog: ['DIRT', 'FOOD', 'DEAD_ANT', 'BACKGROUND', 'STONE', 'STUCK_STONE', 'GRASS', 'TARGET'],
   antVisionRadius: 7,
+  immobileEntities: [// simpler to compute visibility if we know they never move
+  'BACKGROUND', 'GRASS', 'STUCK_STONE', 'TARGET'],
 
   // gravity
   supportingBackgroundTypes: ['DIRT'],

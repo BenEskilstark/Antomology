@@ -362,7 +362,10 @@ const handleTick = (game: GameState): GameState => {
           previouslyVisible.push(entity);
           entity.visible = false;
         }
-        if (entity.lastSeenPos != null) {
+        if (
+          entity.lastSeenPos != null &&
+          !config.immobileEntities.includes(entity.type)
+        ) {
           for (const id of game.ANT) {
             const ant = game.entities[id];
             if (

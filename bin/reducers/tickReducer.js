@@ -575,7 +575,7 @@ var updateFoWVision = function updateFoWVision(game) {
             previouslyVisible.push(entity);
             entity.visible = false;
           }
-          if (entity.lastSeenPos != null) {
+          if (entity.lastSeenPos != null && !config.immobileEntities.includes(entity.type)) {
             var _iteratorNormalCompletion14 = true;
             var _didIteratorError14 = false;
             var _iteratorError14 = undefined;

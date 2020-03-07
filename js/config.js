@@ -21,6 +21,9 @@ const config = {
     'GRASS', 'TARGET',
   ],
   antVisionRadius: 7,
+  immobileEntities: [ // simpler to compute visibility if we know they never move
+    'BACKGROUND', 'GRASS', 'STUCK_STONE', 'TARGET',
+  ],
 
   // gravity
   supportingBackgroundTypes: ['DIRT'],
