@@ -243,6 +243,16 @@ const gameReducer = (game: GameState, action: Action): GameState => {
         antMode,
       };
     }
+    case 'SET_TICKER': {
+      const {text, maxAge} = action;
+      return {
+        ...game,
+        ticker: {
+          text, maxAge,
+          curAge: 0,
+        },
+      };
+    }
     case 'UPDATE_THETA': {
       const {id, theta} = action;
       if (game.entities[id] != null) {

@@ -1,12 +1,12 @@
 
 
- - - - - - - SATURDAY - - - - - - -
+ - - - - - - - MONDAY - - - - - - -
+ - "Ticker" system for hovering text temporarily
  - pheromone categories
     - conditions on pheromone UI
     - check condition before following trail
     - only follow trail with same category of trail you've been following
     - don't delete pheromones of different strength
- - "Ticker" system for hovering text temporarily
  - to think about
     - how to add other bug entities
     - Level 2
@@ -36,7 +36,6 @@
 
  - - - - - - - FOG OF WAR - - - - - - -
  - track ant vision radii in the grid as entities (no overlaps!)
- - only redraw the screen inside ant vision radii
 
 
  - - - - - - WORLD - - - - - -
@@ -127,6 +126,9 @@
 
  - - - - - - PERFORMANCE - - - - - -
  - another round of profiling
+    - 250 x 250 w/ 1000 ants seems to be about the limit
+    - 200 x 200 is last smooth size
+    - world size affects game far more than ants
  - track down memory leaks
 
 

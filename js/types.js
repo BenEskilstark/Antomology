@@ -85,12 +85,17 @@ export type GameState = {
   time: number,
   tickInterval: any, // when running, this is set
 
-  // mouse interactions
+  // UI/UX interactions
   antMode: AntMode, // what ants do at clicked entities
   userMode: UserMode,
   infoTab: InfoTab,
   mouse: Mouse,
   hotKeys: HotKeys,
+  ticker: {
+    text: string,
+    curAge: number,
+    maxAge: number,
+  },
 
   // UI-based partial state
   nextLocationName: string,
@@ -372,5 +377,6 @@ export type Action =
     fn: (store) => void
   } |
   {type: 'SET_PHEROMONE_STRENGTH', category: number, strength: number} |
+  {type: 'SET_TICKER', text: string, maxAge: number} |
   {type: 'SET_EDITOR_BACKGROUND_TYPE', backgroundType: 'SKY' | 'DIRT'};
 

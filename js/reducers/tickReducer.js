@@ -195,6 +195,7 @@ const handleTick = (game: GameState): GameState => {
   updatePheromones(game);
   computeGravity(game);
   updateFoWVision(game);
+  updateTicker(game);
   computeLevelOver(game);
 
   // const time = performance.now() - startTime;
@@ -245,7 +246,6 @@ const handleTick = (game: GameState): GameState => {
 ///////////////////////////////////////////////////////////////////////////////
 // Game over
 ///////////////////////////////////////////////////////////////////////////////
-
   const computeLevelOver = (game): void => {
     const obelisk = game.entities[game.OBELISK[0]];
     // TODO only supports one target
@@ -261,6 +261,18 @@ const handleTick = (game: GameState): GameState => {
       game.gameOver = 'lose';
     }
   };
+
+///////////////////////////////////////////////////////////////////////////////
+// Ticker
+///////////////////////////////////////////////////////////////////////////////
+const computeTicker = (game): void => {
+  const {ticker} = game;
+  if (ticker.curAge >= ticker.maxAge) {
+    ticker.text = '';
+  } else {
+    ticker.curAge += 1;
+  }
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 // Ant Life Cycles

@@ -74,7 +74,7 @@ var initGameState = function initGameState(level) {
 ////////////////////////////////////////////////////////////////////////////
 
 var level0 = function level0() {
-  var game = baseState(100, 100);
+  var game = baseState(200, 200);
   var colonyEntrance = makeLocation('Colony Entrance', 5, 5, { x: 25, y: 30 });
   // ...makeLocation('Colony Entrance', 5, 5, {x: 25, y: 29}), id: config.colonyEntrance,
   // };
@@ -111,14 +111,14 @@ var level0 = function level0() {
   }
 
   // seed ants
-  // for (let i = 0; i < 1000; i++) {
-  //   const position = {
-  //     x: randomIn(0, game.worldWidth - 1),
-  //     y: randomIn(Math.ceil(game.worldHeight * 0.6), game.worldHeight - 1),
-  //   };
-  //   const ant = makeAnt(position, 'WORKER');
-  //   addEntity(game, ant);
-  // }
+  for (var i = 0; i < 1000; i++) {
+    var position = {
+      x: randomIn(0, game.worldWidth - 1),
+      y: randomIn(Math.ceil(game.worldHeight * 0.6), game.worldHeight - 1)
+    };
+    var ant = makeAnt(position, 'WORKER');
+    addEntity(game, ant);
+  }
   addEntity(game, makeAnt({ x: 25, y: 30 }, 'QUEEN'));
   addEntity(game, makeAnt({ x: 18, y: 30 }, 'WORKER'));
   addEntity(game, makeAnt({ x: 30, y: 30 }, 'WORKER'));
@@ -134,12 +134,12 @@ var level0 = function level0() {
   addEntity(game, makeStone({ x: 35, y: 35 }));
 
   // seed food
-  for (var i = 0; i < 15; i++) {
-    var position = {
+  for (var _i = 0; _i < 15; _i++) {
+    var _position = {
       x: randomIn(0, game.worldWidth - 1),
       y: randomIn(Math.ceil(game.worldHeight * 0.6) + 1, game.worldHeight - 1)
     };
-    var food = makeFood(position, 1000, 'Crumb');
+    var food = makeFood(_position, 1000, 'Crumb');
     addEntity(game, food);
   }
 

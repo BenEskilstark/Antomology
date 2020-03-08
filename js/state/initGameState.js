@@ -62,7 +62,7 @@ const initGameState = (level: number): GameState => {
 ////////////////////////////////////////////////////////////////////////////
 
 const level0 = (): GameState => {
-  const game = baseState(100, 100);
+  const game = baseState(200, 200);
   const colonyEntrance = makeLocation('Colony Entrance', 5, 5, {x: 25, y: 30});
     // ...makeLocation('Colony Entrance', 5, 5, {x: 25, y: 29}), id: config.colonyEntrance,
   // };
@@ -99,14 +99,14 @@ const level0 = (): GameState => {
   }
 
   // seed ants
-  // for (let i = 0; i < 1000; i++) {
-  //   const position = {
-  //     x: randomIn(0, game.worldWidth - 1),
-  //     y: randomIn(Math.ceil(game.worldHeight * 0.6), game.worldHeight - 1),
-  //   };
-  //   const ant = makeAnt(position, 'WORKER');
-  //   addEntity(game, ant);
-  // }
+  for (let i = 0; i < 1000; i++) {
+    const position = {
+      x: randomIn(0, game.worldWidth - 1),
+      y: randomIn(Math.ceil(game.worldHeight * 0.6), game.worldHeight - 1),
+    };
+    const ant = makeAnt(position, 'WORKER');
+    addEntity(game, ant);
+  }
   addEntity(game, makeAnt({x: 25, y: 30}, 'QUEEN'));
   addEntity(game, makeAnt({x: 18, y: 30}, 'WORKER'));
   addEntity(game, makeAnt({x: 30, y: 30}, 'WORKER'));
@@ -181,6 +181,11 @@ const baseState = (worldWidth: number, worldHeight: number): GameState => {
       onKeyUp: {},
       keysDown: {},
     },
+    ticker: {
+      text: '',
+      curAge: 0,
+      maxAge: 0,
+    }
 
     worldWidth,
     worldHeight,

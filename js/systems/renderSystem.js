@@ -114,6 +114,9 @@ const render = (state: State, ctx: any): void => {
     renderEntity(state, ctx, entity);
   }
 
+  // render ticker
+  // TODO
+
   // render marquees
   const {mouse} = game;
   if (
@@ -139,10 +142,11 @@ const render = (state: State, ctx: any): void => {
     ctx.strokeRect(x, y, Math.abs(dims.x) + 1, Math.abs(dims.y) + 1);
   }
 
-  ctx.restore();
-
   // render cursor
   // TODO
+
+  ctx.restore();
+
 }
 
 // NOTE when rendering underneath FoW, use noRecursion = true to not render infinitely

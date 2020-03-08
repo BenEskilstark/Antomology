@@ -5,6 +5,7 @@ const {initFoodSpawnSystem} = require('./foodSpawnSystem');
 const {initMouseControlsSystem} = require('./mouseControlsSystem');
 const {initKeyboardControlsSystem} = require('./keyboardControlsSystem');
 const {initGameOverSystem} = require('./gameOverSystem');
+const {initTickerSystem} = require('./tickerSyste');
 
 const initSystems = (store: Store): void => {
   let gameMode = store.getState().mode;
@@ -18,6 +19,7 @@ const initSystems = (store: Store): void => {
       initMouseControlsSystem(store);
       initKeyboardControlsSystem(store);
       initGameOverSystem(store);
+      initTickerSystem(store);
       // initFoodSpawnSystem(store);
       // const audio = document.getElementById('clayMusic1');
       // audio.play();
