@@ -47,6 +47,21 @@ var initRenderSystem = function initRenderSystem(store) {
     ctx.fillRect(0, 0, config.canvasWidth, config.canvasHeight);
 
     render(state, ctx);
+
+    // render ticker
+    if (state.game.ticker.text != '') {
+      var _state$game$ticker = state.game.ticker,
+          text = _state$game$ticker.text,
+          curAge = _state$game$ticker.curAge,
+          maxAge = _state$game$ticker.maxAge;
+
+      ctx.save();
+      var alpha = Math.min(1, curAge / 40);
+      ctx.fillStyle = 'rgba(255, 255, 255, ' + alpha + ')';
+      ctx.font = '50px Consolas';
+      ctx.fillText(text, 500, 100);
+      ctx.restore();
+    }
   });
 };
 
@@ -229,10 +244,10 @@ var render = function render(state, ctx) {
     ctx.strokeRect(x, y, Math.abs(dims.x) + 1, Math.abs(dims.y) + 1);
   }
 
-  ctx.restore();
-
   // render cursor
   // TODO
+
+  ctx.restore();
 };
 
 // NOTE when rendering underneath FoW, use noRecursion = true to not render infinitely

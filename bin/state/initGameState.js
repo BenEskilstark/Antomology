@@ -193,6 +193,11 @@ var baseState = function baseState(worldWidth, worldHeight) {
       onKeyUp: {},
       keysDown: {}
     },
+    ticker: {
+      text: '',
+      curAge: 0,
+      maxAge: 0
+    },
 
     worldWidth: worldWidth,
     worldHeight: worldHeight,

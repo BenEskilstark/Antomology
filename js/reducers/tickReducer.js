@@ -210,62 +210,62 @@ const handleTick = (game: GameState): GameState => {
 ///////////////////////////////////////////////////////////////////////////////
 // Held Big Entities
 ///////////////////////////////////////////////////////////////////////////////
-  const updateHeldBigEntities = (
-    game: GameState, heldEntityIDs: Array<EntityID>,
-  ): void => {
-    const heldBigEntities = heldEntityIDs
-      .map(i => game.entities[i])
-      .filter(e => e.toLift > 1);
-    for (const bigEntity of heldBigEntities) {
-      if (bigEntity.toLift <= bigEntity.heldBy.length) {
-        if (!bigEntity.lifted) {
-          const didMove = maybeMoveEntity(
-            game, bigEntity,
-            add(bigEntity.position, {x: 0, y: 1}),
-            false, // don't debug
-          );
-          bigEntity.lifted = didMove;
-        } else {
-          // move the bigEntity according to the average movement of the ants holding it
-          let sum = {x: 0, y: 0};
-          for (let i = 0; i < bigEntity.heldBy.length; i++) {
-            const ant = game.entities[bigEntity.heldBy[i]];
-            const diff = subtract(ant.position, ant.prevPosition);
-            sum = add(sum, diff);
-          }
-          const avg = {
-            x: Math.round(sum.x / bigEntity.heldBy.length),
-            y: Math.round(sum.y / bigEntity.heldBy.length),
-          };
-          maybeMoveEntity(game, bigEntity, add(bigEntity.position, avg), false);
+const updateHeldBigEntities = (
+  game: GameState, heldEntityIDs: Array<EntityID>,
+): void => {
+  const heldBigEntities = heldEntityIDs
+    .map(i => game.entities[i])
+    .filter(e => e.toLift > 1);
+  for (const bigEntity of heldBigEntities) {
+    if (bigEntity.toLift <= bigEntity.heldBy.length) {
+      if (!bigEntity.lifted) {
+        const didMove = maybeMoveEntity(
+          game, bigEntity,
+          add(bigEntity.position, {x: 0, y: 1}),
+          false, // don't debug
+        );
+        bigEntity.lifted = didMove;
+      } else {
+        // move the bigEntity according to the average movement of the ants holding it
+        let sum = {x: 0, y: 0};
+        for (let i = 0; i < bigEntity.heldBy.length; i++) {
+          const ant = game.entities[bigEntity.heldBy[i]];
+          const diff = subtract(ant.position, ant.prevPosition);
+          sum = add(sum, diff);
         }
+        const avg = {
+          x: Math.round(sum.x / bigEntity.heldBy.length),
+          y: Math.round(sum.y / bigEntity.heldBy.length),
+        };
+        maybeMoveEntity(game, bigEntity, add(bigEntity.position, avg), false);
       }
     }
   }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Game over
 ///////////////////////////////////////////////////////////////////////////////
-  const computeLevelOver = (game): void => {
-    const obelisk = game.entities[game.OBELISK[0]];
-    // TODO only supports one target
-    const target = game.entities[game.TARGET[0]];
-    if (!obelisk || !target) return;
+const computeLevelOver = (game): void => {
+  const obelisk = game.entities[game.OBELISK[0]];
+  // TODO only supports one target
+  const target = game.entities[game.TARGET[0]];
+  if (!obelisk || !target) return;
 
-    if (collides(obelisk, target)) {
-      game.gameOver = 'win';
-    }
+  if (collides(obelisk, target)) {
+    game.gameOver = 'win';
+  }
 
-    const queen = getQueen(game);
-    if (!queen.alive) {
-      game.gameOver = 'lose';
-    }
-  };
+  const queen = getQueen(game);
+  if (!queen.alive) {
+    game.gameOver = 'lose';
+  }
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 // Ticker
 ///////////////////////////////////////////////////////////////////////////////
-const computeTicker = (game): void => {
+const updateTicker = (game): void => {
   const {ticker} = game;
   if (ticker.curAge >= ticker.maxAge) {
     ticker.text = '';
@@ -277,132 +277,132 @@ const computeTicker = (game): void => {
 ///////////////////////////////////////////////////////////////////////////////
 // Ant Life Cycles
 ///////////////////////////////////////////////////////////////////////////////
-  const updateAntLifeCycles = (game): void => {
-    // update eggs
-    for (const id of game.EGG) {
-      const egg = game.entities[id];
-      egg.age += 1;
-      if (egg.age > config.eggHatchAge) {
-        game.entities[id] = {...makeLarva(egg.position, egg.subType), id};
-        changeEntityType(game, game.entities[id], 'EGG', 'LARVA');
-      }
-    }
-
-    // update larva
-    for (const id of game.LARVA) {
-      const larva = game.entities[id];
-      larva.age += 1;
-      if (!larva.alive) {
-        continue;
-      }
-
-      larva.calories -= 1;
-      // larva starvation
-      if (larva.calories <= 0) {
-        larva.alive = false;
-        continue;
-      }
-
-      if (larva.calories >= config.larvaEndCalories) {
-        game.entities[id] = {
-          ...makePupa(larva.position, larva.subType),
-          id, calories: larva.calories,
-        };
-        changeEntityType(game, game.entities[id], 'LARVA', 'PUPA');
-      }
-    }
-
-    // update pupa
-    for (const id of game.PUPA) {
-      const pupa = game.entities[id];
-      pupa.age += 1;
-      if (pupa.age > config.pupaHatchAge && pupa.position != null) {
-        game.entities[id] = {
-          ...makeAnt(pupa.position, pupa.subType),
-          id, calories: pupa.calories,
-        };
-        changeEntityType(game, game.entities[id], 'PUPA', 'ANT');
-      }
+const updateAntLifeCycles = (game): void => {
+  // update eggs
+  for (const id of game.EGG) {
+    const egg = game.entities[id];
+    egg.age += 1;
+    if (egg.age > config.eggHatchAge) {
+      game.entities[id] = {...makeLarva(egg.position, egg.subType), id};
+      changeEntityType(game, game.entities[id], 'EGG', 'LARVA');
     }
   }
+
+  // update larva
+  for (const id of game.LARVA) {
+    const larva = game.entities[id];
+    larva.age += 1;
+    if (!larva.alive) {
+      continue;
+    }
+
+    larva.calories -= 1;
+    // larva starvation
+    if (larva.calories <= 0) {
+      larva.alive = false;
+      continue;
+    }
+
+    if (larva.calories >= config.larvaEndCalories) {
+      game.entities[id] = {
+        ...makePupa(larva.position, larva.subType),
+        id, calories: larva.calories,
+      };
+      changeEntityType(game, game.entities[id], 'LARVA', 'PUPA');
+    }
+  }
+
+  // update pupa
+  for (const id of game.PUPA) {
+    const pupa = game.entities[id];
+    pupa.age += 1;
+    if (pupa.age > config.pupaHatchAge && pupa.position != null) {
+      game.entities[id] = {
+        ...makeAnt(pupa.position, pupa.subType),
+        id, calories: pupa.calories,
+      };
+      changeEntityType(game, game.entities[id], 'PUPA', 'ANT');
+    }
+  }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Phermones
 ///////////////////////////////////////////////////////////////////////////////
-  const updatePheromones = (game: GameState): void => {
-    const toRemove = [];
-    for (const id of game.PHEROMONE) {
-      const pheromone = game.entities[id];
-      pheromone.quantity -= 1;
-      if (pheromone.quantity <= 0) {
-        toRemove.push(pheromone);
-      }
-    }
-    for (const pheromone of toRemove) {
-      removeEntity(game, pheromone);
+const updatePheromones = (game: GameState): void => {
+  const toRemove = [];
+  for (const id of game.PHEROMONE) {
+    const pheromone = game.entities[id];
+    pheromone.quantity -= 1;
+    if (pheromone.quantity <= 0) {
+      toRemove.push(pheromone);
     }
   }
+  for (const pheromone of toRemove) {
+    removeEntity(game, pheromone);
+  }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Compute Gravity
 ///////////////////////////////////////////////////////////////////////////////
-  const computeGravity = (game: GameState): void => {
-    for (const entityType of config.fallingEntities) {
-      for (const id of game[entityType]) {
-        const entity = game.entities[id];
-        if (shouldFall(game, entity)) {
-          const positionBeneath = subtract(entity.position, {x: 0, y: 1});
-          moveEntity(game, entity, positionBeneath);
-        }
+const computeGravity = (game: GameState): void => {
+  for (const entityType of config.fallingEntities) {
+    for (const id of game[entityType]) {
+      const entity = game.entities[id];
+      if (shouldFall(game, entity)) {
+        const positionBeneath = subtract(entity.position, {x: 0, y: 1});
+        moveEntity(game, entity, positionBeneath);
       }
     }
   }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Update FoW Vision
 ///////////////////////////////////////////////////////////////////////////////
-  const updateFoWVision = (game: GameState): void => {
-    const previouslyVisible = [];
-    for (const entityType of config.entitiesInFog) {
-      for (const id of game[entityType]) {
-        const entity = game.entities[id];
-        if (entity.position == null) {
-          entity.visible = true; // held entities are visible
-          continue;
-        }
-        if (entity.visible) {
-          previouslyVisible.push(entity);
-          entity.visible = false;
-        }
-        if (
-          entity.lastSeenPos != null &&
-          !config.immobileEntities.includes(entity.type)
-        ) {
-          for (const id of game.ANT) {
-            const ant = game.entities[id];
-            if (
-              isInRadius(ant.position, config.antVisionRadius, entity.lastSeenPos)
-            ) {
-              entity.lastSeenPos = null;
-              break;
-            }
+const updateFoWVision = (game: GameState): void => {
+  const previouslyVisible = [];
+  for (const entityType of config.entitiesInFog) {
+    for (const id of game[entityType]) {
+      const entity = game.entities[id];
+      if (entity.position == null) {
+        entity.visible = true; // held entities are visible
+        continue;
+      }
+      if (entity.visible) {
+        previouslyVisible.push(entity);
+        entity.visible = false;
+      }
+      if (
+        entity.lastSeenPos != null &&
+        !config.immobileEntities.includes(entity.type)
+      ) {
+        for (const id of game.ANT) {
+          const ant = game.entities[id];
+          if (
+            isInRadius(ant.position, config.antVisionRadius, entity.lastSeenPos)
+          ) {
+            entity.lastSeenPos = null;
+            break;
           }
         }
       }
     }
-
-    for (const id of game.ANT) {
-      const ant = game.entities[id];
-      getEntitiesInRadius(
-        game, ant.position, config.antVisionRadius,
-      ).forEach(e => e.visible = true);
-    }
-    for (const entity of previouslyVisible) {
-      if (!entity.visible) {
-        entity.lastSeenPos = entity.position;
-      }
-    }
-
   }
+
+  for (const id of game.ANT) {
+    const ant = game.entities[id];
+    getEntitiesInRadius(
+      game, ant.position, config.antVisionRadius,
+    ).forEach(e => e.visible = true);
+  }
+  for (const entity of previouslyVisible) {
+    if (!entity.visible) {
+      entity.lastSeenPos = entity.position;
+    }
+  }
+
+}
 
 module.exports = {tickReducer};

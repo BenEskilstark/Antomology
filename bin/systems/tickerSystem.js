@@ -1,16 +1,19 @@
+'use strict';
 
-const {config} = require('../config');
+var _require = require('../config'),
+    config = _require.config;
 
-const initTickerSystem = (store) => {
-  let time = -1;
-  store.subscribe(() => {
-    const state = store.getState();
+var initTickerSystem = function initTickerSystem(store) {
+  var time = -1;
+  store.subscribe(function () {
+    var state = store.getState();
     if (state.game == null) return;
     // only check on a new tick
     if (state.game.time == time) return;
     // important track time this way
     time = state.game.time;
-    const {level} = state.game;
+    var level = state.game.level;
+
 
     switch (level) {
       case 1:
@@ -21,19 +24,19 @@ const initTickerSystem = (store) => {
         break;
     }
   });
-}
+};
 
 function level1Ticker(game, dispatch) {
-  const {time} = game;
+  var time = game.time;
+
 
   if (time == 5) {
-    dispatch({type: 'SET_TICKER', text: 'WELCOME', maxAge: 500});
+    dispatch({ type: 'SET_TICKER', text: 'WELCOME', maxAge: 500 });
   }
 }
 
-
 function level2Ticker(game, dispatch) {
-  const {time} = game;
+  var time = game.time;
 }
 
-module.exports = {initTickerSystem};
+module.exports = { initTickerSystem: initTickerSystem };

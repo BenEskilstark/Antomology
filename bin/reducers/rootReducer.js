@@ -143,6 +143,7 @@ var rootReducer = function rootReducer(state, action) {
     case 'SET_PHEROMONE_STRENGTH':
     case 'SET_PHEROMONE_CONDITION':
     case 'ZOOM':
+    case 'SET_TICKER':
     case 'SET_GAME_OVER':
       if (!state.game) return state;
       return _extends({}, state, {

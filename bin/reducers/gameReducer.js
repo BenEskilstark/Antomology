@@ -392,6 +392,18 @@ var gameReducer = function gameReducer(game, action) {
           antMode: antMode
         });
       }
+    case 'SET_TICKER':
+      {
+        var text = action.text,
+            maxAge = action.maxAge;
+
+        return _extends({}, game, {
+          ticker: {
+            text: text, maxAge: maxAge,
+            curAge: 0
+          }
+        });
+      }
     case 'UPDATE_THETA':
       {
         var _id7 = action.id,

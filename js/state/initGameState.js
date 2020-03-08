@@ -185,7 +185,7 @@ const baseState = (worldWidth: number, worldHeight: number): GameState => {
       text: '',
       curAge: 0,
       maxAge: 0,
-    }
+    },
 
     worldWidth,
     worldHeight,

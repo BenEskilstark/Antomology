@@ -230,6 +230,7 @@ var handleTick = function handleTick(game) {
   updatePheromones(game);
   computeGravity(game);
   updateFoWVision(game);
+  updateTicker(game);
   computeLevelOver(game);
 
   // const time = performance.now() - startTime;
@@ -298,7 +299,6 @@ var updateHeldBigEntities = function updateHeldBigEntities(game, heldEntityIDs) 
 ///////////////////////////////////////////////////////////////////////////////
 // Game over
 ///////////////////////////////////////////////////////////////////////////////
-
 var computeLevelOver = function computeLevelOver(game) {
   var obelisk = game.entities[game.OBELISK[0]];
   // TODO only supports one target
@@ -312,6 +312,19 @@ var computeLevelOver = function computeLevelOver(game) {
   var queen = getQueen(game);
   if (!queen.alive) {
     game.gameOver = 'lose';
+  }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// Ticker
+///////////////////////////////////////////////////////////////////////////////
+var updateTicker = function updateTicker(game) {
+  var ticker = game.ticker;
+
+  if (ticker.curAge >= ticker.maxAge) {
+    ticker.text = '';
+  } else {
+    ticker.curAge += 1;
   }
 };
 

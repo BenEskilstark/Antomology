@@ -36,6 +36,17 @@ const initRenderSystem = (store: Store): void => {
     ctx.fillRect(0, 0, config.canvasWidth, config.canvasHeight);
 
     render(state, ctx);
+
+    // render ticker
+    if (state.game.ticker.text != '') {
+      const {text, curAge, maxAge} = state.game.ticker;
+      ctx.save();
+      const alpha = Math.min(1, curAge / 40);
+      ctx.fillStyle = 'rgba(255, 255, 255, ' + alpha + ')';
+      ctx.font = '50px Consolas';
+      ctx.fillText(text, 500, 100);
+      ctx.restore();
+    }
   });
 }
 
@@ -113,9 +124,6 @@ const render = (state: State, ctx: any): void => {
 
     renderEntity(state, ctx, entity);
   }
-
-  // render ticker
-  // TODO
 
   // render marquees
   const {mouse} = game;
