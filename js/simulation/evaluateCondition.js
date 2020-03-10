@@ -36,7 +36,7 @@ const evaluateCondition = (
       if (typeof loc === 'string') {
         loc = getEntitiesByType(game, ['LOCATION']).filter(l => l.name === loc)[0];
       }
-      isTrue = collides(ant, loc);
+      isTrue = collides(game, ant, loc);
       break;
     }
     case 'HOLDING': {

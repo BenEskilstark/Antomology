@@ -116,20 +116,7 @@ export type GameState = {
   // ALL entities (including ants) here:
   entities: {[EntityID]: Entity},
   // basically a cache of entityType-specific entityIDs:
-  DIRT: Array<EntityID>,
-  ANT: Array<EntityID>,
-  LOCATION: Array<EntityID>,
-  FOOD: Array<EntityID>,
-  EGG: Array<EntityID>,
-  LARVA: Array<EntityID>,
-  PUPA: Array<EntityID>,
-  PHEROMONE: Array<EntityID>,
-  STONE: Array<EntityID>,
-  BACKGROUND: Array<EntityID>,
-  OBELISK: Array<EntityID>,
-  GRASS: Array<EntityID>,
-  TARGET: Array<EntityID>,
-  STUCK_STONE: Array<EntityID>,
+  [EntityType]: Array<EntityID>,
 
   // for faster collision detection
   grid: Array<Array<Array<EntityID>>>,
@@ -148,13 +135,13 @@ export type GameState = {
 
 export type EntityID = number;
 export type EntityType =
-  'ANT' | 'DIRT' | 'FOOD' | 'EGG' | 'LARVA' | 'PUPA' | 'LOCATION' |
-  'PHEROMONE' | 'BACKGROUND' | 'STONE' | 'OBELISK' |'STUCK_STONE' | 'GRASS' |
-  'TARGET';
+  'ANT' | 'DIRT' | 'FOOD' | 'EGG' | 'LARVA' | 'PUPA' | 'LOCATION' | 'GRASS'
+  'PHEROMONE' | 'BACKGROUND' | 'STONE' | 'OBELISK' |'STUCK_STONE' | 'TARGET' |
+  'BEETLE' | 'LADYBUG' | 'APHID' | 'SPIDER' | 'WORM' | 'CENTIPEDE' | 'DRAGONFLY';
 
 export type Entity = {
   id: EntityID,
-  type: string,
+  type: EntityType,
   age: number,
   position: Vector,
   prevPosition: Vector,
@@ -198,6 +185,7 @@ export type Location = Entity & {
 
 export type Dirt = Entity;
 export type Egg = Entity & {
+  alive: boolean,
   subType: AntSubType,
 };
 export type Larva = Entity & {
@@ -206,6 +194,7 @@ export type Larva = Entity & {
   subType: AntSubType,
 };
 export type Pupa = Entity & {
+  alive: boolean,
   subType: AntSubType,
 };
 export type Food = Entity & {
@@ -221,6 +210,11 @@ export type Pheromone = Entity & {
 };
 export type Background = Entity & {
   subType: 'SKY' | 'DIRT'
+};
+
+export type Bug = Entity & {
+  alive: boolean,
+  segmented: ?boolean,
 };
 
 // -------------------------------------------------------------------------------

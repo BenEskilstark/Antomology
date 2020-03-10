@@ -8,7 +8,8 @@ var _require = require('../config'),
 var _require2 = require('../utils/vectors'),
     subtract = _require2.subtract,
     add = _require2.add,
-    makeVector = _require2.makeVector;
+    makeVector = _require2.makeVector,
+    vectorTheta = _require2.vectorTheta;
 
 var _require3 = require('../selectors/selectors'),
     onScreen = _require3.onScreen;
@@ -264,7 +265,7 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
   ctx.lineWidth = px;
 
   // handle fog
-  if (!entity.visible && !noRecursion && state.game.fog && entity.type != 'TARGET') {
+  if (!entity.visible && !noRecursion && state.game.fog) {
     var width = entity.width + 0.04;
     var height = entity.height + 0.04;
     if (entity.lastSeenPos == null) {
@@ -344,6 +345,195 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
         ctx.closePath();
         break;
       }
+    case 'APHID':
+      {
+        ctx.fillStyle = 'green';
+        ctx.strokeStyle = 'green';
+        if (!entity.alive) {
+          ctx.strokeStyle = 'rgba(100, 100, 100, 0.5)';
+        }
+        ctx.lineWidth = px;
+        // body
+        var _radius = entity.width / 2 * 0.8;
+        ctx.translate(entity.width / 2, entity.height / 2);
+        ctx.beginPath();
+        ctx.arc(0, 0, _radius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.closePath();
+        ctx.fill();
+        // eye
+        ctx.beginPath();
+        ctx.fillStyle = 'black';
+        var mult = entity.theta == 0 ? 1 : -1;
+        ctx.arc(-1 * _radius / 2, mult * _radius * 0.7, _radius / 5.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'green';
+        ctx.closePath();
+
+        // legs
+        ctx.beginPath();
+        for (var _deg = 60; _deg <= 120; _deg += 30) {
+          var _rad = _deg * Math.PI / 180;
+          var _leg = makeVector(-_rad, entity.width / 2);
+          ctx.moveTo(0, 0);
+          ctx.lineTo(_leg.x, _leg.y * mult);
+          ctx.stroke();
+        }
+        ctx.translate(-entity.width / 2, -entity.height / 2);
+        ctx.closePath();
+        break;
+      }
+    case 'BEETLE':
+      {
+        ctx.fillStyle = 'purple';
+        ctx.strokeStyle = 'purple';
+        if (!entity.alive) {
+          ctx.strokeStyle = 'rgba(100, 100, 100, 0.5)';
+        }
+        ctx.lineWidth = px;
+        ctx.save();
+        if (entity.theta < Math.PI / 2) {
+          ctx.scale(-1, 1);
+        }
+        var y = 0.8;
+        // body
+        var _radius2 = entity.height / 2;
+        ctx.beginPath();
+        ctx.arc(1, y, _radius2, 0, Math.PI);
+        ctx.closePath();
+        ctx.stroke();
+        ctx.fill();
+
+        // head
+        ctx.beginPath();
+        ctx.arc(2, y, _radius2 / 3, 0, 2 * Math.PI);
+        ctx.lineTo(2, y);
+        ctx.closePath();
+        ctx.fill();
+        // eye
+        ctx.beginPath();
+        ctx.fillStyle = 'black';
+        ctx.arc(2, y, _radius2 / 3, 0, Math.PI / 2);
+        ctx.lineTo(2, y);
+        ctx.closePath();
+        ctx.fill();
+
+        // legs
+        ctx.beginPath();
+        ctx.fillStyle = 'purple';
+        ctx.moveTo(1, 1);
+        ctx.lineTo(0.66, 0);
+        ctx.moveTo(1.33, 1);
+        ctx.lineTo(1, 0);
+        ctx.moveTo(1.5, 1);
+        ctx.lineTo(1.75, 0);
+        ctx.stroke();
+        ctx.closePath();
+        ctx.restore();
+        break;
+      }
+    case 'WORM':
+      {
+        ctx.fillStyle = 'pink';
+        // head
+        var nextSegment = entity.segments[0];
+        var headDir = vectorTheta(subtract(entity.position, nextSegment.position));
+        ctx.save();
+        ctx.translate(0.5, 0.5);
+        ctx.rotate(headDir - Math.PI / 2);
+        ctx.translate(-0.5, -0.5);
+        ctx.fillRect(0, 0, 1, 0.5);
+        ctx.beginPath();
+        ctx.arc(0.5, 0.5, 0.5, 0, Math.PI);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+        // body
+        for (var i = 0; i < entity.segments.length - 1; i++) {
+          var segment = entity.segments[i];
+          var _relPos = subtract(segment.position, entity.position);
+          ctx.fillRect(_relPos.x, _relPos.y, 1, 1);
+        }
+        // tail
+        var tail = entity.segments[entity.segments.length - 1];
+        var relPos = subtract(tail.position, entity.position);
+        var prevTail = entity.segments[entity.segments.length - 2];
+        var tailDir = vectorTheta(subtract(tail.position, prevTail.position));
+        ctx.save();
+        ctx.translate(relPos.x + 0.5, relPos.y + 0.5);
+        ctx.rotate(tailDir - Math.PI / 2);
+        ctx.translate(-1 * (relPos.x + 0.5), -1 * (relPos.y + 0.5));
+        ctx.fillRect(relPos.x, relPos.y, 1, 0.5);
+        ctx.beginPath();
+        ctx.arc(relPos.x + 0.5, relPos.y + 0.5, 0.5, 0, Math.PI);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+        break;
+      }
+    case 'CENTIPEDE':
+      {
+        ctx.fillStyle = '#FAEBD7';
+        ctx.lineWidth = px;
+        // head
+        var _nextSegment = entity.segments[0];
+        var _headDir = vectorTheta(subtract(entity.position, _nextSegment.position));
+        ctx.save();
+        ctx.translate(0.5, 0.5);
+        ctx.rotate(_headDir - Math.PI / 2);
+        ctx.translate(-0.5, -0.5);
+        ctx.fillRect(0, 0, 1, 0.5);
+        ctx.beginPath();
+        ctx.strokeStyle = '#FAEBD7';
+        ctx.arc(0.5, 0.5, 0.5, 0, Math.PI);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+        // body
+        for (var _i = 0; _i < entity.segments.length - 1; _i++) {
+          var nextSegmentPos = _i == 0 ? entity.position : entity.segments[_i - 1].position;
+          var _segment = entity.segments[_i];
+          var _relPos3 = subtract(_segment.position, entity.position);
+          // legs
+          var dir = vectorTheta(subtract(nextSegmentPos, _segment.position));
+          ctx.save();
+          ctx.beginPath();
+          ctx.strokeStyle = 'black';
+          ctx.translate(_relPos3.x + 0.5, _relPos3.y + 0.5);
+          ctx.rotate(dir);
+          ctx.moveTo(0, 0);
+          for (var j = 0; j < 2; j++) {
+            var _leg2 = makeVector(Math.PI / 2 + Math.random() * 0.7, 1);
+            ctx.lineTo(_leg2.x, _leg2.y);
+            ctx.moveTo(0, 0);
+            var _leg3 = makeVector(Math.PI / 2 + Math.random() * 0.7, 1);
+            ctx.lineTo(_leg2.x, -1 * _leg2.y);
+            ctx.stroke();
+          }
+          ctx.closePath();
+          ctx.restore();
+
+          ctx.fillRect(_relPos3.x, _relPos3.y, 1, 1);
+        }
+        ctx.strokeStyle = '#FAEBD7';
+        // tail
+        var _tail = entity.segments[entity.segments.length - 1];
+        var _relPos2 = subtract(_tail.position, entity.position);
+        var _prevTail = entity.segments[entity.segments.length - 2];
+        var _tailDir = vectorTheta(subtract(_tail.position, _prevTail.position));
+        ctx.save();
+        ctx.translate(_relPos2.x + 0.5, _relPos2.y + 0.5);
+        ctx.rotate(_tailDir - Math.PI / 2);
+        ctx.translate(-1 * (_relPos2.x + 0.5), -1 * (_relPos2.y + 0.5));
+        ctx.fillRect(_relPos2.x, _relPos2.y, 1, 0.5);
+        ctx.beginPath();
+        ctx.arc(_relPos2.x + 0.5, _relPos2.y + 0.5, 0.5, 0, Math.PI);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+        break;
+      }
     case 'BACKGROUND':
       {
         var _width = entity.width + px / 2;
@@ -408,17 +598,17 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
         ctx.strokeStyle = 'red';
         ctx.fillStyle = 'red';
         ctx.lineWidth = 3 * px;
-        var _radius = entity.width / 2;
+        var _radius3 = entity.width / 2;
         ctx.beginPath();
-        ctx.arc(entity.width / 2, entity.height / 2, _radius, 0, Math.PI * 2);
+        ctx.arc(entity.width / 2, entity.height / 2, _radius3, 0, Math.PI * 2);
         ctx.closePath();
         ctx.stroke();
         ctx.beginPath();
-        ctx.arc(entity.width / 2, entity.height / 2, _radius * 2 / 3, 0, Math.PI * 2);
+        ctx.arc(entity.width / 2, entity.height / 2, _radius3 * 2 / 3, 0, Math.PI * 2);
         ctx.closePath();
         ctx.stroke();
         ctx.beginPath();
-        ctx.arc(entity.width / 2, entity.height / 2, _radius * 1 / 3, 0, Math.PI * 2);
+        ctx.arc(entity.width / 2, entity.height / 2, _radius3 * 1 / 3, 0, Math.PI * 2);
         ctx.closePath();
         ctx.fill();
         break;
@@ -460,8 +650,8 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
       {
         ctx.fillStyle = 'white';
         ctx.beginPath();
-        var _radius2 = entity.width / 2 * 0.4;
-        ctx.arc(entity.width / 2, entity.height / 2, _radius2, 0, Math.PI * 2);
+        var _radius4 = entity.width / 2 * 0.4;
+        ctx.arc(entity.width / 2, entity.height / 2, _radius4, 0, Math.PI * 2);
         ctx.closePath();
         ctx.fill();
         if (state.game.selectedEntities.includes(entity.id)) {
@@ -480,8 +670,8 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
           ctx.fillStyle = 'rgba(250, 50, 0, 0.9)';
         }
         ctx.beginPath();
-        var _radius3 = entity.width / 2 * 0.5 + entity.calories / 10000;
-        ctx.arc(entity.width / 2, entity.height / 2, _radius3, 0, Math.PI * 2);
+        var _radius5 = entity.width / 2 * 0.5 + entity.calories / 10000;
+        ctx.arc(entity.width / 2, entity.height / 2, _radius5, 0, Math.PI * 2);
         ctx.closePath();
         ctx.fill();
         if (state.game.selectedEntities.includes(entity.id)) {
@@ -522,15 +712,15 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
         // }
         // relative to center
         ctx.translate(entity.width / 2, entity.height / 2);
-        var _radius4 = entity.width / 2;
+        var _radius6 = entity.width / 2;
         ctx.beginPath();
-        ctx.moveTo(_radius4, 0);
-        ctx.lineTo(_radius4 / 3, -2 * _radius4 / 3);
-        ctx.lineTo(_radius4 / 3, -1 * _radius4 / 3);
-        ctx.lineTo(-1 * _radius4, -1 * _radius4 / 3);
-        ctx.lineTo(-1 * _radius4, _radius4 / 3);
-        ctx.lineTo(_radius4 / 3, _radius4 / 3);
-        ctx.lineTo(_radius4 / 3, 2 * _radius4 / 3);
+        ctx.moveTo(_radius6, 0);
+        ctx.lineTo(_radius6 / 3, -2 * _radius6 / 3);
+        ctx.lineTo(_radius6 / 3, -1 * _radius6 / 3);
+        ctx.lineTo(-1 * _radius6, -1 * _radius6 / 3);
+        ctx.lineTo(-1 * _radius6, _radius6 / 3);
+        ctx.lineTo(_radius6 / 3, _radius6 / 3);
+        ctx.lineTo(_radius6 / 3, 2 * _radius6 / 3);
         ctx.closePath();
         ctx.fill();
         ctx.stroke();

@@ -25,6 +25,8 @@ var Button = require('./ui/Button.react');
 // Entities/Locations
 // -------------------------------------------------------------------------------
 
+'PHEROMONE' | 'BACKGROUND' | 'STONE' | 'OBELISK' | 'STUCK_STONE' | 'TARGET' | 'BEETLE' | 'LADYBUG' | 'APHID' | 'SPIDER' | 'WORM' | 'CENTIPEDE' | 'DRAGONFLY';
+
 // -------------------------------------------------------------------------------
 // Ants and their behavior
 // -------------------------------------------------------------------------------

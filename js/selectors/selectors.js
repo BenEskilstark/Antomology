@@ -10,54 +10,44 @@ import type {GameID, State, Game, Entity} from '../types';
 // Collisions
 /////////////////////////////////////////////////////////////////
 
-// TODO may not need all the size stuff if we just use the grid
-const collides = (entityA: Entity, entityB: Entity): boolean => {
+const collides = (game: GameState, entityA: Entity, entityB: Entity): boolean => {
+  if (entityB == null) {
+    console.error('callsite');
+  }
   if (entityA == null || entityB == null) {
     return false;
   }
   if (entityA.position == null || entityB.position == null) {
     return false;
   }
-  const dist = subtract(entityA.position, entityB.position);
-  let xOverlap = false;
-  let yOverlap = false;
-  if (dist.x === 0) {
-    xOverlap = true;
-  } else if (dist.x < 0) {
-    if (
-      entityB.position.x + entityB.width > entityA.position.x &&
-      entityB.position.x + entityB.width <= entityA.position.x + entityA.width
-    ) {
-      xOverlap = true;
-    }
-  } else {
-    if (
-      entityA.position.x + entityA.width > entityB.position.x &&
-      entityA.position.x + entityA.width <= entityB.position.x + entityB.width
-    ) {
-      xOverlap = true;
-    }
+  if (entityA.width == null || entityA.height == null) {
+    return false;
+  }
+  if (entityB.width == null || entityB.height == null) {
+    return false;
   }
 
-  if (dist.y === 0) {
-    yOverlap = true;
-  } else if (dist.y < 0) {
-    if (
-      entityB.position.y + entityB.height > entityA.position.y &&
-      entityB.position.y + entityB.height <= entityA.position.y + entityA.height
-    ) {
-      yOverlap = true;
-    }
-  } else {
-    if (
-      entityA.position.y + entityA.height > entityB.position.y &&
-      entityA.position.y + entityA.height <= entityB.position.y + entityB.height
-    ) {
-      yOverlap = true;
+  for (let x = 0; x < entityA.width; x++) {
+    for (let y = 0; y < entityA.height; y++) {
+      const thisSquare = lookupInGrid(game.grid, add(entityA.position, {x, y}));
+      for (const id of thisSquare) {
+        if (id == entityB.id) {
+          return true;
+        }
+      }
     }
   }
-
-  return xOverlap && yOverlap;
+  for (let x = 0; x < entityB.width; x++) {
+    for (let y = 0; y < entityB.height; y++) {
+      const thisSquare = lookupInGrid(game.grid, add(entityB.position, {x, y}));
+      for (const id of thisSquare) {
+        if (id == entityA.id) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
 };
 
 /**
@@ -102,6 +92,20 @@ function lookupInGrid(grid: Grid, position: Vector): Array<EntityID> {
 
 const fastCollidesWith = (game: GameState, entity: Entity): Array<Entity> => {
   if (entity.position == null) return [];
+  const collisions = [];
+  if (entity.segmented) {
+    const {position, segments} = entity;
+    collisions.push(...lookupInGrid(game.grid, position));
+    for (const segment of segments) {
+      const thisSquare = lookupInGrid(game.grid, segment.position);
+      for (const id of thisSquare) {
+        if (!collisions.includes(id) && id != entity.id) {
+          collisions.push(id);
+        }
+      }
+    }
+    return collisions.map(i => game.entities[i]);
+  }
   let {position, width, height} = entity;
   if (width == null) {
     console.error("checking collision on non-entity", entity);
@@ -111,7 +115,6 @@ const fastCollidesWith = (game: GameState, entity: Entity): Array<Entity> => {
     console.error("checking collision on non-entity", entity);
     height = 1;
   }
-  const collisions = [];
   for (let x = 0; x < width; x++) {
     for (let y = 0; y < height; y++) {
       const thisSquare = lookupInGrid(game.grid, add(entity.position, {x, y}));

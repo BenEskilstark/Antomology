@@ -1,5 +1,11 @@
 // @flow
 
+const bugs = [
+  'APHID', 'BEETLE', 'SPIDER', 'WORM', 'CENTIPEDE', 'LADYBUG', 'DRAGONFLY',
+];
+const flyingBugs = ['LADYBUG', 'DRAGONFLY'];
+const nonFlyingBugs = ['APHID', 'BEETLE', 'SPIDER', 'WORM', 'CENTIPEDE'];
+
 const config = {
   msPerTick: 150,
 
@@ -15,12 +21,22 @@ const config = {
   clickedPosition: -1,
   colonyEntrance: 0, // DEPRECATED
 
+  // bug values
+  bugs,
+  wormBlockingEntities: [
+    'STONE', 'STUCK_STONE', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'OBELISK',
+    ...bugs,
+  ],
+  centipedeBlockingEntities: [
+    'DIRT', 'STONE', 'STUCK_STONE', 'OBELISK',
+  ],
+
   // fog-of-war
   entitiesInFog: [
-    'DIRT', 'FOOD', 'DEAD_ANT', 'BACKGROUND', 'STONE', 'STUCK_STONE',
-    'GRASS', 'TARGET',
+    'DIRT', 'FOOD', 'BACKGROUND', 'STONE', 'STUCK_STONE', 'GRASS',
+    ...bugs,
   ],
-  antVisionRadius: 7,
+  antVisionRadius: 40,
   immobileEntities: [ // simpler to compute visibility if we know they never move
     'BACKGROUND', 'GRASS', 'STUCK_STONE', 'TARGET',
   ],
@@ -28,9 +44,13 @@ const config = {
   // gravity
   supportingBackgroundTypes: ['DIRT'],
   supportingForegroundTypes: ['GRASS'], // like background
-  // fall until above blocker
-  fallingEntities: ['EGG', 'ANT', 'DIRT', 'LARVA', 'FOOD', 'STONE', 'OBELISK'],
-  supportedEntities: ['ANT', 'DIRT'], // also stopped by supporting background behind
+  fallingEntities: [ // fall until above blocker
+    'EGG', 'ANT', 'DIRT', 'LARVA', 'FOOD', 'STONE', 'OBELISK',
+    ...nonFlyingBugs,
+  ],
+  supportedEntities: [ // also stopped by supporting background behind
+    'ANT', 'DIRT', 'WORM', 'CENTIPEDE',
+  ],
   climbingEntities: ['ANT'], // must be subset of supportedEntities
   stopFallingEntities: [
     'DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'STONE', 'ANT', 'OBELISK', 'STUCK_STONE',
@@ -45,15 +65,16 @@ const config = {
   selectableEntities: ['ANT', 'EGG', 'LARVA', 'PUPA', 'LOCATION'],
 
   // ant-specific values
-  antPickupEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'DEAD_ANT', 'OBELISK'],
+  antPickupEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'OBELISK'],
   antBlockingEntities: ['DIRT', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'STONE', 'STUCK_STONE'],
-  antEatEntities: ['FOOD', 'DEAD_ANT'],
+  antEatEntities: ['FOOD'],
   antStartingCalories: 4000,
   antCaloriesPerEat: 1000,
   antMaxCalories: 6000,
   antStarvationWarningThreshold: 0.3,
   antOldAgeDeathWarningThreshold: 0.8,
   antStartingHP: 10,
+  attackableEntities: [...bugs],
 
   // life-cycle related
   eggLayingCooldown: 50,

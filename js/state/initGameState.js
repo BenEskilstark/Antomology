@@ -8,6 +8,10 @@ const {makeStone} = require('../entities/stone');
 const {makeBackground} = require('../entities/background');
 const {makeFood} = require('../entities/food');
 const {makeLocation} = require('../entities/location');
+const {
+  makeAphid, makeBeetle, makeLadyBug, makeSpider,
+  makeDragonFly, makeWorm, makeCentipede,
+} = require('../entities/bugs');
 const {config} = require('../config');
 const {
   randomIn,
@@ -62,7 +66,7 @@ const initGameState = (level: number): GameState => {
 ////////////////////////////////////////////////////////////////////////////
 
 const level0 = (): GameState => {
-  const game = baseState(200, 200);
+  const game = baseState(75, 75);
   const colonyEntrance = makeLocation('Colony Entrance', 5, 5, {x: 25, y: 30});
     // ...makeLocation('Colony Entrance', 5, 5, {x: 25, y: 29}), id: config.colonyEntrance,
   // };
@@ -99,14 +103,14 @@ const level0 = (): GameState => {
   }
 
   // seed ants
-  for (let i = 0; i < 1000; i++) {
-    const position = {
-      x: randomIn(0, game.worldWidth - 1),
-      y: randomIn(Math.ceil(game.worldHeight * 0.6), game.worldHeight - 1),
-    };
-    const ant = makeAnt(position, 'WORKER');
-    addEntity(game, ant);
-  }
+  // for (let i = 0; i < 1000; i++) {
+  //   const position = {
+  //     x: randomIn(0, game.worldWidth - 1),
+  //     y: randomIn(Math.ceil(game.worldHeight * 0.6), game.worldHeight - 1),
+  //   };
+  //   const ant = makeAnt(position, 'WORKER');
+  //   addEntity(game, ant);
+  // }
   addEntity(game, makeAnt({x: 25, y: 30}, 'QUEEN'));
   addEntity(game, makeAnt({x: 18, y: 30}, 'WORKER'));
   addEntity(game, makeAnt({x: 30, y: 30}, 'WORKER'));
@@ -115,21 +119,48 @@ const level0 = (): GameState => {
   addEntity(game, makeAnt({x: 33, y: 30}, 'WORKER'));
   addEntity(game, makeAnt({x: 35, y: 30}, 'WORKER'));
 
+  // seed bugs
+  addEntity(game, makeAphid({x: 36, y: 40}));
+  addEntity(game, makeBeetle({x: 40, y: 40}, 3, 2));
+  addEntity(game, makeWorm(
+    {x: 28, y: 20}, [
+    {x: 27, y: 20},
+    {x: 26, y: 20},
+    {x: 26, y: 19},
+    {x: 25, y: 19},
+    {x: 24, y: 19},
+    {x: 24, y: 18},
+    {x: 24, y: 17},
+    {x: 24, y: 16},
+    {x: 24, y: 15},
+    {x: 23, y: 15},
+  ]));
+  addEntity(game, makeCentipede(
+  {x: 37, y: 23}, [
+  {x: 36, y: 23},
+  {x: 35, y: 23},
+  {x: 34, y: 23},
+  {x: 34, y: 24},
+  {x: 33, y: 24},
+  {x: 32, y: 24},
+  {x: 32, y: 25},
+  ]));
+
   // add obelisk
   addEntity(game, makeObelisk({x: 20, y: 40}, 4, 8));
 
   // add stone
-  addEntity(game, makeStone({x: 35, y: 35}));
+  // addEntity(game, makeStone({x: 35, y: 35}));
 
   // seed food
-  for (let i = 0; i < 15; i++) {
-    const position = {
-      x: randomIn(0, game.worldWidth - 1),
-      y: randomIn(Math.ceil(game.worldHeight * 0.6) + 1, game.worldHeight - 1),
-    };
-    const food = makeFood(position, 1000, 'Crumb');
-    addEntity(game, food);
-  }
+ //  for (let i = 0; i < 15; i++) {
+ //    const position = {
+ //      x: randomIn(0, game.worldWidth - 1),
+ //      y: randomIn(Math.ceil(game.worldHeight * 0.6) + 1, game.worldHeight - 1),
+ //    };
+ //    const food = makeFood(position, 1000, 'Crumb');
+ //    addEntity(game, food);
+ //  }
 
   return game;
 }
@@ -199,7 +230,6 @@ const baseState = (worldWidth: number, worldHeight: number): GameState => {
     EGG: [],
     LARVA: [],
     PUPA: [],
-    DEAD_ANT: [], // TODO: not actually implemented
     LOCATION: [],
     PHEROMONE: [],
     STONE: [],
@@ -208,6 +238,13 @@ const baseState = (worldWidth: number, worldHeight: number): GameState => {
     TARGET: [],
     GRASS: [],
     STUCK_STONE: [],
+    BEETLE: [],
+    LADYBUG: [],
+    APHID: [],
+    SPIDER: [],
+    WORM: [],
+    CENTIPEDE: [],
+    DRAGONFLY: [],
 
     tasks: [],
     grid: [],

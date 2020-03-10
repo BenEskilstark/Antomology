@@ -1,5 +1,8 @@
+
 const {config} = require('../config');
-const {subtract, add, makeVector} = require('../utils/vectors');
+const {
+  subtract, add, makeVector, vectorTheta,
+} = require('../utils/vectors');
 const {onScreen} = require('../selectors/selectors');
 const {lookupInGrid} = require('../utils/stateHelpers');
 
@@ -175,7 +178,7 @@ const renderEntity = (
   ctx.lineWidth = px;
 
   // handle fog
-  if (!entity.visible && !noRecursion && state.game.fog && entity.type != 'TARGET') {
+  if (!entity.visible && !noRecursion && state.game.fog) {
     const width = entity.width + 0.04;
     const height = entity.height + 0.04;
     if (entity.lastSeenPos == null) {
@@ -254,6 +257,193 @@ const renderEntity = (
         ctx.restore();
       }
       ctx.closePath();
+      break;
+    }
+    case 'APHID': {
+      ctx.fillStyle = 'green';
+      ctx.strokeStyle = 'green';
+      if (!entity.alive) {
+        ctx.strokeStyle = 'rgba(100, 100, 100, 0.5)';
+      }
+      ctx.lineWidth = px;
+      // body
+      const radius = entity.width / 2 * 0.8;
+      ctx.translate(entity.width / 2, entity.height / 2);
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.closePath();
+      ctx.fill();
+      // eye
+      ctx.beginPath();
+      ctx.fillStyle = 'black';
+      const mult = entity.theta == 0 ? 1 : -1;
+      ctx.arc(-1*radius / 2, mult * radius * 0.7, radius / 5.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'green';
+      ctx.closePath();
+
+      // legs
+      ctx.beginPath();
+      for (let deg = 60; deg <= 120; deg += 30) {
+        const rad = deg * Math.PI / 180;
+        const leg1 = makeVector(-rad, entity.width / 2);
+        ctx.moveTo(0, 0);
+        ctx.lineTo(leg1.x, leg1.y * mult);
+        ctx.stroke();
+      }
+      ctx.translate(-entity.width / 2, -entity.height / 2);
+      ctx.closePath();
+      break;
+    }
+    case 'BEETLE': {
+      ctx.fillStyle = 'purple';
+      ctx.strokeStyle = 'purple';
+      if (!entity.alive) {
+        ctx.strokeStyle = 'rgba(100, 100, 100, 0.5)';
+      }
+      ctx.lineWidth = px;
+      ctx.save();
+      if (entity.theta < Math.PI / 2) {
+        ctx.scale(-1, 1);
+      }
+      const y = 0.8
+      // body
+      const radius = entity.height / 2;
+      ctx.beginPath();
+      ctx.arc(1, y, radius, 0, Math.PI);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.fill();
+
+      // head
+      ctx.beginPath();
+      ctx.arc(2, y, radius / 3, 0, 2 * Math.PI);
+      ctx.lineTo(2, y);
+      ctx.closePath();
+      ctx.fill();
+      // eye
+      ctx.beginPath();
+      ctx.fillStyle = 'black';
+      ctx.arc(2, y, radius / 3, 0, Math.PI / 2);
+      ctx.lineTo(2, y);
+      ctx.closePath();
+      ctx.fill();
+
+      // legs
+      ctx.beginPath();
+      ctx.fillStyle = 'purple';
+      ctx.moveTo(1, 1);
+      ctx.lineTo(0.66, 0);
+      ctx.moveTo(1.33, 1);
+      ctx.lineTo(1, 0);
+      ctx.moveTo(1.5, 1);
+      ctx.lineTo(1.75, 0);
+      ctx.stroke();
+      ctx.closePath();
+      ctx.restore();
+      break;
+    }
+    case 'WORM': {
+      ctx.fillStyle = 'pink';
+      // head
+      const nextSegment = entity.segments[0];
+      const headDir = vectorTheta(subtract(entity.position, nextSegment.position));
+      ctx.save();
+      ctx.translate(0.5, 0.5);
+      ctx.rotate(headDir - Math.PI / 2);
+      ctx.translate(-0.5, -0.5);
+      ctx.fillRect(0, 0, 1, 0.5);
+      ctx.beginPath();
+      ctx.arc(0.5, 0.5, 0.5, 0, Math.PI);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+      // body
+      for (let i = 0; i < entity.segments.length - 1; i++) {
+        const segment = entity.segments[i];
+        const relPos = subtract(segment.position, entity.position);
+        ctx.fillRect(relPos.x, relPos.y, 1, 1);
+      }
+      // tail
+      const tail = entity.segments[entity.segments.length - 1];
+      const relPos = subtract(tail.position, entity.position);
+      const prevTail = entity.segments[entity.segments.length - 2];
+      const tailDir = vectorTheta(subtract(tail.position, prevTail.position));
+      ctx.save();
+      ctx.translate(relPos.x + 0.5, relPos.y + 0.5);
+      ctx.rotate(tailDir - Math.PI / 2);
+      ctx.translate(-1* (relPos.x + 0.5), -1 * (relPos.y + 0.5));
+      ctx.fillRect(relPos.x, relPos.y, 1, 0.5);
+      ctx.beginPath();
+      ctx.arc(relPos.x + 0.5, relPos.y + 0.5, 0.5, 0, Math.PI);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+      break;
+    }
+    case 'CENTIPEDE': {
+      ctx.fillStyle = '#FAEBD7';
+      ctx.lineWidth = px;
+      // head
+      const nextSegment = entity.segments[0];
+      const headDir = vectorTheta(subtract(entity.position, nextSegment.position));
+      ctx.save();
+      ctx.translate(0.5, 0.5);
+      ctx.rotate(headDir - Math.PI / 2);
+      ctx.translate(-0.5, -0.5);
+      ctx.fillRect(0, 0, 1, 0.5);
+      ctx.beginPath();
+      ctx.strokeStyle = '#FAEBD7';
+      ctx.arc(0.5, 0.5, 0.5, 0, Math.PI);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+      // body
+      for (let i = 0; i < entity.segments.length - 1; i++) {
+        const nextSegmentPos = i == 0
+          ? entity.position
+          : entity.segments[i-1].position;
+        const segment = entity.segments[i];
+        const relPos = subtract(segment.position, entity.position);
+        // legs
+        const dir = vectorTheta(subtract(nextSegmentPos, segment.position));
+        ctx.save();
+        ctx.beginPath();
+        ctx.strokeStyle = 'black';
+        ctx.translate(relPos.x + 0.5, relPos.y + 0.5);
+        ctx.rotate(dir);
+        ctx.moveTo(0, 0);
+        for (let j = 0; j < 2; j++) {
+          const leg1 = makeVector(Math.PI / 2 + Math.random() * 0.7, 1);
+          ctx.lineTo(leg1.x, leg1.y);
+          ctx.moveTo(0, 0);
+          const leg2 = makeVector(Math.PI / 2 + Math.random() * 0.7, 1);
+          ctx.lineTo(leg1.x, -1 * leg1.y);
+          ctx.stroke();
+        }
+        ctx.closePath();
+        ctx.restore();
+
+        ctx.fillRect(relPos.x, relPos.y, 1, 1);
+      }
+      ctx.strokeStyle = '#FAEBD7';
+      // tail
+      const tail = entity.segments[entity.segments.length - 1];
+      const relPos = subtract(tail.position, entity.position);
+      const prevTail = entity.segments[entity.segments.length - 2];
+      const tailDir = vectorTheta(subtract(tail.position, prevTail.position));
+      ctx.save();
+      ctx.translate(relPos.x + 0.5, relPos.y + 0.5);
+      ctx.rotate(tailDir - Math.PI / 2);
+      ctx.translate(-1* (relPos.x + 0.5), -1 * (relPos.y + 0.5));
+      ctx.fillRect(relPos.x, relPos.y, 1, 0.5);
+      ctx.beginPath();
+      ctx.arc(relPos.x + 0.5, relPos.y + 0.5, 0.5, 0, Math.PI);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
       break;
     }
     case 'BACKGROUND': {

@@ -5,7 +5,10 @@ const {makeEntity} = require('./entity');
 import type {Size, Entity, Vector} from '../types';
 
 const makeTarget = (position: Vector): Entity => {
-  return makeEntity('TARGET', 3, 3, position);
+  return {
+    ...makeEntity('TARGET', 3, 3, position),
+    visible: true,
+  };
 }
 
 module.exports = {makeTarget};

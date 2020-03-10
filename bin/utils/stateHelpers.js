@@ -15,13 +15,15 @@ var _require2 = require('../selectors/selectors'),
     insideWorld = _require2.insideWorld,
     lookupInGrid = _require2.lookupInGrid,
     getNeighborPositions = _require2.getNeighborPositions,
-    shouldFall = _require2.shouldFall;
+    shouldFall = _require2.shouldFall,
+    fastGetEmptyNeighborPositions = _require2.fastGetEmptyNeighborPositions;
 
 var _require3 = require('../config'),
     config = _require3.config;
 
 var _require4 = require('../utils/helpers'),
-    getInnerLocation = _require4.getInnerLocation;
+    getInnerLocation = _require4.getInnerLocation,
+    oneOf = _require4.oneOf;
 
 var _require5 = require('../entities/pheromone'),
     makePheromone = _require5.makePheromone;
@@ -70,6 +72,39 @@ function addEntity(game, entity) {
   game.entities[entity.id] = entity;
   game[entity.type].push(entity.id);
 
+  if (entity.segmented) {
+    var _position = entity.position,
+        segments = entity.segments;
+
+    insertInGrid(game.grid, _position, entity.id);
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
+
+    try {
+      for (var _iterator = segments[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        var segment = _step.value;
+
+        insertInGrid(game.grid, segment.position, entity.id);
+      }
+    } catch (err) {
+      _didIteratorError = true;
+      _iteratorError = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion && _iterator.return) {
+          _iterator.return();
+        }
+      } finally {
+        if (_didIteratorError) {
+          throw _iteratorError;
+        }
+      }
+    }
+
+    return;
+  }
+
   var position = entity.position,
       width = entity.width,
       height = entity.height;
@@ -90,6 +125,38 @@ function removeEntity(game, entity) {
   game[entity.type] = game[entity.type].filter(function (id) {
     return id != entity.id;
   });
+
+  // handle segmented entities
+  if (entity.segmented) {
+    var _iteratorNormalCompletion2 = true;
+    var _didIteratorError2 = false;
+    var _iteratorError2 = undefined;
+
+    try {
+      for (var _iterator2 = entity.segments[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+        var segment = _step2.value;
+
+        deleteFromGrid(game.grid, segment.position, entity.id);
+      }
+    } catch (err) {
+      _didIteratorError2 = true;
+      _iteratorError2 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion2 && _iterator2.return) {
+          _iterator2.return();
+        }
+      } finally {
+        if (_didIteratorError2) {
+          throw _iteratorError2;
+        }
+      }
+    }
+
+    deleteFromGrid(game.grid, entity.position, entity.id);
+    return;
+  }
+
   var position = entity.position,
       width = entity.width,
       height = entity.height;
@@ -105,13 +172,13 @@ function removeEntity(game, entity) {
   }
   // clean up locations
   if (entity.type === 'LOCATION') {
-    var _iteratorNormalCompletion = true;
-    var _didIteratorError = false;
-    var _iteratorError = undefined;
+    var _iteratorNormalCompletion3 = true;
+    var _didIteratorError3 = false;
+    var _iteratorError3 = undefined;
 
     try {
-      for (var _iterator = game.ANT[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-        var antID = _step.value;
+      for (var _iterator3 = game.ANT[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+        var antID = _step3.value;
 
         var ant = game.entities[antID];
         if (ant.location === entity.id) {
@@ -119,16 +186,16 @@ function removeEntity(game, entity) {
         }
       }
     } catch (err) {
-      _didIteratorError = true;
-      _iteratorError = err;
+      _didIteratorError3 = true;
+      _iteratorError3 = err;
     } finally {
       try {
-        if (!_iteratorNormalCompletion && _iterator.return) {
-          _iterator.return();
+        if (!_iteratorNormalCompletion3 && _iterator3.return) {
+          _iterator3.return();
         }
       } finally {
-        if (_didIteratorError) {
-          throw _iteratorError;
+        if (_didIteratorError3) {
+          throw _iteratorError3;
         }
       }
     }
@@ -136,6 +203,44 @@ function removeEntity(game, entity) {
 }
 
 function moveEntity(game, entity, nextPos) {
+  if (entity.segmented) {
+    var next = _extends({}, entity.position);
+    var _iteratorNormalCompletion4 = true;
+    var _didIteratorError4 = false;
+    var _iteratorError4 = undefined;
+
+    try {
+      for (var _iterator4 = entity.segments[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+        var segment = _step4.value;
+
+        var tmp = _extends({}, segment.position);
+        deleteFromGrid(game.grid, segment.position, entity.id);
+        segment.position = _extends({}, next);
+        insertInGrid(game.grid, segment.position, entity.id);
+        next = tmp;
+      }
+      // NOTE: don't delete prevPosition from grid because there's a segment there
+    } catch (err) {
+      _didIteratorError4 = true;
+      _iteratorError4 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion4 && _iterator4.return) {
+          _iterator4.return();
+        }
+      } finally {
+        if (_didIteratorError4) {
+          throw _iteratorError4;
+        }
+      }
+    }
+
+    entity.prevPosition = entity.position;
+    entity.position = nextPos;
+    insertInGrid(game.grid, entity.position, entity.id);
+    return;
+  }
+
   var position = entity.position,
       width = entity.width,
       height = entity.height;
@@ -155,7 +260,7 @@ function moveEntity(game, entity, nextPos) {
   }
   entity.prevPosition = entity.position;
   entity.position = nextPos;
-  if (entity.type === 'ANT') {
+  if (entity.type === 'ANT' || config.bugs.includes(entity.type)) {
     // TODO this rotation is weird for the falling obelisk
     entity.theta = vectorTheta(subtract(entity.prevPosition, entity.position));
   }
@@ -247,27 +352,27 @@ function antMakePheromone(game, ant) {
   });
   // pheromone deletion
   if (pheromonesAtPos.length > 0 && strength < 0) {
-    var _iteratorNormalCompletion2 = true;
-    var _didIteratorError2 = false;
-    var _iteratorError2 = undefined;
+    var _iteratorNormalCompletion5 = true;
+    var _didIteratorError5 = false;
+    var _iteratorError5 = undefined;
 
     try {
-      for (var _iterator2 = pheromonesAtPos[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-        var ph = _step2.value;
+      for (var _iterator5 = pheromonesAtPos[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+        var ph = _step5.value;
 
         ph.quantity = Math.max(0, strength + ph.quantity);
       }
     } catch (err) {
-      _didIteratorError2 = true;
-      _iteratorError2 = err;
+      _didIteratorError5 = true;
+      _iteratorError5 = err;
     } finally {
       try {
-        if (!_iteratorNormalCompletion2 && _iterator2.return) {
-          _iterator2.return();
+        if (!_iteratorNormalCompletion5 && _iterator5.return) {
+          _iterator5.return();
         }
       } finally {
-        if (_didIteratorError2) {
-          throw _iteratorError2;
+        if (_didIteratorError5) {
+          throw _iteratorError5;
         }
       }
     }
@@ -296,7 +401,7 @@ function antSwitchTask(game, ant, task, taskStack) {
 }
 
 ////////////////////////////////////////////////////////////////////////
-// Validated Entity Functions
+// Validated Entity Move Functions
 ////////////////////////////////////////////////////////////////////////
 
 /**
@@ -308,7 +413,8 @@ function antSwitchTask(game, ant, task, taskStack) {
  *
  * returns whether or not the entity got moved
  */
-function maybeMoveEntity(game, entity, nextPos, debug) {
+function maybeMoveEntity(game, entity, nextPos, blockers, debug) {
+  var blockingTypes = blockers != null ? blockers : config.antBlockingEntities;
   var distVec = subtract(nextPos, entity.position);
   if (distVec.x > 1 || distVec.y > 1 || distVec.x == 1 && distVec.y == 1) {
     if (debug) console.log("too far", distVec);
@@ -319,7 +425,7 @@ function maybeMoveEntity(game, entity, nextPos, debug) {
     return false; // already there
   }
   var occupied = fastCollidesWith(game, _extends({}, entity, { position: nextPos })).filter(function (e) {
-    return config.antBlockingEntities.includes(e.type);
+    return blockingTypes.includes(e.type);
   }).length > 0;
   var defyingGravity = nextPos.y > entity.position.y && shouldFall(game, _extends({}, entity, { position: nextPos }));
   if (!occupied && insideWorld(game, nextPos) && !defyingGravity) {
@@ -338,6 +444,143 @@ function maybeMoveEntity(game, entity, nextPos, debug) {
   return false;
 }
 
+/**
+ *  Moves towards a location that is distance > 1 away
+ *  Returns true if it was able to move towards it,
+ *  otherwise returns the entity that is blocking it
+ */
+function maybeMoveTowardsLocation(game, entity, loc) {
+  var distVec = subtract(loc, entity.position);
+  if (distVec.x == 0 && distVec.y == 0) {
+    return true; // you're there
+  }
+  var moveVec = { x: 0, y: 0 };
+
+  // select axis order to try moving along
+  var moveAxes = ['y', 'x'];
+  if (distVec.y == 0 || distVec.x !== 0 && Math.random() < 0.5) {
+    moveAxes = ['x', 'y'];
+  }
+
+  // try moving along each axis
+  var nextPos = null;
+  var _iteratorNormalCompletion6 = true;
+  var _didIteratorError6 = false;
+  var _iteratorError6 = undefined;
+
+  try {
+    for (var _iterator6 = moveAxes[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+      var moveAxis = _step6.value;
+
+      if (distVec[moveAxis] == 0) {
+        continue; // already aligned with destination on this axis
+      }
+      moveVec[moveAxis] += distVec[moveAxis] > 0 ? 1 : -1;
+      nextPos = add(moveVec, entity.position);
+      var didMove = maybeMoveEntity(game, entity, nextPos);
+      if (didMove) {
+        return true;
+      } else {
+        moveVec[moveAxis] = 0;
+      }
+    }
+
+    // else we couldn't move, so return the blocker
+  } catch (err) {
+    _didIteratorError6 = true;
+    _iteratorError6 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion6 && _iterator6.return) {
+        _iterator6.return();
+      }
+    } finally {
+      if (_didIteratorError6) {
+        throw _iteratorError6;
+      }
+    }
+  }
+
+  return lookupInGrid(game.grid, nextPos).map(function (i) {
+    return game.entities[i];
+  }).filter(function (e) {
+    return config.antBlockingEntities.includes(e.type);
+  })[0];
+}
+
+/**
+ *  Selects a random free neighbor to try to move to
+ *  Provide policies to constrain the random movement
+ *  Policies:
+ *    - NO_REVERSE: don't go back to your previous position
+ *    - FORWARD_BIAS: prefer to continue in current direction
+ *  Additionally can provide:
+ *    - constraint: a location random moves must stay inside
+ *    - blocking entities: override antBlockingEntities with these
+ */
+function maybeDoRandomMove(game, entity, policies, constraint, blockers) {
+  var blockingTypes = blockers != null ? blockers : config.antBlockingEntities;
+  var freePositions = fastGetEmptyNeighborPositions(game, entity, blockingTypes).filter(function (pos) {
+    return insideWorld(game, pos);
+  });
+
+  var _iteratorNormalCompletion7 = true;
+  var _didIteratorError7 = false;
+  var _iteratorError7 = undefined;
+
+  try {
+    for (var _iterator7 = policies[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+      var policy = _step7.value;
+
+      switch (policy) {
+        case 'NO_REVERSE':
+          {
+            freePositions = freePositions.filter(function (pos) {
+              return pos.x != entity.prevPosition.x || pos.y != entity.prevPosition.y;
+            });
+            if (freePositions.length == 0) {
+              freePositions = [_extends({}, entity.prevPosition)];
+            }
+            break;
+          }
+        case 'FORWARD_BIAS':
+          {
+            var dir = subtract(entity.position, entity.prevPosition);
+            freePositions.push(add(dir, entity.position));
+            freePositions.push(add(dir, entity.position));
+          }
+      }
+    }
+  } catch (err) {
+    _didIteratorError7 = true;
+    _iteratorError7 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion7 && _iterator7.return) {
+        _iterator7.return();
+      }
+    } finally {
+      if (_didIteratorError7) {
+        throw _iteratorError7;
+      }
+    }
+  }
+
+  if (constraint != null) {
+    freePositions = freePositions.filter(function (pos) {
+      return collides(_extends({}, entity, { position: pos }), constraint);
+    });
+  }
+
+  if (freePositions.length == 0) {
+    return false;
+  }
+
+  var nextPos = oneOf(freePositions);
+
+  return maybeMoveEntity(game, entity, nextPos, blockingTypes);
+}
+
 module.exports = {
   insertInGrid: insertInGrid,
   deleteFromGrid: deleteFromGrid,
@@ -352,6 +595,9 @@ module.exports = {
   antEatEntity: antEatEntity,
   antMakePheromone: antMakePheromone,
 
+  antSwitchTask: antSwitchTask,
+
   maybeMoveEntity: maybeMoveEntity,
-  antSwitchTask: antSwitchTask
+  maybeMoveTowardsLocation: maybeMoveTowardsLocation,
+  maybeDoRandomMove: maybeDoRandomMove
 };

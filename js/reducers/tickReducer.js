@@ -36,6 +36,7 @@ const {
   putDownEntity,
   maybeMoveEntity,
   antSwitchTask,
+  maybeDoRandomMove,
 } = require('../utils/stateHelpers');
 const {
   fastCollidesWith,
@@ -147,7 +148,7 @@ const handleTick = (game: GameState): GameState => {
     if (
       locs.length > 0 && (ant.location == null || locs[0].id != ant.location.id)
     ) {
-      if (collides(getInnerLocation(locs[0]), ant)) {
+      if (collides(game, getInnerLocation(locs[0]), ant)) {
         ant.location = locs[0];
         // don't assign the task yet if the ant is selected
         if (!game.selectedEntities.includes(ant.id)) {
@@ -191,6 +192,7 @@ const handleTick = (game: GameState): GameState => {
   }
 
   updateHeldBigEntities(game, heldEntityIDs);
+  updateBugs(game);
   updateAntLifeCycles(game);
   updatePheromones(game);
   computeGravity(game);
@@ -244,6 +246,58 @@ const updateHeldBigEntities = (
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// Bugs
+///////////////////////////////////////////////////////////////////////////////
+const updateBugs = (game): void => {
+  for (const aphidID of game.APHID) {
+    const aphid = game.entities[aphidID];
+    const rand = Math.random();
+    if (rand < 0.4) {
+      maybeDoRandomMove(game, aphid, []);
+    }
+  }
+  for (const beetleID of game.BEETLE) {
+    const beetle = game.entities[beetleID];
+    const rand = Math.random();
+    if (rand < 0.4) {
+      maybeDoRandomMove(game, beetle, []);
+    }
+    // TODO eat eggs/larva/pupa
+  }
+
+  for (const wormID of game.WORM) {
+    const worm = game.entities[wormID];
+    const rand = Math.random();
+    if (rand < 0.05) {
+      maybeDoRandomMove(
+        game, worm, ['NO_REVERSE', 'FORWARD_BIAS'],
+        null, // constraint
+        config.wormBlockingEntities,
+      );
+    }
+    // eat colliding dirt
+    const collidedDirt = fastCollidesWith(game, worm)
+      .filter(e => e.type == 'DIRT');
+    for (const dirt of collidedDirt) {
+      removeEntity(game, dirt);
+    }
+  }
+
+  for (const centID of game.CENTIPEDE) {
+    const centipede = game.entities[centID];
+    const rand = Math.random();
+    if (rand < 0.3) {
+      maybeDoRandomMove(
+        game, centipede, ['NO_REVERSE', 'FORWARD_BIAS'],
+        null, // constraint
+        config.centipedeBlockingEntities,
+      );
+    }
+    // TODO: eat stuff
+  }
+};
+
+///////////////////////////////////////////////////////////////////////////////
 // Game over
 ///////////////////////////////////////////////////////////////////////////////
 const computeLevelOver = (game): void => {
@@ -252,7 +306,7 @@ const computeLevelOver = (game): void => {
   const target = game.entities[game.TARGET[0]];
   if (!obelisk || !target) return;
 
-  if (collides(obelisk, target)) {
+  if (collides(game, obelisk, target)) {
     game.gameOver = 'win';
   }
 

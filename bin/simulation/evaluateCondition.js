@@ -41,7 +41,7 @@ var evaluateCondition = function evaluateCondition(game, ant, condition) {
             return l.name === loc;
           })[0];
         }
-        isTrue = collides(ant, loc);
+        isTrue = collides(game, ant, loc);
         break;
       }
     case 'HOLDING':

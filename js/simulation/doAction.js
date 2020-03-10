@@ -36,6 +36,8 @@ const {
   antEatEntity,
   antMakePheromone,
   antSwitchTask,
+  maybeMoveTowardsLocation,
+  maybeDoRandomMove,
 } = require('../utils/stateHelpers');
 const {
   fastCollidesWith,
@@ -139,82 +141,22 @@ const doAction = (
         }
       }
       if (obj === 'RANDOM') {
-        // randomly select loc based on free neighbors
-        let freePositions = fastGetEmptyNeighborPositions(
-          game, ant, config.antBlockingEntities
-        ).filter((pos) => insideWorld(game, pos));
-        if (freePositions.length == 0) {
-          break; // can't move
-        }
-        // don't select previous position
-        freePositions = freePositions.filter(pos => {
-          return pos.x != ant.prevPosition.x || pos.y != ant.prevPosition.y;
-        });
-        // if required, stay inside location boundary
-        if (constraint != null) {
-          freePositions = freePositions.filter(pos => {
-            return collides({...ant, position: pos}, constraint);
-          });
-        }
-        loc = {position: oneOf(freePositions)};
-        if (freePositions.length == 0) {
-          // fall back to previous position
-          loc = {position: ant.prevPosition};
-        }
+        maybeDoRandomMove(game, ant, ['NO_REVERSE'], constraint);
+        break;
       } else if (
         obj != 'TRAIL' && obj != 'REVERSE_TRAIL' && typeof obj === 'string'
       ) {
         loc = getEntitiesByType(game, ['LOCATION']).filter(l => l.name === obj)[0];
       }
-      const distVec = subtract(loc.position, ant.position);
-      if (distVec.x == 0 && distVec.y == 0) {
-        break; // you're there
-      }
-      let moveVec = {x: 0, y: 0};
-      let moveAxis = 'y';
-      // different policies for choosing move direction
-      // if (Math.abs(distVec.x) > Math.abs(distVec.y)) {
-      if (distVec.y == 0 ||(distVec.x !== 0 && Math.random() < 0.5)) {
-        moveAxis = 'x';
-      }
-      moveVec[moveAxis] += distVec[moveAxis] > 0 ? 1 : -1;
-      let nextPos = add(moveVec, ant.position);
-      let didMove = maybeMoveEntity(game, ant, nextPos);
-      if (didMove) {
+      const didMove = maybeMoveTowardsLocation(game, ant, loc.position);
+      if (didMove === true) {
         antMakePheromone(game, ant);
         ant.blocked = false;
         ant.blockedBy = null;
-      } else { // else try moving along the other axis
-        moveVec[moveAxis] = 0;
-        moveAxis = moveAxis === 'y' ? 'x' : 'y';
-        if (distVec[moveAxis] > 0) {
-          moveVec[moveAxis] += 1;
-        } else if (distVec[moveAxis] < 0) {
-          moveVec[moveAxis] -= 1;
-        } else {
-          // already axis-aligned with destination, but blocked
-          ant.blocked = true;
-          // TODO blockedBy requires ants to be 1x1
-          ant.blockedBy = lookupInGrid(game.grid, nextPos)
-            .map(i => game.entities[i])
-            .filter(e => config.antBlockingEntities.includes(e.type))
-            [0];
-          break;
-        }
-        nextPos = add(moveVec, ant.position);
-        didMove = maybeMoveEntity(game, ant, nextPos);
-        if (didMove) {
-          antMakePheromone(game, ant);
-          ant.blocked = false;
-          ant.blockedBy = null;
-        } else {
-          ant.blocked = true;
-          // TODO blockedBy requires ants to be 1x1
-          ant.blockedBy = lookupInGrid(game.grid, nextPos)
-            .map(i => game.entities[i])
-            .filter(e => config.antBlockingEntities.includes(e.type))
-            [0];
-        }
+      } else {
+        ant.blocked = true;
+        // TODO blockedBy requires ants to be 1x1
+        ant.blockedBy = didMove;
       }
       break;
     }
@@ -247,7 +189,7 @@ const doAction = (
             .filter(e => e.type == entityToPickup)
             .filter(e => {
               if (constraint != null) {
-                return collides(e, constraint);
+                return collides(game, e, constraint);
               } else {
                 return true;
               }
@@ -300,7 +242,10 @@ const doAction = (
             e.type === 'PHEROMONE';
         })
         .length === 0;
-      if (collides(ant, locationToPutdown) && ant.holding != null && putDownFree) {
+      if (
+        collides(game, ant, locationToPutdown) &&
+        ant.holding != null && putDownFree
+      ) {
         const toPutDown = ant.holding;
         putDownEntity(game, ant);
         // move the ant out of the way if dropped entity won't fall
@@ -470,7 +415,7 @@ const doHighLevelAction = (
           );
 
           return !collides(
-            ant.location, {position: locPointedAt, width: 1, height: 1},
+            game, ant.location, {position: locPointedAt, width: 1, height: 1},
           );
         })
         .length > 0;

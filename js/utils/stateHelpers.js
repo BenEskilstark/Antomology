@@ -5,10 +5,10 @@ const {
 } = require('../utils/vectors');
 const {
   fastCollidesWith, collides, insideWorld, lookupInGrid, getNeighborPositions,
-  shouldFall,
+  shouldFall, fastGetEmptyNeighborPositions,
 } = require('../selectors/selectors');
 const {config} = require('../config');
-const {getInnerLocation} = require('../utils/helpers');
+const {getInnerLocation, oneOf} = require('../utils/helpers');
 const {makePheromone} = require('../entities/pheromone');
 
 import type {EntityID, GameState, Vector, EntityType} from '../types';
@@ -53,6 +53,15 @@ function addEntity(game: GameState, entity: Entity): void {
   game.entities[entity.id] = entity;
   game[entity.type].push(entity.id);
 
+  if (entity.segmented) {
+    const {position, segments} = entity;
+    insertInGrid(game.grid, position, entity.id);
+    for (const segment of segments) {
+      insertInGrid(game.grid, segment.position, entity.id);
+    }
+    return;
+  }
+
   const {position, width, height} = entity;
   if (position == null) {
     return;
@@ -68,6 +77,16 @@ function addEntity(game: GameState, entity: Entity): void {
 function removeEntity(game: GameState, entity: Entity): void {
   delete game.entities[entity.id];
   game[entity.type] = game[entity.type].filter(id => id != entity.id);
+
+  // handle segmented entities
+  if (entity.segmented) {
+    for (const segment of entity.segments) {
+      deleteFromGrid(game.grid, segment.position, entity.id);
+    }
+    deleteFromGrid(game.grid, entity.position, entity.id);
+    return;
+  }
+
   const {position, width, height} = entity;
   if (position == null) {
     return;
@@ -90,6 +109,22 @@ function removeEntity(game: GameState, entity: Entity): void {
 }
 
 function moveEntity(game: GameState, entity: Entity, nextPos: Vector): void {
+  if (entity.segmented) {
+    let next = {...entity.position};
+    for (const segment of entity.segments) {
+      const tmp = {...segment.position};
+      deleteFromGrid(game.grid, segment.position, entity.id);
+      segment.position = {...next};
+      insertInGrid(game.grid, segment.position, entity.id);
+      next = tmp;
+    }
+    // NOTE: don't delete prevPosition from grid because there's a segment there
+    entity.prevPosition = entity.position;
+    entity.position = nextPos;
+    insertInGrid(game.grid, entity.position, entity.id);
+    return;
+  }
+
   const {position, width, height} = entity;
   // handle entities with larger size
   if (position != null) {
@@ -106,7 +141,10 @@ function moveEntity(game: GameState, entity: Entity, nextPos: Vector): void {
   }
   entity.prevPosition = entity.position;
   entity.position = nextPos;
-  if (entity.type === 'ANT') {
+  if (
+    entity.type === 'ANT' ||
+    config.bugs.includes(entity.type)
+  ) {
     // TODO this rotation is weird for the falling obelisk
     entity.theta = vectorTheta(subtract(entity.prevPosition, entity.position));
   }
@@ -249,7 +287,7 @@ function antSwitchTask(
 }
 
 ////////////////////////////////////////////////////////////////////////
-// Validated Entity Functions
+// Validated Entity Move Functions
 ////////////////////////////////////////////////////////////////////////
 
 /**
@@ -262,8 +300,11 @@ function antSwitchTask(
  * returns whether or not the entity got moved
  */
 function maybeMoveEntity(
-  game: GameState, entity: Entity, nextPos: Vector, debug: boolean,
+  game: GameState, entity: Entity, nextPos: Vector,
+  blockers: ?Array<EntityType>,
+  debug: boolean,
 ): boolean {
+  const blockingTypes = blockers != null ? blockers : config.antBlockingEntities;
   const distVec = subtract(nextPos, entity.position);
   if ((distVec.x > 1 || distVec.y > 1) || (distVec.x == 1 && distVec.y == 1)){
     if (debug) console.log("too far", distVec);
@@ -274,7 +315,7 @@ function maybeMoveEntity(
     return false; // already there
   }
   let occupied = fastCollidesWith(game, {...entity, position: nextPos})
-    .filter(e => config.antBlockingEntities.includes(e.type))
+    .filter(e => blockingTypes.includes(e.type))
     .length > 0;
   const defyingGravity = (
     nextPos.y > entity.position.y &&
@@ -296,6 +337,102 @@ function maybeMoveEntity(
   return false;
 }
 
+/**
+ *  Moves towards a location that is distance > 1 away
+ *  Returns true if it was able to move towards it,
+ *  otherwise returns the entity that is blocking it
+ */
+function maybeMoveTowardsLocation(
+  game: GameState, entity: Entity, loc: Vector,
+): boolean | Entity {
+  const distVec = subtract(loc, entity.position);
+  if (distVec.x == 0 && distVec.y == 0) {
+    return true; // you're there
+  }
+  let moveVec = {x: 0, y: 0};
+
+  // select axis order to try moving along
+  let moveAxes = ['y', 'x'];
+  if (distVec.y == 0 || (distVec.x !== 0 && Math.random() < 0.5)) {
+    moveAxes = ['x', 'y'];
+  }
+
+  // try moving along each axis
+  let nextPos = null;
+  for (let moveAxis of moveAxes) {
+    if (distVec[moveAxis] == 0) {
+      continue; // already aligned with destination on this axis
+    }
+    moveVec[moveAxis] += distVec[moveAxis] > 0 ? 1 : -1;
+    nextPos = add(moveVec, entity.position);
+    const didMove = maybeMoveEntity(game, entity, nextPos);
+    if (didMove) {
+      return true;
+    } else {
+      moveVec[moveAxis] = 0;
+    }
+  }
+
+  // else we couldn't move, so return the blocker
+  return lookupInGrid(game.grid, nextPos)
+    .map(i => game.entities[i])
+    .filter(e => config.antBlockingEntities.includes(e.type))
+    [0];
+}
+
+/**
+ *  Selects a random free neighbor to try to move to
+ *  Provide policies to constrain the random movement
+ *  Policies:
+ *    - NO_REVERSE: don't go back to your previous position
+ *    - FORWARD_BIAS: prefer to continue in current direction
+ *  Additionally can provide:
+ *    - constraint: a location random moves must stay inside
+ *    - blocking entities: override antBlockingEntities with these
+ */
+function maybeDoRandomMove(
+  game: GameState, entity: Entity, policies: Array<string>,
+  constraint: ?Location, blockers: ?Array<EntityType>,
+): boolean {
+  const blockingTypes = blockers != null ? blockers : config.antBlockingEntities;
+  let freePositions =
+    fastGetEmptyNeighborPositions(game, entity, blockingTypes)
+      .filter((pos) => insideWorld(game, pos));
+
+  for (let policy of policies) {
+    switch (policy) {
+      case 'NO_REVERSE': {
+        freePositions = freePositions.filter((pos) => {
+          return pos.x != entity.prevPosition.x || pos.y != entity.prevPosition.y;
+        });
+        if (freePositions.length == 0) {
+          freePositions = [{...entity.prevPosition}];
+        }
+        break;
+      }
+      case 'FORWARD_BIAS': {
+        const dir = subtract(entity.position, entity.prevPosition);
+        freePositions.push(add(dir, entity.position));
+        freePositions.push(add(dir, entity.position));
+      }
+    }
+  }
+
+  if (constraint != null) {
+    freePositions = freePositions.filter((pos) => {
+      return collides({...entity, position: pos}, constraint);
+    });
+  }
+
+  if (freePositions.length == 0) {
+    return false;
+  }
+
+  const nextPos = oneOf(freePositions);
+
+  return maybeMoveEntity(game, entity, nextPos, blockingTypes);
+}
+
 module.exports = {
   insertInGrid,
   deleteFromGrid,
@@ -310,6 +447,9 @@ module.exports = {
   antEatEntity,
   antMakePheromone,
 
-  maybeMoveEntity,
   antSwitchTask,
+
+  maybeMoveEntity,
+  maybeMoveTowardsLocation,
+  maybeDoRandomMove,
 }

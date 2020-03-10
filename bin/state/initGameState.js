@@ -26,15 +26,24 @@ var _require7 = require('../entities/food'),
 var _require8 = require('../entities/location'),
     makeLocation = _require8.makeLocation;
 
-var _require9 = require('../config'),
-    config = _require9.config;
+var _require9 = require('../entities/bugs'),
+    makeAphid = _require9.makeAphid,
+    makeBeetle = _require9.makeBeetle,
+    makeLadyBug = _require9.makeLadyBug,
+    makeSpider = _require9.makeSpider,
+    makeDragonFly = _require9.makeDragonFly,
+    makeWorm = _require9.makeWorm,
+    makeCentipede = _require9.makeCentipede;
 
-var _require10 = require('../utils/helpers'),
-    randomIn = _require10.randomIn;
+var _require10 = require('../config'),
+    config = _require10.config;
 
-var _require11 = require('../utils/stateHelpers'),
-    addEntity = _require11.addEntity,
-    insertInGrid = _require11.insertInGrid;
+var _require11 = require('../utils/helpers'),
+    randomIn = _require11.randomIn;
+
+var _require12 = require('../utils/stateHelpers'),
+    addEntity = _require12.addEntity,
+    insertInGrid = _require12.insertInGrid;
 
 var tasks = require('../state/tasks');
 var graphTasks = require('../state/graphTasks');
@@ -74,7 +83,7 @@ var initGameState = function initGameState(level) {
 ////////////////////////////////////////////////////////////////////////////
 
 var level0 = function level0() {
-  var game = baseState(200, 200);
+  var game = baseState(75, 75);
   var colonyEntrance = makeLocation('Colony Entrance', 5, 5, { x: 25, y: 30 });
   // ...makeLocation('Colony Entrance', 5, 5, {x: 25, y: 29}), id: config.colonyEntrance,
   // };
@@ -111,14 +120,14 @@ var level0 = function level0() {
   }
 
   // seed ants
-  for (var i = 0; i < 1000; i++) {
-    var position = {
-      x: randomIn(0, game.worldWidth - 1),
-      y: randomIn(Math.ceil(game.worldHeight * 0.6), game.worldHeight - 1)
-    };
-    var ant = makeAnt(position, 'WORKER');
-    addEntity(game, ant);
-  }
+  // for (let i = 0; i < 1000; i++) {
+  //   const position = {
+  //     x: randomIn(0, game.worldWidth - 1),
+  //     y: randomIn(Math.ceil(game.worldHeight * 0.6), game.worldHeight - 1),
+  //   };
+  //   const ant = makeAnt(position, 'WORKER');
+  //   addEntity(game, ant);
+  // }
   addEntity(game, makeAnt({ x: 25, y: 30 }, 'QUEEN'));
   addEntity(game, makeAnt({ x: 18, y: 30 }, 'WORKER'));
   addEntity(game, makeAnt({ x: 30, y: 30 }, 'WORKER'));
@@ -127,21 +136,27 @@ var level0 = function level0() {
   addEntity(game, makeAnt({ x: 33, y: 30 }, 'WORKER'));
   addEntity(game, makeAnt({ x: 35, y: 30 }, 'WORKER'));
 
+  // seed bugs
+  addEntity(game, makeAphid({ x: 36, y: 40 }));
+  addEntity(game, makeBeetle({ x: 40, y: 40 }, 3, 2));
+  addEntity(game, makeWorm({ x: 28, y: 20 }, [{ x: 27, y: 20 }, { x: 26, y: 20 }, { x: 26, y: 19 }, { x: 25, y: 19 }, { x: 24, y: 19 }, { x: 24, y: 18 }, { x: 24, y: 17 }, { x: 24, y: 16 }, { x: 24, y: 15 }, { x: 23, y: 15 }]));
+  addEntity(game, makeCentipede({ x: 37, y: 23 }, [{ x: 36, y: 23 }, { x: 35, y: 23 }, { x: 34, y: 23 }, { x: 34, y: 24 }, { x: 33, y: 24 }, { x: 32, y: 24 }, { x: 32, y: 25 }]));
+
   // add obelisk
   addEntity(game, makeObelisk({ x: 20, y: 40 }, 4, 8));
 
   // add stone
-  addEntity(game, makeStone({ x: 35, y: 35 }));
+  // addEntity(game, makeStone({x: 35, y: 35}));
 
   // seed food
-  for (var _i = 0; _i < 15; _i++) {
-    var _position = {
-      x: randomIn(0, game.worldWidth - 1),
-      y: randomIn(Math.ceil(game.worldHeight * 0.6) + 1, game.worldHeight - 1)
-    };
-    var food = makeFood(_position, 1000, 'Crumb');
-    addEntity(game, food);
-  }
+  //  for (let i = 0; i < 15; i++) {
+  //    const position = {
+  //      x: randomIn(0, game.worldWidth - 1),
+  //      y: randomIn(Math.ceil(game.worldHeight * 0.6) + 1, game.worldHeight - 1),
+  //    };
+  //    const food = makeFood(position, 1000, 'Crumb');
+  //    addEntity(game, food);
+  //  }
 
   return game;
 };
@@ -211,7 +226,6 @@ var baseState = function baseState(worldWidth, worldHeight) {
     EGG: [],
     LARVA: [],
     PUPA: [],
-    DEAD_ANT: [], // TODO: not actually implemented
     LOCATION: [],
     PHEROMONE: [],
     STONE: [],
@@ -220,6 +234,13 @@ var baseState = function baseState(worldWidth, worldHeight) {
     TARGET: [],
     GRASS: [],
     STUCK_STONE: [],
+    BEETLE: [],
+    LADYBUG: [],
+    APHID: [],
+    SPIDER: [],
+    WORM: [],
+    CENTIPEDE: [],
+    DRAGONFLY: [],
 
     tasks: [],
     grid: [],

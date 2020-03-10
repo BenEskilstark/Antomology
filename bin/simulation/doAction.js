@@ -45,7 +45,9 @@ var _require6 = require('../utils/stateHelpers'),
     maybeMoveEntity = _require6.maybeMoveEntity,
     antEatEntity = _require6.antEatEntity,
     antMakePheromone = _require6.antMakePheromone,
-    antSwitchTask = _require6.antSwitchTask;
+    antSwitchTask = _require6.antSwitchTask,
+    maybeMoveTowardsLocation = _require6.maybeMoveTowardsLocation,
+    maybeDoRandomMove = _require6.maybeDoRandomMove;
 
 var _require7 = require('../selectors/selectors'),
     fastCollidesWith = _require7.fastCollidesWith,
@@ -151,85 +153,22 @@ var doAction = function doAction(game, ant, action) {
           }
         }
         if (obj === 'RANDOM') {
-          // randomly select loc based on free neighbors
-          var _freePositions = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities).filter(function (pos) {
-            return insideWorld(game, pos);
-          });
-          if (_freePositions.length == 0) {
-            break; // can't move
-          }
-          // don't select previous position
-          _freePositions = _freePositions.filter(function (pos) {
-            return pos.x != ant.prevPosition.x || pos.y != ant.prevPosition.y;
-          });
-          // if required, stay inside location boundary
-          if (constraint != null) {
-            _freePositions = _freePositions.filter(function (pos) {
-              return collides(_extends({}, ant, { position: pos }), constraint);
-            });
-          }
-          loc = { position: oneOf(_freePositions) };
-          if (_freePositions.length == 0) {
-            // fall back to previous position
-            loc = { position: ant.prevPosition };
-          }
+          maybeDoRandomMove(game, ant, ['NO_REVERSE'], constraint);
+          break;
         } else if (obj != 'TRAIL' && obj != 'REVERSE_TRAIL' && typeof obj === 'string') {
           loc = getEntitiesByType(game, ['LOCATION']).filter(function (l) {
             return l.name === obj;
           })[0];
         }
-        var distVec = subtract(loc.position, ant.position);
-        if (distVec.x == 0 && distVec.y == 0) {
-          break; // you're there
-        }
-        var moveVec = { x: 0, y: 0 };
-        var moveAxis = 'y';
-        // different policies for choosing move direction
-        // if (Math.abs(distVec.x) > Math.abs(distVec.y)) {
-        if (distVec.y == 0 || distVec.x !== 0 && Math.random() < 0.5) {
-          moveAxis = 'x';
-        }
-        moveVec[moveAxis] += distVec[moveAxis] > 0 ? 1 : -1;
-        var nextPos = add(moveVec, ant.position);
-        var didMove = maybeMoveEntity(game, ant, nextPos);
-        if (didMove) {
+        var didMove = maybeMoveTowardsLocation(game, ant, loc.position);
+        if (didMove === true) {
           antMakePheromone(game, ant);
           ant.blocked = false;
           ant.blockedBy = null;
         } else {
-          // else try moving along the other axis
-          moveVec[moveAxis] = 0;
-          moveAxis = moveAxis === 'y' ? 'x' : 'y';
-          if (distVec[moveAxis] > 0) {
-            moveVec[moveAxis] += 1;
-          } else if (distVec[moveAxis] < 0) {
-            moveVec[moveAxis] -= 1;
-          } else {
-            // already axis-aligned with destination, but blocked
-            ant.blocked = true;
-            // TODO blockedBy requires ants to be 1x1
-            ant.blockedBy = lookupInGrid(game.grid, nextPos).map(function (i) {
-              return game.entities[i];
-            }).filter(function (e) {
-              return config.antBlockingEntities.includes(e.type);
-            })[0];
-            break;
-          }
-          nextPos = add(moveVec, ant.position);
-          didMove = maybeMoveEntity(game, ant, nextPos);
-          if (didMove) {
-            antMakePheromone(game, ant);
-            ant.blocked = false;
-            ant.blockedBy = null;
-          } else {
-            ant.blocked = true;
-            // TODO blockedBy requires ants to be 1x1
-            ant.blockedBy = lookupInGrid(game.grid, nextPos).map(function (i) {
-              return game.entities[i];
-            }).filter(function (e) {
-              return config.antBlockingEntities.includes(e.type);
-            })[0];
-          }
+          ant.blocked = true;
+          // TODO blockedBy requires ants to be 1x1
+          ant.blockedBy = didMove;
         }
         break;
       }
@@ -302,7 +241,7 @@ var doAction = function doAction(game, ant, action) {
             return e.type == entityToPickup;
           }).filter(function (e) {
             if (constraint != null) {
-              return collides(e, constraint);
+              return collides(game, e, constraint);
             } else {
               return true;
             }
@@ -350,14 +289,14 @@ var doAction = function doAction(game, ant, action) {
         var putDownFree = fastCollidesWith(game, locationToPutdown).filter(function (e) {
           return config.antBlockingEntities.includes(e.type) || e.type === 'PHEROMONE';
         }).length === 0;
-        if (collides(ant, locationToPutdown) && ant.holding != null && putDownFree) {
+        if (collides(game, ant, locationToPutdown) && ant.holding != null && putDownFree) {
           var toPutDown = ant.holding;
           putDownEntity(game, ant);
           // move the ant out of the way if dropped entity won't fall
           if (!shouldFall(game, toPutDown)) {
-            var _freePositions2 = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities);
-            if (_freePositions2.length > 0) {
-              moveEntity(game, ant, _freePositions2[0]);
+            var _freePositions = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities);
+            if (_freePositions.length > 0) {
+              moveEntity(game, ant, _freePositions[0]);
             }
           }
         }
@@ -467,10 +406,10 @@ var doAction = function doAction(game, ant, action) {
           var egg = makeEgg(ant.position, 'WORKER'); // TODO
           addEntity(game, egg);
           // move the ant out of the way
-          var _freePositions3 = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities);
+          var _freePositions2 = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities);
           ant.eggLayingCooldown = config.eggLayingCooldown;
-          if (_freePositions3.length > 0) {
-            moveEntity(game, ant, _freePositions3[0]);
+          if (_freePositions2.length > 0) {
+            moveEntity(game, ant, _freePositions2[0]);
           }
         }
         break;
@@ -551,7 +490,7 @@ var doHighLevelAction = function doHighLevelAction(game, ant, action) {
         .filter(function (p) {
           var locPointedAt = add(makeVector(p.theta, 1), p.position);
 
-          return !collides(ant.location, { position: locPointedAt, width: 1, height: 1 });
+          return !collides(game, ant.location, { position: locPointedAt, width: 1, height: 1 });
         }).length > 0;
         if (onPheromone) {
           done = true;
