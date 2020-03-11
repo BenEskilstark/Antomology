@@ -142,6 +142,18 @@ function Game(props) {
     });
   }, []);
 
+  var hoverCard = React.createElement(
+    'div',
+    {
+      style: {
+        position: 'absolute',
+        top: props.state.game.mouse.curPixel.y,
+        left: props.state.game.mouse.curPixel.x
+      }
+    },
+    props.state.game.hoverCard.jsx
+  );
+
   return React.createElement(
     'div',
     {
@@ -154,7 +166,8 @@ function Game(props) {
       width: props.width, height: props.height
     }),
     React.createElement(InfoSidebar, { state: props.state, dispatch: props.dispatch }),
-    React.createElement(SelectionSidebar, { state: props.state, dispatch: props.dispatch })
+    React.createElement(SelectionSidebar, { state: props.state, dispatch: props.dispatch }),
+    props.state.game.hoverCard.jsx != null ? hoverCard : null
   );
 }
 

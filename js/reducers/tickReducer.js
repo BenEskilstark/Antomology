@@ -262,13 +262,12 @@ const updateBugs = (game): void => {
     if (rand < 0.4) {
       maybeDoRandomMove(game, beetle, []);
     }
-    // TODO eat eggs/larva/pupa
   }
 
   for (const wormID of game.WORM) {
     const worm = game.entities[wormID];
     const rand = Math.random();
-    if (rand < 0.05) {
+    if (rand < 0.025) {
       maybeDoRandomMove(
         game, worm, ['NO_REVERSE', 'FORWARD_BIAS'],
         null, // constraint
@@ -293,7 +292,21 @@ const updateBugs = (game): void => {
         config.centipedeBlockingEntities,
       );
     }
-    // TODO: eat stuff
+    // eat stuff
+    const collidedFood = fastCollidesWith(game, centipede)
+      .filter(e => e.type == 'EGG' || e.type == 'LARVA' || e.type == 'PUPA');
+    for (const food of collidedFood) {
+      removeEntity(game, food);
+    }
+  }
+
+  for (const dragonFlyID of game.DRAGONFLY) {
+    const dragonFly = game.entities[dragonFlyID];
+    maybeDoRandomMove(
+      game, dragonFly, ['NO_REVERSE', 'FORWARD_BIAS', 'FORWARD_BIAS'],
+      null, // constraint
+      config.dragonFlyBlockingEntities,
+    );
   }
 };
 

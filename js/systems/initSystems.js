@@ -6,6 +6,7 @@ const {initMouseControlsSystem} = require('./mouseControlsSystem');
 const {initKeyboardControlsSystem} = require('./keyboardControlsSystem');
 const {initGameOverSystem} = require('./gameOverSystem');
 const {initTickerSystem} = require('./tickerSystem');
+const {initHoverCardSystem} = require('./hoverCardSystem');
 
 const initSystems = (store: Store): void => {
   let gameMode = store.getState().mode;
@@ -20,6 +21,7 @@ const initSystems = (store: Store): void => {
       initKeyboardControlsSystem(store);
       initGameOverSystem(store);
       initTickerSystem(store);
+      initHoverCardSystem(store);
       // initFoodSpawnSystem(store);
       // const audio = document.getElementById('clayMusic1');
       // audio.play();

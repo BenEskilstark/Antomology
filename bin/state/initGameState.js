@@ -141,6 +141,7 @@ var level0 = function level0() {
   addEntity(game, makeBeetle({ x: 40, y: 40 }, 3, 2));
   addEntity(game, makeWorm({ x: 28, y: 20 }, [{ x: 27, y: 20 }, { x: 26, y: 20 }, { x: 26, y: 19 }, { x: 25, y: 19 }, { x: 24, y: 19 }, { x: 24, y: 18 }, { x: 24, y: 17 }, { x: 24, y: 16 }, { x: 24, y: 15 }, { x: 23, y: 15 }]));
   addEntity(game, makeCentipede({ x: 37, y: 23 }, [{ x: 36, y: 23 }, { x: 35, y: 23 }, { x: 34, y: 23 }, { x: 34, y: 24 }, { x: 33, y: 24 }, { x: 32, y: 24 }, { x: 32, y: 25 }]));
+  addEntity(game, makeDragonFly({ x: 15, y: 40 }, 6));
 
   // add obelisk
   addEntity(game, makeObelisk({ x: 20, y: 40 }, 4, 8));
@@ -212,6 +213,10 @@ var baseState = function baseState(worldWidth, worldHeight) {
       text: '',
       curAge: 0,
       maxAge: 0
+    },
+    hoverCard: {
+      jsx: null,
+      mouseStillTime: 0
     },
 
     worldWidth: worldWidth,

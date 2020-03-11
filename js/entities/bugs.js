@@ -2,6 +2,7 @@
 
 const {config} = require('../config');
 const {makeEntity} = require('./entity');
+const {subtract} = require('../utils/vectors');
 
 import type {Vector, Entity, Bug} from '../types';
 
@@ -46,7 +47,7 @@ const makeWorm = (position: Vector, segments: Array<Vector>): Bug => {
     ...makeEntity('WORM', 1, 1, position),
     alive: true,
     segmented: true,
-    segments: segments.map(position => ({position})),
+    segments: segments.map(p => ({position: p})),
   };
 };
 
@@ -55,7 +56,7 @@ const makeCentipede = (position: Vector, segments: Array<Vector>): Bug => {
     ...makeEntity('CENTIPEDE', 1, 1, position),
     alive: true,
     segmented: true,
-    segments: segments.map(position => ({position})),
+    segments: segments.map(p => ({position: p})),
   };
 };
 

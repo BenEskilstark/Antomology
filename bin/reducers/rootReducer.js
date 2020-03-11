@@ -145,6 +145,8 @@ var rootReducer = function rootReducer(state, action) {
     case 'ZOOM':
     case 'SET_TICKER':
     case 'SET_GAME_OVER':
+    case 'SET_HOVER_CARD_JSX':
+    case 'SET_HOVER_CARD_TIME':
       if (!state.game) return state;
       return _extends({}, state, {
         game: gameReducer(state.game, action)

@@ -160,28 +160,30 @@ const render = (state: State, ctx: any): void => {
 
 }
 
-// NOTE when rendering underneath FoW, use noRecursion = true to not render infinitely
+// NOTE when rendering underneath FoW, use inFog = true to not render infinitely
 const renderEntity = (
-  state: State, ctx: any, entity: Entity, noRecursion: boolean,
+  state: State, ctx: any, entity: Entity, inFog: boolean,
 ): void => {
   const {game} = state;
   const px = config.width / config.canvasWidth;
   ctx.save();
-  // render relative to top left of grid square, but first translate for rotation
-  // around the center
-  ctx.translate(
-    entity.position.x + entity.width / 2,
-    entity.position.y + entity.height / 2,
-  );
-  ctx.rotate(entity.theta);
-  ctx.translate(-entity.width / 2, -entity.height / 2);
-  ctx.lineWidth = px;
+  if (!inFog) {
+    // render relative to top left of grid square, but first translate for rotation
+    // around the center
+    ctx.translate(
+      entity.position.x + entity.width / 2,
+      entity.position.y + entity.height / 2,
+    );
+    ctx.rotate(entity.theta);
+    ctx.translate(-entity.width / 2, -entity.height / 2);
+    ctx.lineWidth = px;
+  }
 
   // handle fog
-  if (!entity.visible && !noRecursion && state.game.fog) {
+  if (!entity.visible && !inFog && state.game.fog) {
     const width = entity.width + 0.04;
     const height = entity.height + 0.04;
-    if (entity.lastSeenPos == null) {
+    if (entity.lastSeenPos == null || config.bugs.includes(entity.type)) {
       const aboveSeenBefore = lookupInGrid(game.grid, entity.position)
         .map(i => game.entities[i])
         .filter(e => config.entitiesInFog.includes(e.type))
@@ -194,7 +196,7 @@ const renderEntity = (
         return; // don't render unseen entities above unseen, seen-before entities
       }
     } else {
-      renderEntity(state, ctx, {...entity, position: {x: 0, y: 0}}, true);
+      renderEntity(state, ctx, entity, true);
       ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
     }
     ctx.fillRect(0, 0, width, height);
@@ -407,7 +409,7 @@ const renderEntity = (
         const segment = entity.segments[i];
         const relPos = subtract(segment.position, entity.position);
         // legs
-        const dir = vectorTheta(subtract(nextSegmentPos, segment.position));
+        const dir = vectorTheta(subtract(nextSegmentPos, relPos));
         ctx.save();
         ctx.beginPath();
         ctx.strokeStyle = 'black';
@@ -444,6 +446,45 @@ const renderEntity = (
       ctx.fill();
       ctx.stroke();
       ctx.restore();
+      break;
+    }
+    case 'DRAGONFLY': {
+      ctx.fillStyle = "#00008B";
+      ctx.lineWidth = px;
+      // head
+      ctx.beginPath();
+      ctx.arc(0.5, 0.5, 0.5, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.fillStyle = 'black';
+      ctx.arc(0.4, 0.4, 0.4, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.closePath();
+      // body
+      ctx.fillStyle = "#00008B";
+      ctx.fillRect(0.75, 0.1, entity.width - 1, 0.8);
+      // tail
+      ctx.beginPath();
+      ctx.arc(entity.width - 0.5, 0.5, 0.4, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.closePath();
+
+      // wings
+      ctx.strokeStyle = 'black';
+      ctx.beginPath();
+      ctx.moveTo(2, 0.9);
+      ctx.quadraticCurveTo(0.7, 2, 1.5, 6);
+      ctx.quadraticCurveTo(2.3, 2, 2, 0.9);
+      ctx.quadraticCurveTo(0.7, 2, 2.5, 6);
+      ctx.quadraticCurveTo(2.3, 2, 2, 0.9);
+
+      ctx.moveTo(2, 0.1);
+      ctx.quadraticCurveTo(0.7, -2, 1.5, -5);
+      ctx.quadraticCurveTo(2.3, -2, 2, 0.1);
+      ctx.quadraticCurveTo(0.7, -2, 2.5, -5);
+      ctx.quadraticCurveTo(2.3, -2, 2, 0.1);
+      ctx.closePath();
+      ctx.stroke();
+
       break;
     }
     case 'BACKGROUND': {

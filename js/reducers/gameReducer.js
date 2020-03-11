@@ -253,6 +253,27 @@ const gameReducer = (game: GameState, action: Action): GameState => {
         },
       };
     }
+    case 'SET_HOVER_CARD_JSX': {
+      const {jsx} = action;
+      return {
+        ...game,
+        hoverCard: {
+          ...game.hoverCard,
+          jsx,
+          mouseStillTime: 0,
+        },
+      };
+    }
+    case 'SET_HOVER_CARD_TIME': {
+      const {mouseStillTime} = action;
+      return {
+        ...game,
+        hoverCard: {
+          ...game.hoverCard,
+          mouseStillTime,
+        },
+      };
+    }
     case 'UPDATE_THETA': {
       const {id, theta} = action;
       if (game.entities[id] != null) {

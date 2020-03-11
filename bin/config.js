@@ -15,6 +15,8 @@ var config = {
   canvasWidth: 1200,
   canvasHeight: 800,
 
+  hoverCardDelay: 2,
+
   // hardcoded location ids:
   clickedPosition: -1,
   colonyEntrance: 0, // DEPRECATED
@@ -23,10 +25,11 @@ var config = {
   bugs: bugs,
   wormBlockingEntities: ['STONE', 'STUCK_STONE', 'FOOD', 'EGG', 'LARVA', 'PUPA', 'OBELISK'].concat(bugs),
   centipedeBlockingEntities: ['DIRT', 'STONE', 'STUCK_STONE', 'OBELISK'],
+  dragonFlyBlockingEntities: ['DIRT', 'STONE', 'STUCK_STONE', 'OBELISK'].concat(bugs),
 
   // fog-of-war
   entitiesInFog: ['DIRT', 'FOOD', 'BACKGROUND', 'STONE', 'STUCK_STONE', 'GRASS'].concat(bugs),
-  antVisionRadius: 40,
+  antVisionRadius: 7,
   immobileEntities: [// simpler to compute visibility if we know they never move
   'BACKGROUND', 'GRASS', 'STUCK_STONE', 'TARGET'],
 

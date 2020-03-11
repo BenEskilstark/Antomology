@@ -145,6 +145,7 @@ const level0 = (): GameState => {
   {x: 32, y: 24},
   {x: 32, y: 25},
   ]));
+  addEntity(game, makeDragonFly({x: 15, y: 40}, 6));
 
   // add obelisk
   addEntity(game, makeObelisk({x: 20, y: 40}, 4, 8));
@@ -216,6 +217,10 @@ const baseState = (worldWidth: number, worldHeight: number): GameState => {
       text: '',
       curAge: 0,
       maxAge: 0,
+    },
+    hoverCard: {
+      jsx: null,
+      mouseStillTime: 0,
     },
 
     worldWidth,

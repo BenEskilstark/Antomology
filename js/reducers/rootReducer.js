@@ -129,6 +129,8 @@ const rootReducer = (state: State, action: Action): State => {
     case 'ZOOM':
     case 'SET_TICKER':
     case 'SET_GAME_OVER':
+    case 'SET_HOVER_CARD_JSX':
+    case 'SET_HOVER_CARD_TIME':
       if (!state.game) return state;
       return {
         ...state,

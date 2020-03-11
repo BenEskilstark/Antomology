@@ -251,24 +251,26 @@ var render = function render(state, ctx) {
   ctx.restore();
 };
 
-// NOTE when rendering underneath FoW, use noRecursion = true to not render infinitely
-var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
+// NOTE when rendering underneath FoW, use inFog = true to not render infinitely
+var renderEntity = function renderEntity(state, ctx, entity, inFog) {
   var game = state.game;
 
   var px = config.width / config.canvasWidth;
   ctx.save();
-  // render relative to top left of grid square, but first translate for rotation
-  // around the center
-  ctx.translate(entity.position.x + entity.width / 2, entity.position.y + entity.height / 2);
-  ctx.rotate(entity.theta);
-  ctx.translate(-entity.width / 2, -entity.height / 2);
-  ctx.lineWidth = px;
+  if (!inFog) {
+    // render relative to top left of grid square, but first translate for rotation
+    // around the center
+    ctx.translate(entity.position.x + entity.width / 2, entity.position.y + entity.height / 2);
+    ctx.rotate(entity.theta);
+    ctx.translate(-entity.width / 2, -entity.height / 2);
+    ctx.lineWidth = px;
+  }
 
   // handle fog
-  if (!entity.visible && !noRecursion && state.game.fog) {
+  if (!entity.visible && !inFog && state.game.fog) {
     var width = entity.width + 0.04;
     var height = entity.height + 0.04;
-    if (entity.lastSeenPos == null) {
+    if (entity.lastSeenPos == null || config.bugs.includes(entity.type)) {
       var aboveSeenBefore = lookupInGrid(game.grid, entity.position).map(function (i) {
         return game.entities[i];
       }).filter(function (e) {
@@ -283,7 +285,7 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
         return; // don't render unseen entities above unseen, seen-before entities
       }
     } else {
-      renderEntity(state, ctx, _extends({}, entity, { position: { x: 0, y: 0 } }), true);
+      renderEntity(state, ctx, entity, true);
       ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
     }
     ctx.fillRect(0, 0, width, height);
@@ -495,7 +497,7 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
           var _segment = entity.segments[_i];
           var _relPos3 = subtract(_segment.position, entity.position);
           // legs
-          var dir = vectorTheta(subtract(nextSegmentPos, _segment.position));
+          var dir = vectorTheta(subtract(nextSegmentPos, _relPos3));
           ctx.save();
           ctx.beginPath();
           ctx.strokeStyle = 'black';
@@ -532,6 +534,46 @@ var renderEntity = function renderEntity(state, ctx, entity, noRecursion) {
         ctx.fill();
         ctx.stroke();
         ctx.restore();
+        break;
+      }
+    case 'DRAGONFLY':
+      {
+        ctx.fillStyle = "#00008B";
+        ctx.lineWidth = px;
+        // head
+        ctx.beginPath();
+        ctx.arc(0.5, 0.5, 0.5, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.fillStyle = 'black';
+        ctx.arc(0.4, 0.4, 0.4, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.closePath();
+        // body
+        ctx.fillStyle = "#00008B";
+        ctx.fillRect(0.75, 0.1, entity.width - 1, 0.8);
+        // tail
+        ctx.beginPath();
+        ctx.arc(entity.width - 0.5, 0.5, 0.4, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.closePath();
+
+        // wings
+        ctx.strokeStyle = 'black';
+        ctx.beginPath();
+        ctx.moveTo(2, 0.9);
+        ctx.quadraticCurveTo(0.7, 2, 1.5, 6);
+        ctx.quadraticCurveTo(2.3, 2, 2, 0.9);
+        ctx.quadraticCurveTo(0.7, 2, 2.5, 6);
+        ctx.quadraticCurveTo(2.3, 2, 2, 0.9);
+
+        ctx.moveTo(2, 0.1);
+        ctx.quadraticCurveTo(0.7, -2, 1.5, -5);
+        ctx.quadraticCurveTo(2.3, -2, 2, 0.1);
+        ctx.quadraticCurveTo(0.7, -2, 2.5, -5);
+        ctx.quadraticCurveTo(2.3, -2, 2, 0.1);
+        ctx.closePath();
+        ctx.stroke();
+
         break;
       }
     case 'BACKGROUND':

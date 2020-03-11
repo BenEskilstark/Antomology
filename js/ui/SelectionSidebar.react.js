@@ -44,6 +44,7 @@ function SelectionSidebar(props: Props): React.Node {
   return (
     <div
       style={{
+        zIndex: 1,
         width: 400,
         position: 'absolute',
         left: config.canvasWidth - (400 + PADDING),

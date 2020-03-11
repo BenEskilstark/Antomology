@@ -404,6 +404,27 @@ var gameReducer = function gameReducer(game, action) {
           }
         });
       }
+    case 'SET_HOVER_CARD_JSX':
+      {
+        var jsx = action.jsx;
+
+        return _extends({}, game, {
+          hoverCard: _extends({}, game.hoverCard, {
+            jsx: jsx,
+            mouseStillTime: 0
+          })
+        });
+      }
+    case 'SET_HOVER_CARD_TIME':
+      {
+        var mouseStillTime = action.mouseStillTime;
+
+        return _extends({}, game, {
+          hoverCard: _extends({}, game.hoverCard, {
+            mouseStillTime: mouseStillTime
+          })
+        });
+      }
     case 'UPDATE_THETA':
       {
         var _id7 = action.id,

@@ -121,6 +121,18 @@ function Game(props: Props): React.Node {
     });
   }, []);
 
+  const hoverCard = (
+    <div
+      style={{
+        position: 'absolute',
+        top: props.state.game.mouse.curPixel.y,
+        left: props.state.game.mouse.curPixel.x,
+      }}
+    >
+      {props.state.game.hoverCard.jsx}
+    </div>
+  );
+
   return (
     <div
       className="background" id="background"
@@ -133,6 +145,7 @@ function Game(props: Props): React.Node {
       />
       <InfoSidebar state={props.state} dispatch={props.dispatch} />
       <SelectionSidebar state={props.state} dispatch={props.dispatch} />
+      {props.state.game.hoverCard.jsx != null ? hoverCard : null}
     </div>
   );
 }

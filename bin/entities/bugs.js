@@ -8,6 +8,9 @@ var _require = require('../config'),
 var _require2 = require('./entity'),
     makeEntity = _require2.makeEntity;
 
+var _require3 = require('../utils/vectors'),
+    subtract = _require3.subtract;
+
 var makeAphid = function makeAphid(position) {
   return _extends({}, makeEntity('APHID', 1, 1, position), {
     alive: true
@@ -42,8 +45,8 @@ var makeWorm = function makeWorm(position, segments) {
   return _extends({}, makeEntity('WORM', 1, 1, position), {
     alive: true,
     segmented: true,
-    segments: segments.map(function (position) {
-      return { position: position };
+    segments: segments.map(function (p) {
+      return { position: p };
     })
   });
 };
@@ -52,8 +55,8 @@ var makeCentipede = function makeCentipede(position, segments) {
   return _extends({}, makeEntity('CENTIPEDE', 1, 1, position), {
     alive: true,
     segmented: true,
-    segments: segments.map(function (position) {
-      return { position: position };
+    segments: segments.map(function (p) {
+      return { position: p };
     })
   });
 };

@@ -17,6 +17,8 @@ const config = {
   canvasWidth: 1200,
   canvasHeight: 800,
 
+  hoverCardDelay: 2,
+
   // hardcoded location ids:
   clickedPosition: -1,
   colonyEntrance: 0, // DEPRECATED
@@ -30,13 +32,17 @@ const config = {
   centipedeBlockingEntities: [
     'DIRT', 'STONE', 'STUCK_STONE', 'OBELISK',
   ],
+  dragonFlyBlockingEntities: [
+    'DIRT', 'STONE', 'STUCK_STONE', 'OBELISK',
+    ...bugs,
+  ],
 
   // fog-of-war
   entitiesInFog: [
     'DIRT', 'FOOD', 'BACKGROUND', 'STONE', 'STUCK_STONE', 'GRASS',
     ...bugs,
   ],
-  antVisionRadius: 40,
+  antVisionRadius: 7,
   immobileEntities: [ // simpler to compute visibility if we know they never move
     'BACKGROUND', 'GRASS', 'STUCK_STONE', 'TARGET',
   ],

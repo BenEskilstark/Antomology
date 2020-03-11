@@ -60,7 +60,8 @@ function InfoSidebar(props) {
         left: PADDING,
         top: PADDING,
         overflowY: 'scroll',
-        overflowX: 'hidden'
+        overflowX: 'hidden',
+        zIndex: 1
       }
     },
     React.createElement(

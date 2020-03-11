@@ -59,6 +59,7 @@ function InfoSidebar(props: Props): React.Node {
         top: PADDING,
         overflowY: 'scroll',
         overflowX: 'hidden',
+        zIndex: 1,
       }}
     >
       <div

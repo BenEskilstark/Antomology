@@ -1,14 +1,15 @@
 
 
  - - - - - - - TUESDAY - - - - - - -
- - implement collisions for beetle/aphid/ants etc.
- - implement dragonflies
  - pheromone categories
     - conditions on pheromone UI
     - check condition before following trail
     - only follow trail with same category of trail you've been following
     - don't delete pheromones of different strength
  - to think about
+    - FoW again...
+    - combat
+    - turning bugs into food
     - Level 2
 
 
@@ -17,7 +18,8 @@
     - save editor actions in a queue that can be replayed to load the level
     - need native action for marquee entity creation
     - can add undo/redo very easily with this
- - still can pan
+ - allow panning and zooming without clamping/limits
+ - deal with UI being exceedingly wide
  - tool for creating worms/other segmented entities
  - palette for drawing out each entity type on mouse move
     - allow specifying dimensions of obelisk
@@ -29,12 +31,14 @@
  - - - - - - - BUGS - - - - - - -
  - off-by-one on big entity pick up might say one more than are holding
  - number input disallows 0.0X
- - number input has submit on enter turned oin
- - figure out why target isn't revealed at start
+ - number input has submit on enter turned on
  - hungry ants look bad
- - bugs rendering fog twice
- - bugs still show their updated thetas in the fog
  - worms are rendered weird when they enter fog, related to ^^
+ - dragonfly appears to not have correct theta and passes through dirt
+ - zoom is square-shaped
+ - beetle is not rendered where I think it is
+ - displaying multiple hovercards for same segmented entities
+
 
  - - - - - - PHEROMONE TRAILS - - - - - -
 
@@ -44,7 +48,7 @@
 
 
  - - - - - - WORLD - - - - - -
- - add other entities: beetles, worms, spiders, aphids
+ - hp for centipedes, beetles, etc.
 
 
  - - - - - - LOCATIONS - - - - - -
@@ -53,10 +57,6 @@
  - - - - - - UI / UX - - - - - -
  - blip the clicked grid square when sending ants somewhere
  - add instructions to options menu
- - hovercard with info about what mouse is over
-    - system that tracks mouse location and dispatches action to set hovercard
-    - foreground dirt, background dirt, grass, food, stone, stuck_stone
-    - obelisk, target
  - styling
     - button css
     - cleaner UI around all behaviors
@@ -80,6 +80,7 @@
     - more food under ground, less above
     - remove unneeded tasks from state
     - ants need full hp
+    - target not revealed at start
  - new harder level 2
  - clean up tasks inside levels
  - clean up levels on main menu

@@ -96,6 +96,10 @@ export type GameState = {
     curAge: number,
     maxAge: number,
   },
+  hoverCard: {
+    jsx: string,
+    mouseStillTime: number,
+  },
 
   // UI-based partial state
   nextLocationName: string,
@@ -364,6 +368,8 @@ export type Action =
   {type: 'SET_EDITOR_ALLOW_DELETE_BACKGROUND', allow: boolean} |
   {type: 'SET_EDITOR_ANT_SUBTYPE', subType: AntSubType} |
   {type: 'SET_KEY_PRESS', key: string, pressed: boolean} |
+  {type: 'SET_HOVER_CARD_JSX', jsx: string} |
+  {type: 'SET_HOVER_CARD_TIME', mouseStillTime: number} |
   {
     type: 'SET_HOTKEY',
     press: 'onKeyUp' | 'onKeyDown' | 'onKeyPress',
