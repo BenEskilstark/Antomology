@@ -39,6 +39,8 @@
  - zoom is square-shaped
  - beetle is not rendered where I think it is
  - displaying multiple hovercards for same segmented entities
+ - invisible entities still display hovercards
+ - let hovercards still display on pause
 
 
  - - - - - - PHEROMONE TRAILS - - - - - -
