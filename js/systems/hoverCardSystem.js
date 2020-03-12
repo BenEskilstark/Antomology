@@ -26,7 +26,7 @@ const initHoverCardSystem = (store) => {
       mousePos = {...game.mouse.curPos};
       dispatch({type: 'SET_HOVER_CARD_JSX', jsx: null});
     } else {
-      if (game.hoverCard.mouseStillTime > config.hoverCardDelay) {
+      if (game.hoverCard.mouseStillTime == config.hoverCardDelay) {
         dispatch({type: 'SET_HOVER_CARD_JSX', jsx: getJSX(game, mousePos)});
       } else {
         dispatch({
@@ -42,7 +42,7 @@ const initHoverCardSystem = (store) => {
 function getJSX(game, mousePos) {
   const entitiesAtMouse = lookupInGrid(game.grid, mousePos)
     .map(id => game.entities[id])
-    .filter(e => e.visible || e.type == 'DIRT');
+    .filter(e => e.visible || (e.lastSeenPos != null && e.type == 'DIRT'));
 
   const hoverCards = entitiesAtMouse.map(e => {
     switch (e.type) {
@@ -119,6 +119,7 @@ function wormCard(worm) {
       <div>
         <b>HP: </b>{worm.hp + '/' + config.wormStartingHP}
       </div>
+      <div><b>DMG: </b>{config.wormDamage}</div>
       A docile crawler that eats dirt.
     </div>
   );
@@ -134,6 +135,7 @@ function aphidCard(aphid) {
       <div>
         <b>HP: </b>{aphid.hp + '/' + config.aphidStartingHP}
       </div>
+      <div><b>DMG: </b>{config.aphidDamage}</div>
       A small critter that makes a good snack.
     </div>
   );
@@ -158,6 +160,7 @@ function foodCard(food) {
       style={HOVERCARD_STYLE}
     >
       <div><b>Food</b></div>
+      <div><b>Type:</b>{food.name}</div>
       Have ants feed this to larva to help them mature. Or eat the food
       themselves to keep from getting too hungry.
     </div>
@@ -174,6 +177,7 @@ function centipedeCard(centipede) {
       <div>
         <b>HP: </b>{centipede.hp + '/' + config.centipedeStartingHP}
       </div>
+      <div><b>DMG: </b>{config.centipedeDamage}</div>
       A deadly insectovore that loves to eat eggs, larva, and pupa. Watch out!
     </div>
   );

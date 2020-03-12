@@ -260,7 +260,7 @@ const gameReducer = (game: GameState, action: Action): GameState => {
         hoverCard: {
           ...game.hoverCard,
           jsx,
-          mouseStillTime: 0,
+          mouseStillTime: jsx == null ? 0 : game.hoverCard.mouseStillTime + 1,
         },
       };
     }

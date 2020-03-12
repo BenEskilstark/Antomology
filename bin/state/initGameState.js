@@ -159,6 +159,7 @@ var level0 = function level0() {
   //    addEntity(game, food);
   //  }
 
+  game.level = 0;
   return game;
 };
 
@@ -261,34 +262,9 @@ var baseState = function baseState(worldWidth, worldHeight) {
   addEntity(game, clickedLocation);
 
   // initial tasks
-  game.tasks = [tasks.createIdleTask(), tasks.createRandomMoveTask(), tasks.createLayEggTask(), graphTasks.createFindPheromoneTask(), graphTasks.createFollowTrailTask(), graphTasks.createFollowTrailInReverseTask(), {
-    name: 'Find Food',
-    repeating: false,
-    behaviorQueue: [{
-      type: 'WHILE',
-      condition: {
-        type: 'NEIGHBORING',
-        comparator: 'EQUALS',
-        payload: {
-          object: 'FOOD'
-        },
-        not: true
-      },
-      behavior: {
-        type: 'DO_ACTION',
-        action: {
-          type: 'MOVE',
-          payload: { object: 'RANDOM' }
-        }
-      }
-    }, {
-      type: 'DO_ACTION',
-      action: {
-        type: 'PICKUP',
-        payload: { object: 'FOOD' }
-      }
-    }]
-  }];
+  game.tasks = [graphTasks.createHighLevelIdleTask(),
+  // tasks.createRandomMoveTask(),
+  tasks.createLayEggTask(), graphTasks.createFindPheromoneTask(), graphTasks.createFollowTrailTask()];
 
   return game;
 };

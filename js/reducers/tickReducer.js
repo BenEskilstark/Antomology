@@ -54,6 +54,7 @@ const {makeEgg} = require('../entities/egg');
 const {makeLarva} = require('../entities/larva');
 const {makePupa} = require('../entities/pupa');
 const {makeAnt} = require('../entities/ant');
+const {makeFood} = require('../entities/food');
 const {performTask} = require('../simulation/performTask');
 const {
   createFindPheromoneTask, createFollowTrailTask,
@@ -184,6 +185,7 @@ const handleTick = (game: GameState): GameState => {
       if (ant.holding) {
         putDownEntity(game, ant);
       }
+      game.selectedEntities = game.selectedEntities.filter(id => id != ant.id);
     }
 
     if (ant.holding != null && !heldEntityIDs.includes(ant.holding.id)) {
@@ -319,15 +321,29 @@ const updateBugs = (game): void => {
 
 function computeCombat(game, entity, entityDamage) {
   const collidingAnts = fastCollidesWith(game, entity)
-    .filter(e => e.type === 'ANT');
+    .filter(e => e.type === 'ANT' && e.alive);
   entity.hp -= collidingAnts.length * config.antDamage;
   const hurtAnt = oneOf(collidingAnts);
   if (hurtAnt != null) {
     hurtAnt.hp -= entityDamage;
   }
   if (entity.hp <= 0) {
-    // TODO turn into food!
     removeEntity(game, entity);
+    if (entity.segmented) {
+      for (const segment of entity.segments) {
+        addEntity(game, makeFood(segment.position, 1000, entity.type));
+      }
+      addEntity(game, makeFood(entity.position, 1000, entity.type));
+    } else {
+      for (let x = 0; x < entity.width; x++) {
+        for (let y = 0; y < entity.height; y++) {
+          addEntity(
+            game,
+            makeFood(add(entity.position, {x, y}), 1000, entity.type),
+          );
+        }
+      }
+    }
   }
 }
 
@@ -335,6 +351,11 @@ function computeCombat(game, entity, entityDamage) {
 // Game over
 ///////////////////////////////////////////////////////////////////////////////
 const computeLevelOver = (game): void => {
+  const queen = getQueen(game);
+  if (!queen.alive) {
+    game.gameOver = 'lose';
+  }
+
   const obelisk = game.entities[game.OBELISK[0]];
   // TODO only supports one target
   const target = game.entities[game.TARGET[0]];
@@ -344,10 +365,6 @@ const computeLevelOver = (game): void => {
     game.gameOver = 'win';
   }
 
-  const queen = getQueen(game);
-  if (!queen.alive) {
-    game.gameOver = 'lose';
-  }
 };
 
 ///////////////////////////////////////////////////////////////////////////////

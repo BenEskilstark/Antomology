@@ -411,7 +411,7 @@ var gameReducer = function gameReducer(game, action) {
         return _extends({}, game, {
           hoverCard: _extends({}, game.hoverCard, {
             jsx: jsx,
-            mouseStillTime: 0
+            mouseStillTime: jsx == null ? 0 : game.hoverCard.mouseStillTime + 1
           })
         });
       }

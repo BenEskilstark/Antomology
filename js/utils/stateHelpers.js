@@ -111,6 +111,8 @@ function removeEntity(game: GameState, entity: Entity): void {
 function moveEntity(game: GameState, entity: Entity, nextPos: Vector): void {
   if (entity.segmented) {
     let next = {...entity.position};
+    // must do this delete first since a segment will end up there
+    deleteFromGrid(game.grid, entity.position, entity.id);
     for (const segment of entity.segments) {
       const tmp = {...segment.position};
       deleteFromGrid(game.grid, segment.position, entity.id);
@@ -118,7 +120,6 @@ function moveEntity(game: GameState, entity: Entity, nextPos: Vector): void {
       insertInGrid(game.grid, segment.position, entity.id);
       next = tmp;
     }
-    // NOTE: don't delete prevPosition from grid because there's a segment there
     entity.prevPosition = entity.position;
     entity.position = nextPos;
     insertInGrid(game.grid, entity.position, entity.id);
@@ -217,7 +218,7 @@ function antMakePheromone(
   // don't make pheromones inside locations
   // NOTE: doesn't use getInnerLocation since pherome is created in prevPosition
   const inInnerLocation = ant.location != null
-    ? collides(ant.location, ant)
+    ? collides(game, ant.location, ant)
     : false;
   if (inInnerLocation) {
     ant.prevPheromone = null;
@@ -420,7 +421,7 @@ function maybeDoRandomMove(
 
   if (constraint != null) {
     freePositions = freePositions.filter((pos) => {
-      return collides({...entity, position: pos}, constraint);
+      return collides(game, {...entity, position: pos}, constraint);
     });
   }
 

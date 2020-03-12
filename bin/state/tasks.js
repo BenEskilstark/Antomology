@@ -34,7 +34,14 @@ var createIdleTask = function createIdleTask() {
   return {
     name: 'Idle',
     repeating: true,
-    behaviorQueue: [createDoAction('IDLE', null)]
+    // HACK: this is the same as createHighLevelIdleTask!
+    behaviorQueue: [{
+      type: 'DO_HIGH_LEVEL_ACTION',
+      action: {
+        type: 'IDLE',
+        payload: { object: null }
+      }
+    }]
   };
 };
 

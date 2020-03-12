@@ -72,7 +72,7 @@ function AntCard(props) {
 
   var ant = entity;
 
-  var hungryStr = ant.calories < config.antStartingCalories * config.antStarvationWarningThreshold ? ' - Hungry' : '';
+  var hungryStr = ant.calories < config.antMaxCalories * config.antStarvationWarningThreshold ? ' - Hungry' : '';
   var deadStr = ant.alive ? '' : 'DEAD ';
   var oldAgeStr = ant.age > config.antMaxAge * config.antOldAgeDeathWarningThreshold ? ' - Old' : '';
 
@@ -111,7 +111,12 @@ function AntCard(props) {
     React.createElement(
       'div',
       null,
-      'Calories: ',
+      React.createElement(
+        'b',
+        null,
+        'Calories:'
+      ),
+      ' ',
       ant.calories,
       hungryStr,
       oldAgeStr
@@ -119,10 +124,25 @@ function AntCard(props) {
     React.createElement(
       'div',
       null,
-      'HP: ',
+      React.createElement(
+        'b',
+        null,
+        'HP:'
+      ),
+      ' ',
       ant.hp,
       '/',
       config.antStartingHP
+    ),
+    React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'b',
+        null,
+        'DMG:'
+      ),
+      config.antDamage
     ),
     React.createElement(
       'div',
@@ -181,13 +201,18 @@ function EggCard(props) {
     React.createElement(
       'div',
       null,
-      'Time to hatch: ',
-      config.eggHatchAge - egg.age
+      React.createElement(
+        'b',
+        null,
+        'HP:'
+      ),
+      ' 10/10'
     ),
     React.createElement(
       'div',
       null,
-      'HP: 10/10'
+      'Time to hatch: ',
+      config.eggHatchAge - egg.age
     ),
     React.createElement(
       'div',
@@ -228,6 +253,16 @@ function LarvaCard(props) {
     React.createElement(
       'div',
       null,
+      React.createElement(
+        'b',
+        null,
+        'HP:'
+      ),
+      ' 10/10'
+    ),
+    React.createElement(
+      'div',
+      null,
       'Calories: ',
       larva.calories,
       hungryStr
@@ -237,11 +272,6 @@ function LarvaCard(props) {
       null,
       'Calories needed to hatch: ',
       config.larvaEndCalories
-    ),
-    React.createElement(
-      'div',
-      null,
-      'HP: 10/10'
     ),
     React.createElement(
       'div',

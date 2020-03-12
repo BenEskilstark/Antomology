@@ -84,43 +84,25 @@ var doAction = function doAction(game, ant, action) {
   }
 
   // split out idle first since it could involve a random move
-  var obj = object;
-  if (actionType === 'IDLE') {
-    // unstack, similar to moving out of the way of placed dirt
-    var stackedAnts = fastCollidesWith(game, ant).filter(function (e) {
-      return config.antBlockingEntities.includes(e.type) || e.type == 'ANT';
-    });
-    if (stackedAnts.length > 0) {
-      var freePositions = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities);
-      if (freePositions.length > 0) {
-        moveEntity(game, ant, oneOf(freePositions));
-      }
-    } else {
-      var rand = Math.random();
-      if (rand < 0.05) {
-        // only move if unselected
-        if (!game.selectedEntities.includes(ant.id)) {
-          actionType = 'MOVE';
-          obj = 'RANDOM';
-          if (ant.location != null) {
-            constraint = getInnerLocation(ant.location);
-          }
-        }
-      } else if (rand < 0.1) {
-        var factor = Math.random() < 0.5 ? 1 : -1;
-        ant.theta += factor * Math.PI / 2;
-      } else {
-        ant.calories += 1; // calories don't go down if you fully idle
-      }
-    }
-    ant.prevPosition = _extends({}, ant.position);
-  }
 
+  var obj = object;
   // then handle the actually-assigned action
   switch (actionType) {
     case 'IDLE':
       {
-        // placeholder
+        // unstack, similar to moving out of the way of placed dirt
+        ant.prevPosition = _extends({}, ant.position);
+        var stackedAnts = fastCollidesWith(game, ant).filter(function (e) {
+          return config.antBlockingEntities.includes(e.type) || e.type == 'ANT';
+        });
+        if (stackedAnts.length > 0) {
+          var freePositions = fastGetEmptyNeighborPositions(game, ant, config.antBlockingEntities);
+          if (freePositions.length > 0) {
+            moveEntity(game, ant, oneOf(freePositions));
+          }
+        } else {
+          ant.calories += 1; // calories don't go down if you fully idle
+        }
         break;
       }
     case 'MOVE':
@@ -432,7 +414,34 @@ var doHighLevelAction = function doHighLevelAction(game, ant, action) {
   switch (actionType) {
     case 'IDLE':
       {
-        doAction(game, ant, { type: 'IDLE', payload: { object: null } });
+        var rand = Math.random();
+        if (ant.calories < config.antMaxCalories * config.antStarvationWarningThreshold) {
+          if (rand < 0.05) {
+            doAction(game, ant, {
+              type: 'MOVE',
+              payload: {
+                object: 'RANDOM', constraint: getInnerLocation(ant.location)
+              }
+            });
+            ant.calories -= 1; // make sure to subtract the calories
+          }
+          doAction(game, ant, { type: 'EAT', payload: { object: null } });
+          ant.calories += 1; // not idling in this branch
+        } else {
+          if (rand < 0.05 && !game.selectedEntities.includes(ant.id)) {
+            doAction(game, ant, {
+              type: 'MOVE',
+              payload: {
+                object: 'RANDOM', constraint: getInnerLocation(ant.location)
+              }
+            });
+          } else if (rand < 0.1) {
+            var factor = Math.random() < 0.5 ? 1 : -1;
+            ant.theta += factor * Math.PI / 2;
+            ant.calories -= 1; // make sure to subtract the calories
+          }
+          doAction(game, ant, { type: 'IDLE', payload: { object: null } });
+        }
         break;
       }
     // high level move is a random move inside a location

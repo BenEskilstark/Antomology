@@ -302,7 +302,7 @@ var renderEntity = function renderEntity(state, ctx, entity, inFog) {
         if (!entity.alive) {
           ctx.fillStyle = 'rgba(100, 100, 100, 0.5)';
           ctx.strokeStyle = 'rgba(100, 100, 100, 0.5)';
-        } else if (entity.calories < config.antStartingCalories * config.antStarvationWarningThreshold) {
+        } else if (entity.calories < config.antMaxCalories * config.antStarvationWarningThreshold) {
           ctx.fillStyle = 'rgba(250, 50, 0, 0.9)';
         }
         ctx.lineWidth = px;
@@ -494,7 +494,8 @@ var renderEntity = function renderEntity(state, ctx, entity, inFog) {
       }
     case 'CENTIPEDE':
       {
-        ctx.fillStyle = '#FAEBD7';
+        // ctx.fillStyle = '#FAEBD7'; // off-white
+        ctx.fillStyle = '#FF8C00'; // dark orange
         ctx.lineWidth = px;
         // head
         var _nextSegment = entity.segments[0];
@@ -505,7 +506,8 @@ var renderEntity = function renderEntity(state, ctx, entity, inFog) {
         ctx.translate(-0.5, -0.5);
         ctx.fillRect(0, 0, 1, 0.5);
         ctx.beginPath();
-        ctx.strokeStyle = '#FAEBD7';
+        // ctx.strokeStyle = '#FAEBD7'; // off-white
+        ctx.strokeStyle = '#FF8C00'; // dark orange
         ctx.arc(0.5, 0.5, 0.5, 0, Math.PI);
         ctx.closePath();
         ctx.fill();
@@ -536,7 +538,8 @@ var renderEntity = function renderEntity(state, ctx, entity, inFog) {
 
           ctx.fillRect(_relPos3.x, _relPos3.y, 1, 1);
         }
-        ctx.strokeStyle = '#FAEBD7';
+        // ctx.strokeStyle = '#FAEBD7'; // off-white
+        ctx.strokeStyle = '#FF8C00'; // dark orange
         // tail
         var _tail = entity.segments[entity.segments.length - 1];
         var _relPos2 = subtract(_tail.position, entity.position);
@@ -799,17 +802,25 @@ var renderEntity = function renderEntity(state, ctx, entity, inFog) {
 };
 
 function renderHealthBar(state, ctx, entity, maxHealth) {
-  ctx.fillStyle = 'red';
-  ctx.strokeStyle = 'black';
+  ctx.save();
+  // always render healthbar above entity no matter its theta
+  ctx.translate(entity.width / 2, entity.height / 2);
+  ctx.rotate(-entity.theta);
+  ctx.translate(-entity.width / 2, -entity.height / 2);
+
   var barWidth = 2;
-  var barHeight = 0.5;
-  ctx.fillRect(-0.5, 1.25, barWidth, barHeight);
+  var barHeight = 0.33;
+  ctx.fillStyle = 'red';
+  ctx.fillRect(-0.5, 1.33, barWidth, barHeight);
 
   ctx.fillStyle = 'green';
   var healthWidth = Math.max(entity.hp / maxHealth * barWidth, 0);
-  ctx.fillRect(-0.5, 1.25, healthWidth, barHeight);
+  ctx.fillRect(-0.5, 1.33, healthWidth, barHeight);
 
-  ctx.strokeRect(-0.5, 1.25, barWidth, barHeight);
+  ctx.strokeStyle = 'black';
+  ctx.strokeRect(-0.5, 1.33, barWidth, barHeight);
+
+  ctx.restore();
 }
 
 module.exports = { initRenderSystem: initRenderSystem };

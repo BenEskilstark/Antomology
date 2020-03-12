@@ -107,7 +107,7 @@ var createFollowTrailInReverseTask = function createFollowTrailInReverseTask() {
 var createHighLevelIdleTask = function createHighLevelIdleTask() {
   return {
     name: 'Idle',
-    repeating: false,
+    repeating: true,
     behaviorQueue: [{
       type: 'DO_HIGH_LEVEL_ACTION',
       action: {

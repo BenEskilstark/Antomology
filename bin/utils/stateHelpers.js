@@ -205,6 +205,8 @@ function removeEntity(game, entity) {
 function moveEntity(game, entity, nextPos) {
   if (entity.segmented) {
     var next = _extends({}, entity.position);
+    // must do this delete first since a segment will end up there
+    deleteFromGrid(game.grid, entity.position, entity.id);
     var _iteratorNormalCompletion4 = true;
     var _didIteratorError4 = false;
     var _iteratorError4 = undefined;
@@ -219,7 +221,6 @@ function moveEntity(game, entity, nextPos) {
         insertInGrid(game.grid, segment.position, entity.id);
         next = tmp;
       }
-      // NOTE: don't delete prevPosition from grid because there's a segment there
     } catch (err) {
       _didIteratorError4 = true;
       _iteratorError4 = err;
@@ -321,7 +322,7 @@ function antMakePheromone(game, ant) {
 
   // don't make pheromones inside locations
   // NOTE: doesn't use getInnerLocation since pherome is created in prevPosition
-  var inInnerLocation = ant.location != null ? collides(ant.location, ant) : false;
+  var inInnerLocation = ant.location != null ? collides(game, ant.location, ant) : false;
   if (inInnerLocation) {
     ant.prevPheromone = null;
     return;
@@ -568,7 +569,7 @@ function maybeDoRandomMove(game, entity, policies, constraint, blockers) {
 
   if (constraint != null) {
     freePositions = freePositions.filter(function (pos) {
-      return collides(_extends({}, entity, { position: pos }), constraint);
+      return collides(game, _extends({}, entity, { position: pos }), constraint);
     });
   }
 

@@ -30,16 +30,16 @@ const config = {
     ...bugs,
   ],
   centipedeBlockingEntities: [
-    'DIRT', 'STONE', 'STUCK_STONE', 'OBELISK',
+    'DIRT', 'STONE', 'STUCK_STONE', 'OBELISK', 'FOOD',
   ],
   dragonFlyBlockingEntities: [
-    'DIRT', 'STONE', 'STUCK_STONE', 'OBELISK',
+    'DIRT', 'STONE', 'STUCK_STONE', 'OBELISK', 'FOOD',
     ...bugs,
   ],
 
   wormStartingHP: 100,
   aphidStartingHP: 10,
-  centipedeStartingHP: 100,
+  centipedeStartingHP: 200,
   beetleStartingHP: 25,
 
   centipedeDamage: 1,
@@ -87,11 +87,10 @@ const config = {
   antStartingCalories: 4000,
   antCaloriesPerEat: 1000,
   antMaxCalories: 6000,
-  antStarvationWarningThreshold: 0.3,
+  antStarvationWarningThreshold: 0.16666, // 1000 calories
   antOldAgeDeathWarningThreshold: 0.8,
   antStartingHP: 10,
   antDamage: 1,
-  attackableEntities: [...bugs], // TODO this is not used for attack calculations
 
   // life-cycle related
   eggLayingCooldown: 50,

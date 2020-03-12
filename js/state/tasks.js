@@ -39,8 +39,15 @@ const createIdleTask = (): Task => {
   return {
     name: 'Idle',
     repeating: true,
+    // HACK: this is the same as createHighLevelIdleTask!
     behaviorQueue: [
-      createDoAction('IDLE', null),
+      {
+        type: 'DO_HIGH_LEVEL_ACTION',
+        action: {
+          type: 'IDLE',
+          payload: {object: null},
+        },
+      },
     ],
   }
 }

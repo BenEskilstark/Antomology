@@ -63,7 +63,7 @@ function AntCard(props: Props): React.Node {
   const ant = entity;
 
   const hungryStr =
-    ant.calories < config.antStartingCalories * config.antStarvationWarningThreshold
+    ant.calories < config.antMaxCalories * config.antStarvationWarningThreshold
     ? ' - Hungry'
     : '';
   const deadStr = ant.alive ? '' : 'DEAD ';
@@ -92,8 +92,9 @@ function AntCard(props: Props): React.Node {
       style={cardStyle}
     >
       <div><b>{deadStr}{ant.subType} {ant.type}</b></div>
-      <div>Calories: {ant.calories}{hungryStr}{oldAgeStr}</div>
-      <div>HP: {ant.hp}/{config.antStartingHP}</div>
+      <div><b>Calories:</b> {ant.calories}{hungryStr}{oldAgeStr}</div>
+      <div><b>HP:</b> {ant.hp}/{config.antStartingHP}</div>
+      <div><b>DMG:</b>{config.antDamage}</div>
       <div>
         Current Task: {ant.task != null ? ant.task.name : 'None'}
         {ant.subType === 'QUEEN' ? layEggButton : null}
@@ -129,8 +130,8 @@ function EggCard(props: Props): React.Node {
       style={cardStyle}
     >
       <div><b>{egg.type}</b></div>
+      <div><b>HP:</b> 10/10</div>
       <div>Time to hatch: {config.eggHatchAge - egg.age}</div>
-      <div>HP: 10/10</div>
       <div>Will become: LARVA then {egg.subType} ANT</div>
       <DeselectButton {...props} />
     </div>
@@ -152,9 +153,9 @@ function LarvaCard(props: Props): React.Node {
       style={cardStyle}
     >
       <div><b>{deadStr}{larva.type}</b></div>
+      <div><b>HP:</b> 10/10</div>
       <div>Calories: {larva.calories}{hungryStr}</div>
       <div>Calories needed to hatch: {config.larvaEndCalories}</div>
-      <div>HP: 10/10</div>
       <div>Will become: PUPA then {larva.subType} ANT</div>
       <DeselectButton {...props} />
     </div>

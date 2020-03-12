@@ -214,7 +214,7 @@ const renderEntity = (
         ctx.strokeStyle = 'rgba(100, 100, 100, 0.5)';
       } else if (
         entity.calories <
-        config.antStartingCalories * config.antStarvationWarningThreshold
+        config.antMaxCalories * config.antStarvationWarningThreshold
       ) {
         ctx.fillStyle = 'rgba(250, 50, 0, 0.9)';
       }
@@ -407,7 +407,8 @@ const renderEntity = (
       break;
     }
     case 'CENTIPEDE': {
-      ctx.fillStyle = '#FAEBD7';
+      // ctx.fillStyle = '#FAEBD7'; // off-white
+      ctx.fillStyle = '#FF8C00'; // dark orange
       ctx.lineWidth = px;
       // head
       const nextSegment = entity.segments[0];
@@ -418,7 +419,8 @@ const renderEntity = (
       ctx.translate(-0.5, -0.5);
       ctx.fillRect(0, 0, 1, 0.5);
       ctx.beginPath();
-      ctx.strokeStyle = '#FAEBD7';
+      // ctx.strokeStyle = '#FAEBD7'; // off-white
+      ctx.strokeStyle = '#FF8C00'; // dark orange
       ctx.arc(0.5, 0.5, 0.5, 0, Math.PI);
       ctx.closePath();
       ctx.fill();
@@ -451,7 +453,8 @@ const renderEntity = (
 
         ctx.fillRect(relPos.x, relPos.y, 1, 1);
       }
-      ctx.strokeStyle = '#FAEBD7';
+      // ctx.strokeStyle = '#FAEBD7'; // off-white
+      ctx.strokeStyle = '#FF8C00'; // dark orange
       // tail
       const tail = entity.segments[entity.segments.length - 1];
       const relPos = subtract(tail.position, entity.position);
@@ -707,26 +710,37 @@ const renderEntity = (
 }
 
 function renderHealthBar(state, ctx, entity, maxHealth) {
-  ctx.fillStyle = 'red';
-  ctx.strokeStyle = 'black';
+  ctx.save();
+  // always render healthbar above entity no matter its theta
+  ctx.translate(
+    entity.width / 2,
+    entity.height / 2,
+  );
+  ctx.rotate(-entity.theta);
+  ctx.translate(-entity.width / 2, -entity.height / 2);
+
   const barWidth = 2;
-  const barHeight = 0.5;
+  const barHeight = 0.33;
+  ctx.fillStyle = 'red';
   ctx.fillRect(
-    -0.5, 1.25,
+    -0.5, 1.33,
     barWidth, barHeight,
   );
 
   ctx.fillStyle = 'green';
   const healthWidth = Math.max(entity.hp / maxHealth * barWidth, 0);
   ctx.fillRect(
-    -0.5, 1.25,
+    -0.5, 1.33,
     healthWidth, barHeight,
   );
 
+  ctx.strokeStyle = 'black';
   ctx.strokeRect(
-    -0.5, 1.25,
+    -0.5, 1.33,
     barWidth, barHeight,
   );
+
+  ctx.restore();
 }
 
 module.exports = {initRenderSystem};

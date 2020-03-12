@@ -1,17 +1,20 @@
 
 
- - - - - - - - THURSDAY - - - - - - -
- - rotate healthbars to always be horizontal
- - have dead bugs turn into food
- - pheromone categories
-    - conditions on pheromone UI
-    - check condition before following trail
-    - only follow trail with same category of trail you've been following
-    - don't delete pheromones of different strength
+ - - - - - - - FRIDAY - - - - - - -
+ - zoom is square-shaped
+ - beetle is not rendered where I think it is
  - to think about
+    - pheromone trail organization
     - FoW again...
-    - turning bugs into food
     - Level 2
+
+
+ - - - - - - - BUGS - - - - - - -
+ - off-by-one on big entity pick up might say one more than are holding
+ - number input disallows 0.0X
+ - number input has submit on enter turned on
+ - dragonfly appears to not have correct theta and passes through dirt
+ - can see dirt disappear in the fog
 
 
  - - - - - - LEVEL EDITOR - - - - - -
@@ -29,21 +32,12 @@
     - move viewport and fix zoom on making world smaller
 
 
- - - - - - - - BUGS - - - - - - -
- - off-by-one on big entity pick up might say one more than are holding
- - number input disallows 0.0X
- - number input has submit on enter turned on
- - hungry ants look bad
- - worms are rendered weird when they enter fog, related to ^^
- - dragonfly appears to not have correct theta and passes through dirt
- - zoom is square-shaped
- - beetle is not rendered where I think it is
- - displaying multiple hovercards for same segmented entities
- - invisible entities still display hovercards
- - let hovercards still display on pause
-
-
  - - - - - - PHEROMONE TRAILS - - - - - -
+ - pheromone categories
+    - conditions on pheromone UI
+    - check condition before following trail
+    - only follow trail with same category of trail you've been following
+    - don't delete pheromones of different strength
 
 
  - - - - - - - FOG OF WAR - - - - - - -
@@ -51,15 +45,14 @@
 
 
  - - - - - - WORLD - - - - - -
- - hp for centipedes, beetles, etc.
 
 
  - - - - - - LOCATIONS - - - - - -
 
 
  - - - - - - UI / UX - - - - - -
- - deselect dead ants
  - blip the clicked grid square when sending ants somewhere
+ - hungry ants look bad
  - add instructions to options menu
  - styling
     - button css
@@ -86,7 +79,6 @@
     - ants need full hp
     - target not revealed at start
  - new harder level 2
- - clean up tasks inside levels
  - clean up levels on main menu
 
 
@@ -128,6 +120,7 @@
  - add pheromone trails in level editor
  - assign tasks to locations in level editor
  - bring back reinforcing pheromone trails
+ - let hovercards still display on pause
 
 
  - - - - - - RENDERING - - - - - -
@@ -161,13 +154,10 @@
     - Add Behavior button in Conditional behavior and else behavior fields
     - conditional behavior and else should be arrays of behaviors
  - fix flow errors
- - MOVE action implementation sucks
  - get optional chaining working
- - switch dead ants/larva to their own entity type, centralize ants dying fn
- - antBlockingEntities should be renamed to moveBlockingEntities
  - passing around location names instead of ids is V dangerous
- - common function for ant switching tasks
  - condition for whether to render marquee is ridiculously overcomplicated
  - init systems should be inside level creation
  - init keyboard should be made to work at state level instead of game level
  - level editor is not resilient to updating properties of entities
+ - subtract calories at doAction site, not ant level

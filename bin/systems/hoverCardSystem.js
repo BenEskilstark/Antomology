@@ -34,7 +34,7 @@ var initHoverCardSystem = function initHoverCardSystem(store) {
       mousePos = _extends({}, game.mouse.curPos);
       dispatch({ type: 'SET_HOVER_CARD_JSX', jsx: null });
     } else {
-      if (game.hoverCard.mouseStillTime > config.hoverCardDelay) {
+      if (game.hoverCard.mouseStillTime == config.hoverCardDelay) {
         dispatch({ type: 'SET_HOVER_CARD_JSX', jsx: getJSX(game, mousePos) });
       } else {
         dispatch({
@@ -50,7 +50,7 @@ function getJSX(game, mousePos) {
   var entitiesAtMouse = lookupInGrid(game.grid, mousePos).map(function (id) {
     return game.entities[id];
   }).filter(function (e) {
-    return e.visible || e.type == 'DIRT';
+    return e.visible || e.lastSeenPos != null && e.type == 'DIRT';
   });
 
   var hoverCards = entitiesAtMouse.map(function (e) {
@@ -168,6 +168,16 @@ function wormCard(worm) {
       ),
       worm.hp + '/' + config.wormStartingHP
     ),
+    React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'b',
+        null,
+        'DMG: '
+      ),
+      config.wormDamage
+    ),
     'A docile crawler that eats dirt.'
   );
 }
@@ -197,6 +207,16 @@ function aphidCard(aphid) {
         'HP: '
       ),
       aphid.hp + '/' + config.aphidStartingHP
+    ),
+    React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'b',
+        null,
+        'DMG: '
+      ),
+      config.aphidDamage
     ),
     'A small critter that makes a good snack.'
   );
@@ -238,6 +258,16 @@ function foodCard(food) {
         'Food'
       )
     ),
+    React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'b',
+        null,
+        'Type:'
+      ),
+      food.name
+    ),
     'Have ants feed this to larva to help them mature. Or eat the food themselves to keep from getting too hungry.'
   );
 }
@@ -267,6 +297,16 @@ function centipedeCard(centipede) {
         'HP: '
       ),
       centipede.hp + '/' + config.centipedeStartingHP
+    ),
+    React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'b',
+        null,
+        'DMG: '
+      ),
+      config.centipedeDamage
     ),
     'A deadly insectovore that loves to eat eggs, larva, and pupa. Watch out!'
   );

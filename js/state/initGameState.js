@@ -163,6 +163,7 @@ const level0 = (): GameState => {
  //    addEntity(game, food);
  //  }
 
+  game.level = 0;
   return game;
 }
 
@@ -267,43 +268,43 @@ const baseState = (worldWidth: number, worldHeight: number): GameState => {
 
   // initial tasks
   game.tasks = [
-    tasks.createIdleTask(),
-    tasks.createRandomMoveTask(),
+    graphTasks.createHighLevelIdleTask(),
+    // tasks.createRandomMoveTask(),
     tasks.createLayEggTask(),
     graphTasks.createFindPheromoneTask(),
     graphTasks.createFollowTrailTask(),
-    graphTasks.createFollowTrailInReverseTask(),
-    {
-      name: 'Find Food',
-      repeating: false,
-      behaviorQueue: [
-        {
-          type: 'WHILE',
-          condition: {
-            type: 'NEIGHBORING',
-            comparator: 'EQUALS',
-            payload: {
-              object: 'FOOD',
-            },
-            not: true,
-          },
-          behavior: {
-            type: 'DO_ACTION',
-            action: {
-              type: 'MOVE',
-              payload: {object: 'RANDOM'},
-            },
-          },
-        },
-        {
-          type: 'DO_ACTION',
-          action: {
-            type: 'PICKUP',
-            payload: {object: 'FOOD'},
-          },
-        },
-      ],
-    },
+    // graphTasks.createFollowTrailInReverseTask(),
+    // {
+    //   name: 'Find Food',
+    //   repeating: false,
+    //   behaviorQueue: [
+    //     {
+    //       type: 'WHILE',
+    //       condition: {
+    //         type: 'NEIGHBORING',
+    //         comparator: 'EQUALS',
+    //         payload: {
+    //           object: 'FOOD',
+    //         },
+    //         not: true,
+    //       },
+    //       behavior: {
+    //         type: 'DO_ACTION',
+    //         action: {
+    //           type: 'MOVE',
+    //           payload: {object: 'RANDOM'},
+    //         },
+    //       },
+    //     },
+    //     {
+    //       type: 'DO_ACTION',
+    //       action: {
+    //         type: 'PICKUP',
+    //         payload: {object: 'FOOD'},
+    //       },
+    //     },
+    //   ],
+    // },
   ];
 
   return game;

@@ -121,7 +121,7 @@ const createFollowTrailInReverseTask = (): Task => {
 const createHighLevelIdleTask = (): Task => {
   return {
     name: 'Idle',
-    repeating: false,
+    repeating: true,
     behaviorQueue:  [
       {
         type: 'DO_HIGH_LEVEL_ACTION',
