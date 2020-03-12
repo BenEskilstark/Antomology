@@ -255,13 +255,16 @@ const updateBugs = (game): void => {
     if (rand < 0.4) {
       maybeDoRandomMove(game, aphid, []);
     }
+    computeCombat(game, aphid, config.aphidDamage);
   }
+
   for (const beetleID of game.BEETLE) {
     const beetle = game.entities[beetleID];
     const rand = Math.random();
     if (rand < 0.4) {
       maybeDoRandomMove(game, beetle, []);
     }
+    computeCombat(game, beetle, config.beetleDamage);
   }
 
   for (const wormID of game.WORM) {
@@ -280,6 +283,8 @@ const updateBugs = (game): void => {
     for (const dirt of collidedDirt) {
       removeEntity(game, dirt);
     }
+
+    computeCombat(game, worm, config.wormDamage);
   }
 
   for (const centID of game.CENTIPEDE) {
@@ -298,6 +303,8 @@ const updateBugs = (game): void => {
     for (const food of collidedFood) {
       removeEntity(game, food);
     }
+
+    computeCombat(game, centipede, config.centipedeDamage);
   }
 
   for (const dragonFlyID of game.DRAGONFLY) {
@@ -309,6 +316,20 @@ const updateBugs = (game): void => {
     );
   }
 };
+
+function computeCombat(game, entity, entityDamage) {
+  const collidingAnts = fastCollidesWith(game, entity)
+    .filter(e => e.type === 'ANT');
+  entity.hp -= collidingAnts.length * config.antDamage;
+  const hurtAnt = oneOf(collidingAnts);
+  if (hurtAnt != null) {
+    hurtAnt.hp -= entityDamage;
+  }
+  if (entity.hp <= 0) {
+    // TODO turn into food!
+    removeEntity(game, entity);
+  }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Game over

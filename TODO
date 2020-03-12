@@ -1,6 +1,8 @@
 
 
- - - - - - - - TUESDAY - - - - - - -
+ - - - - - - - THURSDAY - - - - - - -
+ - rotate healthbars to always be horizontal
+ - have dead bugs turn into food
  - pheromone categories
     - conditions on pheromone UI
     - check condition before following trail
@@ -55,6 +57,7 @@
 
 
  - - - - - - UI / UX - - - - - -
+ - deselect dead ants
  - blip the clicked grid square when sending ants somewhere
  - add instructions to options menu
  - styling

@@ -259,6 +259,14 @@ const renderEntity = (
         ctx.restore();
       }
       ctx.closePath();
+
+      if (
+        (entity.hp > 0 && entity.hp < config.antStartingHP) ||
+        (entity.hp <= 0 && game.selectedEntities.includes(entity.id))
+      ) {
+        renderHealthBar(state, ctx, entity, config.antStartingHP);
+      }
+
       break;
     }
     case 'APHID': {
@@ -296,6 +304,11 @@ const renderEntity = (
       }
       ctx.translate(-entity.width / 2, -entity.height / 2);
       ctx.closePath();
+
+      if (entity.hp < config.aphidStartingHP) {
+        renderHealthBar(state, ctx, entity, config.aphidStartingHP);
+      }
+
       break;
     }
     case 'BEETLE': {
@@ -344,6 +357,11 @@ const renderEntity = (
       ctx.stroke();
       ctx.closePath();
       ctx.restore();
+
+      if (entity.hp < config.beetleStartingHP) {
+        renderHealthBar(state, ctx, entity, config.beetleStartingHP);
+      }
+
       break;
     }
     case 'WORM': {
@@ -382,6 +400,10 @@ const renderEntity = (
       ctx.closePath();
       ctx.fill();
       ctx.restore();
+
+      if (entity.hp < config.wormStartingHP) {
+        renderHealthBar(state, ctx, entity, config.wormStartingHP);
+      }
       break;
     }
     case 'CENTIPEDE': {
@@ -446,6 +468,10 @@ const renderEntity = (
       ctx.fill();
       ctx.stroke();
       ctx.restore();
+
+      if (entity.hp < config.centipedeStartingHP) {
+        renderHealthBar(state, ctx, entity, config.centipedeStartingHP);
+      }
       break;
     }
     case 'DRAGONFLY': {
@@ -678,6 +704,29 @@ const renderEntity = (
     }
   }
   ctx.restore();
+}
+
+function renderHealthBar(state, ctx, entity, maxHealth) {
+  ctx.fillStyle = 'red';
+  ctx.strokeStyle = 'black';
+  const barWidth = 2;
+  const barHeight = 0.5;
+  ctx.fillRect(
+    -0.5, 1.25,
+    barWidth, barHeight,
+  );
+
+  ctx.fillStyle = 'green';
+  const healthWidth = Math.max(entity.hp / maxHealth * barWidth, 0);
+  ctx.fillRect(
+    -0.5, 1.25,
+    healthWidth, barHeight,
+  );
+
+  ctx.strokeRect(
+    -0.5, 1.25,
+    barWidth, barHeight,
+  );
 }
 
 module.exports = {initRenderSystem};

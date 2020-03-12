@@ -37,6 +37,16 @@ const config = {
     ...bugs,
   ],
 
+  wormStartingHP: 100,
+  aphidStartingHP: 10,
+  centipedeStartingHP: 100,
+  beetleStartingHP: 25,
+
+  centipedeDamage: 1,
+  aphidDamage: 0,
+  beetleDamage: 1,
+  wormDamage: 0,
+
   // fog-of-war
   entitiesInFog: [
     'DIRT', 'FOOD', 'BACKGROUND', 'STONE', 'STUCK_STONE', 'GRASS',
@@ -80,7 +90,8 @@ const config = {
   antStarvationWarningThreshold: 0.3,
   antOldAgeDeathWarningThreshold: 0.8,
   antStartingHP: 10,
-  attackableEntities: [...bugs],
+  antDamage: 1,
+  attackableEntities: [...bugs], // TODO this is not used for attack calculations
 
   // life-cycle related
   eggLayingCooldown: 50,

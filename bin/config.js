@@ -27,6 +27,16 @@ var config = {
   centipedeBlockingEntities: ['DIRT', 'STONE', 'STUCK_STONE', 'OBELISK'],
   dragonFlyBlockingEntities: ['DIRT', 'STONE', 'STUCK_STONE', 'OBELISK'].concat(bugs),
 
+  wormStartingHP: 100,
+  aphidStartingHP: 10,
+  centipedeStartingHP: 100,
+  beetleStartingHP: 25,
+
+  centipedeDamage: 1,
+  aphidDamage: 0,
+  beetleDamage: 1,
+  wormDamage: 0,
+
   // fog-of-war
   entitiesInFog: ['DIRT', 'FOOD', 'BACKGROUND', 'STONE', 'STUCK_STONE', 'GRASS'].concat(bugs),
   antVisionRadius: 7,
@@ -61,7 +71,8 @@ var config = {
   antStarvationWarningThreshold: 0.3,
   antOldAgeDeathWarningThreshold: 0.8,
   antStartingHP: 10,
-  attackableEntities: [].concat(bugs),
+  antDamage: 1,
+  attackableEntities: [].concat(bugs), // TODO this is not used for attack calculations
 
   // life-cycle related
   eggLayingCooldown: 50,

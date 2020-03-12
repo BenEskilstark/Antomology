@@ -116,6 +116,9 @@ function wormCard(worm) {
       style={HOVERCARD_STYLE}
     >
       <div><b>Worm</b></div>
+      <div>
+        <b>HP: </b>{worm.hp + '/' + config.wormStartingHP}
+      </div>
       A docile crawler that eats dirt.
     </div>
   );
@@ -128,6 +131,9 @@ function aphidCard(aphid) {
       style={HOVERCARD_STYLE}
     >
       <div><b>Aphid</b></div>
+      <div>
+        <b>HP: </b>{aphid.hp + '/' + config.aphidStartingHP}
+      </div>
       A small critter that makes a good snack.
     </div>
   );
@@ -165,6 +171,9 @@ function centipedeCard(centipede) {
       style={HOVERCARD_STYLE}
     >
       <div><b>Centipede</b></div>
+      <div>
+        <b>HP: </b>{centipede.hp + '/' + config.centipedeStartingHP}
+      </div>
       A deadly insectovore that loves to eat eggs, larva, and pupa. Watch out!
     </div>
   );

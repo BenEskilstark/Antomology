@@ -9,6 +9,7 @@ import type {Vector, Entity, Bug} from '../types';
 const makeAphid = (position: Vector): Bug => {
   return {
     ...makeEntity('APHID', 1, 1, position),
+    hp: config.aphidStartingHP,
     alive: true,
   };
 };
@@ -16,6 +17,7 @@ const makeAphid = (position: Vector): Bug => {
 const makeBeetle = (position: Vector, width: number, height: ?number): Bug => {
   return {
     ...makeEntity('BEETLE', width, height != null ? height : width, position),
+    hp: config.beetleStartingHP,
     alive: true,
   };
 };
@@ -48,6 +50,7 @@ const makeWorm = (position: Vector, segments: Array<Vector>): Bug => {
     alive: true,
     segmented: true,
     segments: segments.map(p => ({position: p})),
+    hp: config.wormStartingHP,
   };
 };
 
@@ -57,6 +60,7 @@ const makeCentipede = (position: Vector, segments: Array<Vector>): Bug => {
     alive: true,
     segmented: true,
     segments: segments.map(p => ({position: p})),
+    hp: config.centipedeStartingHP,
   };
 };
 

@@ -158,6 +158,16 @@ function wormCard(worm) {
         'Worm'
       )
     ),
+    React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'b',
+        null,
+        'HP: '
+      ),
+      worm.hp + '/' + config.wormStartingHP
+    ),
     'A docile crawler that eats dirt.'
   );
 }
@@ -177,6 +187,16 @@ function aphidCard(aphid) {
         null,
         'Aphid'
       )
+    ),
+    React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'b',
+        null,
+        'HP: '
+      ),
+      aphid.hp + '/' + config.aphidStartingHP
     ),
     'A small critter that makes a good snack.'
   );
@@ -237,6 +257,16 @@ function centipedeCard(centipede) {
         null,
         'Centipede'
       )
+    ),
+    React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'b',
+        null,
+        'HP: '
+      ),
+      centipede.hp + '/' + config.centipedeStartingHP
     ),
     'A deadly insectovore that loves to eat eggs, larva, and pupa. Watch out!'
   );

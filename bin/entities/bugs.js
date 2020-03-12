@@ -13,12 +13,14 @@ var _require3 = require('../utils/vectors'),
 
 var makeAphid = function makeAphid(position) {
   return _extends({}, makeEntity('APHID', 1, 1, position), {
+    hp: config.aphidStartingHP,
     alive: true
   });
 };
 
 var makeBeetle = function makeBeetle(position, width, height) {
   return _extends({}, makeEntity('BEETLE', width, height != null ? height : width, position), {
+    hp: config.beetleStartingHP,
     alive: true
   });
 };
@@ -47,7 +49,8 @@ var makeWorm = function makeWorm(position, segments) {
     segmented: true,
     segments: segments.map(function (p) {
       return { position: p };
-    })
+    }),
+    hp: config.wormStartingHP
   });
 };
 
@@ -57,7 +60,8 @@ var makeCentipede = function makeCentipede(position, segments) {
     segmented: true,
     segments: segments.map(function (p) {
       return { position: p };
-    })
+    }),
+    hp: config.centipedeStartingHP
   });
 };
 

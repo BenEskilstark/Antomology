@@ -345,6 +345,11 @@ var renderEntity = function renderEntity(state, ctx, entity, inFog) {
           ctx.restore();
         }
         ctx.closePath();
+
+        if (entity.hp > 0 && entity.hp < config.antStartingHP || entity.hp <= 0 && game.selectedEntities.includes(entity.id)) {
+          renderHealthBar(state, ctx, entity, config.antStartingHP);
+        }
+
         break;
       }
     case 'APHID':
@@ -383,6 +388,11 @@ var renderEntity = function renderEntity(state, ctx, entity, inFog) {
         }
         ctx.translate(-entity.width / 2, -entity.height / 2);
         ctx.closePath();
+
+        if (entity.hp < config.aphidStartingHP) {
+          renderHealthBar(state, ctx, entity, config.aphidStartingHP);
+        }
+
         break;
       }
     case 'BEETLE':
@@ -432,6 +442,11 @@ var renderEntity = function renderEntity(state, ctx, entity, inFog) {
         ctx.stroke();
         ctx.closePath();
         ctx.restore();
+
+        if (entity.hp < config.beetleStartingHP) {
+          renderHealthBar(state, ctx, entity, config.beetleStartingHP);
+        }
+
         break;
       }
     case 'WORM':
@@ -471,6 +486,10 @@ var renderEntity = function renderEntity(state, ctx, entity, inFog) {
         ctx.closePath();
         ctx.fill();
         ctx.restore();
+
+        if (entity.hp < config.wormStartingHP) {
+          renderHealthBar(state, ctx, entity, config.wormStartingHP);
+        }
         break;
       }
     case 'CENTIPEDE':
@@ -534,6 +553,10 @@ var renderEntity = function renderEntity(state, ctx, entity, inFog) {
         ctx.fill();
         ctx.stroke();
         ctx.restore();
+
+        if (entity.hp < config.centipedeStartingHP) {
+          renderHealthBar(state, ctx, entity, config.centipedeStartingHP);
+        }
         break;
       }
     case 'DRAGONFLY':
@@ -774,5 +797,19 @@ var renderEntity = function renderEntity(state, ctx, entity, inFog) {
   }
   ctx.restore();
 };
+
+function renderHealthBar(state, ctx, entity, maxHealth) {
+  ctx.fillStyle = 'red';
+  ctx.strokeStyle = 'black';
+  var barWidth = 2;
+  var barHeight = 0.5;
+  ctx.fillRect(-0.5, 1.25, barWidth, barHeight);
+
+  ctx.fillStyle = 'green';
+  var healthWidth = Math.max(entity.hp / maxHealth * barWidth, 0);
+  ctx.fillRect(-0.5, 1.25, healthWidth, barHeight);
+
+  ctx.strokeRect(-0.5, 1.25, barWidth, barHeight);
+}
 
 module.exports = { initRenderSystem: initRenderSystem };

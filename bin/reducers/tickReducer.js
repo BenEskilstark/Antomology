@@ -315,6 +315,7 @@ var updateBugs = function updateBugs(game) {
       if (rand < 0.4) {
         maybeDoRandomMove(game, aphid, []);
       }
+      computeCombat(game, aphid, config.aphidDamage);
     }
   } catch (err) {
     _didIteratorError3 = true;
@@ -344,6 +345,7 @@ var updateBugs = function updateBugs(game) {
       if (_rand < 0.4) {
         maybeDoRandomMove(game, beetle, []);
       }
+      computeCombat(game, beetle, config.beetleDamage);
     }
   } catch (err) {
     _didIteratorError4 = true;
@@ -402,6 +404,8 @@ var updateBugs = function updateBugs(game) {
           }
         }
       }
+
+      computeCombat(game, worm, config.wormDamage);
     }
   } catch (err) {
     _didIteratorError5 = true;
@@ -460,6 +464,8 @@ var updateBugs = function updateBugs(game) {
           }
         }
       }
+
+      computeCombat(game, centipede, config.centipedeDamage);
     }
   } catch (err) {
     _didIteratorError6 = true;
@@ -503,6 +509,21 @@ var updateBugs = function updateBugs(game) {
     }
   }
 };
+
+function computeCombat(game, entity, entityDamage) {
+  var collidingAnts = fastCollidesWith(game, entity).filter(function (e) {
+    return e.type === 'ANT';
+  });
+  entity.hp -= collidingAnts.length * config.antDamage;
+  var hurtAnt = oneOf(collidingAnts);
+  if (hurtAnt != null) {
+    hurtAnt.hp -= entityDamage;
+  }
+  if (entity.hp <= 0) {
+    // TODO turn into food!
+    removeEntity(game, entity);
+  }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Game over
