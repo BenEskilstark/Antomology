@@ -39,8 +39,8 @@ const rootReducer = (state: State, action: Action): State => {
           fog: false,
         },
         editor: {
-          editorMode: 'CREATE_ENTITY',
-          entityType: 'DIRT',
+          editorMode: 'MARQUEE_ENTITY',
+          entityType: 'BACKGROUND',
           antSubType: 'QUEEN',
           backgroundType: 'SKY',
           allowDeleteBackground: true,

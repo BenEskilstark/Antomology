@@ -112,7 +112,7 @@ var tickReducer = function tickReducer(game, action) {
         var _updateSim = action.updateSim;
 
         game.time += 1;
-        handlePan(game);
+        handlePan(game, _updateSim);
         if (_updateSim) {
           return handleTick(game);
         } else {
@@ -127,7 +127,7 @@ var tickReducer = function tickReducer(game, action) {
 ///////////////////////////////////////////////////////////////////////////////
 // Handle Pan
 ///////////////////////////////////////////////////////////////////////////////
-var handlePan = function handlePan(game) {
+var handlePan = function handlePan(game, updateSim) {
   var nextViewPos = _extends({}, game.viewPos);
   if (game.hotKeys.keysDown.up) {
     nextViewPos.y += 1;
@@ -141,10 +141,15 @@ var handlePan = function handlePan(game) {
   if (game.hotKeys.keysDown.right) {
     nextViewPos.x += 1;
   }
-  game.viewPos = {
-    x: clamp(nextViewPos.x, 0, game.worldWidth - config.width),
-    y: clamp(nextViewPos.y, 0, game.worldHeight - config.height)
-  };
+  // updateSim is a proxy for whether you're in the editor
+  if (!updateSim) {
+    game.viewPos = nextViewPos;
+  } else {
+    game.viewPos = {
+      x: clamp(nextViewPos.x, 0, game.worldWidth - config.width),
+      y: clamp(nextViewPos.y, 0, game.worldHeight - config.height)
+    };
+  }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -872,6 +877,7 @@ var updateFoWVision = function updateFoWVision(game) {
                 var _id3 = _step22.value;
 
                 var _ant2 = game.entities[_id3];
+                if (!_ant2.alive) continue;
                 if (isInRadius(_ant2.position, config.antVisionRadius, entity.lastSeenPos)) {
                   entity.lastSeenPos = null;
                   break;

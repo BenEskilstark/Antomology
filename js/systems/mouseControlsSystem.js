@@ -121,7 +121,9 @@ const initMouseControlsSystem = (store) => {
     if (state.game == null) return;
     const gridPos = getClickedPos(state.game, ev, canvas);
     if (gridPos == null) return;
-    store.dispatch({type: 'ZOOM', out: ev.wheelDelta < 0 ? 1 : -1});
+    store.dispatch({
+      type: 'ZOOM', out: ev.wheelDelta < 0 ? 1 : -1, inEditor: state.editor != null
+    });
   }
 
 };

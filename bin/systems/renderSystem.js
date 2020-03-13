@@ -81,6 +81,10 @@ var render = function render(state, ctx) {
   ctx.scale(config.canvasWidth / config.width, config.canvasHeight / config.height);
   // translate to viewPos
   ctx.translate(-1 * game.viewPos.x, -1 * game.viewPos.y);
+  if (state.editor != null) {
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, game.worldWidth, game.worldHeight);
+  }
   ////////////////////////////////////////////
 
   // sky first
@@ -405,7 +409,9 @@ var renderEntity = function renderEntity(state, ctx, entity, inFog) {
         ctx.lineWidth = px;
         ctx.save();
         if (entity.theta < Math.PI / 2) {
+          ctx.translate(entity.width / 2, 0);
           ctx.scale(-1, 1);
+          ctx.translate(-entity.width / 2, 0);
         }
         var y = 0.8;
         // body

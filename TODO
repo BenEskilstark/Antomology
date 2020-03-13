@@ -1,8 +1,19 @@
 
 
  - - - - - - - FRIDAY - - - - - - -
- - zoom is square-shaped
- - beetle is not rendered where I think it is
+ - number input disallows 0.0X
+ - number input has submit on enter turned off (breaks editor level resize)
+ - zooming:
+    - configure min and max zoom
+    - screen size in grid cells should be on the state, not the config
+    - zoom to mouse instead of center of screen
+ - allow panning and zooming without clamping/limits in editor
+    - marqueeing resets the view weirdly
+ - exporting levels
+    - save editor actions in a queue that can be replayed to load the level
+    - need native action for marquee entity creation
+    - can add undo/redo very easily with this
+ - tool for creating worms/other segmented entities
  - to think about
     - pheromone trail organization
     - FoW again...
@@ -11,25 +22,11 @@
 
  - - - - - - - BUGS - - - - - - -
  - off-by-one on big entity pick up might say one more than are holding
- - number input disallows 0.0X
- - number input has submit on enter turned on
- - dragonfly appears to not have correct theta and passes through dirt
+ - dragonfly passes through dirt
  - can see dirt disappear in the fog
 
 
  - - - - - - LEVEL EDITOR - - - - - -
- - exporting levels
-    - save editor actions in a queue that can be replayed to load the level
-    - need native action for marquee entity creation
-    - can add undo/redo very easily with this
- - allow panning and zooming without clamping/limits
- - deal with UI being exceedingly wide
- - tool for creating worms/other segmented entities
- - palette for drawing out each entity type on mouse move
-    - allow specifying dimensions of obelisk
-    - mousedown creates entity, mouse move drags it, mouseup drops it in place
- - ability to set world size
-    - move viewport and fix zoom on making world smaller
 
 
  - - - - - - PHEROMONE TRAILS - - - - - -
@@ -61,10 +58,6 @@
     - change cursor based on userMode
  - ticker
     - what to say on levels 1 and 2
- - zooming:
-    - configure min and max zoom
-    - screen size in grid cells should be on the state, not the config
-    - zoom to mouse instead of center of screen
 
 
  - - - - - - TASK EDITOR - - - - - -
@@ -121,6 +114,10 @@
  - assign tasks to locations in level editor
  - bring back reinforcing pheromone trails
  - let hovercards still display on pause
+ - deal with editor UI being exceedingly wide
+ - level editor palette for drawing out each entity type on mouse move
+    - allow specifying dimensions of obelisk
+    - mousedown creates entity, mouse move drags it, mouseup drops it in place
 
 
  - - - - - - RENDERING - - - - - -
@@ -161,3 +158,4 @@
  - init keyboard should be made to work at state level instead of game level
  - level editor is not resilient to updating properties of entities
  - subtract calories at doAction site, not ant level
+ - move hovercards under UI

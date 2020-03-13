@@ -89,7 +89,7 @@ const tickReducer = (game: GameState, action: Action): GameState => {
     case 'TICK': {
       const {updateSim} = action;
       game.time += 1;
-      handlePan(game);
+      handlePan(game, updateSim);
       if (updateSim) {
         return handleTick(game);
       } else {
@@ -104,31 +104,36 @@ const tickReducer = (game: GameState, action: Action): GameState => {
 ///////////////////////////////////////////////////////////////////////////////
 // Handle Pan
 ///////////////////////////////////////////////////////////////////////////////
-  const handlePan = (game: GameState): void => {
-    const nextViewPos = {...game.viewPos};
-    if (game.hotKeys.keysDown.up) {
-      nextViewPos.y += 1;
-    }
-    if (game.hotKeys.keysDown.down) {
-      nextViewPos.y -= 1;
-    }
-    if (game.hotKeys.keysDown.left) {
-      nextViewPos.x -= 1;
-    }
-    if (game.hotKeys.keysDown.right) {
-      nextViewPos.x += 1;
-    }
+const handlePan = (game: GameState, updateSim: boolean): void => {
+  const nextViewPos = {...game.viewPos};
+  if (game.hotKeys.keysDown.up) {
+    nextViewPos.y += 1;
+  }
+  if (game.hotKeys.keysDown.down) {
+    nextViewPos.y -= 1;
+  }
+  if (game.hotKeys.keysDown.left) {
+    nextViewPos.x -= 1;
+  }
+  if (game.hotKeys.keysDown.right) {
+    nextViewPos.x += 1;
+  }
+  // updateSim is a proxy for whether you're in the editor
+  if (!updateSim) {
+    game.viewPos = nextViewPos;
+  } else {
     game.viewPos = {
       x: clamp(nextViewPos.x, 0, game.worldWidth - config.width),
       y: clamp(nextViewPos.y, 0, game.worldHeight - config.height),
     };
   }
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////
 // Handle Tick
 ///////////////////////////////////////////////////////////////////////////////
-  let totalTime = 0;
+let totalTime = 0;
 const handleTick = (game: GameState): GameState => {
   // const startTime = performance.now();
 
@@ -485,6 +490,7 @@ const updateFoWVision = (game: GameState): void => {
       ) {
         for (const id of game.ANT) {
           const ant = game.entities[id];
+          if (!ant.alive) continue;
           if (
             isInRadius(ant.position, config.antVisionRadius, entity.lastSeenPos)
           ) {

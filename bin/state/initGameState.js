@@ -54,7 +54,7 @@ var level3 = require('../levels/level3');
 var initGameState = function initGameState(level) {
   switch (level) {
     case -1:
-      return baseState(50, 50);
+      return baseState(60, 40);
     case 0:
       return level0();
     case 1:

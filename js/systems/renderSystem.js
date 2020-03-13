@@ -71,6 +71,10 @@ const render = (state: State, ctx: any): void => {
   );
   // translate to viewPos
   ctx.translate(-1 * game.viewPos.x, -1 * game.viewPos.y);
+  if (state.editor != null) {
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, game.worldWidth, game.worldHeight);
+  }
   ////////////////////////////////////////////
 
   // sky first
@@ -320,7 +324,9 @@ const renderEntity = (
       ctx.lineWidth = px;
       ctx.save();
       if (entity.theta < Math.PI / 2) {
+        ctx.translate(entity.width / 2, 0);
         ctx.scale(-1, 1);
+        ctx.translate(-entity.width / 2, 0);
       }
       const y = 0.8
       // body

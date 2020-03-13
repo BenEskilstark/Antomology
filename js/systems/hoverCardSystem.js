@@ -57,6 +57,8 @@ function getJSX(game, mousePos) {
         return centipedeCard(e);
       case 'APHID':
         return aphidCard(e);
+      case 'BEETLE':
+        return beetleCard(e);
       case 'OBELISK':
         return obeliskCard(e);
       case 'FOOD':
@@ -137,6 +139,22 @@ function aphidCard(aphid) {
       </div>
       <div><b>DMG: </b>{config.aphidDamage}</div>
       A small critter that makes a good snack.
+    </div>
+  );
+}
+
+function beetleCard(beetle) {
+  return (
+    <div
+      key={'hoverCard_' + beetle.id}
+      style={HOVERCARD_STYLE}
+    >
+      <div><b>Beetle</b></div>
+      <div>
+        <b>HP: </b>{beetle.hp + '/' + config.beetleStartingHP}
+      </div>
+      <div><b>DMG: </b>{config.beetleDamage}</div>
+      Bumbling food with legs -- but it fights back!
     </div>
   );
 }

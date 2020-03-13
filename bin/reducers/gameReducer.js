@@ -473,8 +473,15 @@ var gameReducer = function gameReducer(game, action) {
       }
     case 'SET_VIEW_POS':
       {
-        var viewPos = action.viewPos;
+        // TODO: this action isn't used by WASD, but is used on left click...
+        var viewPos = action.viewPos,
+            inEditor = action.inEditor;
 
+        if (inEditor) {
+          return _extends({}, game, {
+            viewPos: viewPos
+          });
+        }
         var nextViewPos = {
           x: clamp(viewPos.x, 0, game.worldWidth - config.width),
           y: clamp(viewPos.y, 0, game.worldHeight - config.height)
@@ -485,15 +492,14 @@ var gameReducer = function gameReducer(game, action) {
       }
     case 'ZOOM':
       {
-        var out = action.out;
+        var out = action.out,
+            _inEditor = action.inEditor;
 
         var widthToHeight = config.width / config.height;
+        var heightToWidth = config.height / config.width;
         var zoomFactor = 1;
         var nextWidth = config.width + widthToHeight * zoomFactor * out;
-        var nextHeight = config.height + widthToHeight * zoomFactor * out;
-        if (nextWidth > game.worldWidth || nextHeight > game.worldHeight || nextWidth < 1 || nextHeight < 1) {
-          return game; // don't zoom too far in or out
-        }
+        var nextHeight = config.height + heightToWidth * zoomFactor * out;
         var widthDiff = nextWidth - config.width;
         var heightDiff = nextHeight - config.height;
 
@@ -501,6 +507,19 @@ var gameReducer = function gameReducer(game, action) {
         var nextViewPosX = game.viewPos.x - widthDiff / 2;
         var nextViewPosY = game.viewPos.y - heightDiff / 2;
 
+        if (_inEditor) {
+          config.width = Math.max(nextWidth, 1);
+          config.height = Math.max(nextHeight, 1);
+          return _extends({}, game, {
+            viewPos: {
+              x: nextViewPosX,
+              y: nextViewPosY
+            }
+          });
+        }
+        if (nextWidth > game.worldWidth || nextHeight > game.worldHeight || nextWidth < 1 || nextHeight < 1) {
+          return game; // don't zoom too far in or out
+        }
         config.width = nextWidth;
         config.height = nextHeight;
         return _extends({}, game, {

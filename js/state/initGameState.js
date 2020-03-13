@@ -31,7 +31,7 @@ import type {GameState} from '../types';
 const initGameState = (level: number): GameState => {
   switch (level) {
     case -1:
-      return baseState(50, 50);
+      return baseState(60, 40);
     case 0:
       return level0();
     case 1:

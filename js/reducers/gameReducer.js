@@ -314,7 +314,14 @@ const gameReducer = (game: GameState, action: Action): GameState => {
       };
     }
     case 'SET_VIEW_POS': {
-      const {viewPos} = action;
+      // TODO: this action isn't used by WASD, but is used on left click...
+      const {viewPos, inEditor} = action;
+      if (inEditor) {
+        return {
+          ...game,
+          viewPos,
+        };
+      }
       const nextViewPos = {
         x: clamp(viewPos.x, 0, game.worldWidth - config.width),
         y: clamp(viewPos.y, 0, game.worldHeight - config.height),
@@ -325,17 +332,12 @@ const gameReducer = (game: GameState, action: Action): GameState => {
       };
     }
     case 'ZOOM': {
-      const {out} = action;
+      const {out, inEditor} = action;
       const widthToHeight = config.width / config.height;
+      const heightToWidth = config.height / config.width;
       const zoomFactor = 1;
       const nextWidth = config.width + (widthToHeight * zoomFactor * out);
-      const nextHeight = config.height + (widthToHeight * zoomFactor * out);
-      if (
-        nextWidth > game.worldWidth || nextHeight > game.worldHeight ||
-        nextWidth < 1 || nextHeight < 1
-      ) {
-        return game; // don't zoom too far in or out
-      }
+      const nextHeight = config.height + (heightToWidth * zoomFactor * out);
       const widthDiff = nextWidth - config.width;
       const heightDiff = nextHeight - config.height;
 
@@ -343,6 +345,23 @@ const gameReducer = (game: GameState, action: Action): GameState => {
       const nextViewPosX = game.viewPos.x - widthDiff / 2;
       const nextViewPosY = game.viewPos.y - heightDiff / 2;
 
+      if (inEditor) {
+        config.width = Math.max(nextWidth, 1);
+        config.height = Math.max(nextHeight, 1);
+        return {
+          ...game,
+          viewPos: {
+            x: nextViewPosX,
+            y: nextViewPosY,
+          },
+        };
+      }
+      if (
+        nextWidth > game.worldWidth || nextHeight > game.worldHeight ||
+        nextWidth < 1 || nextHeight < 1
+      ) {
+        return game; // don't zoom too far in or out
+      }
       config.width = nextWidth;
       config.height = nextHeight;
       return {
