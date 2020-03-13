@@ -504,6 +504,7 @@ const updateFoWVision = (game: GameState): void => {
 
   for (const id of game.ANT) {
     const ant = game.entities[id];
+    if (!ant.alive) continue;
     getEntitiesInRadius(
       game, ant.position, config.antVisionRadius,
     ).forEach(e => e.visible = true);

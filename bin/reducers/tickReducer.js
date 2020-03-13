@@ -938,6 +938,7 @@ var updateFoWVision = function updateFoWVision(game) {
       var _id4 = _step19.value;
 
       var _ant3 = game.entities[_id4];
+      if (!_ant3.alive) continue;
       getEntitiesInRadius(game, _ant3.position, config.antVisionRadius).forEach(function (e) {
         return e.visible = true;
       });

@@ -24,6 +24,9 @@
  - off-by-one on big entity pick up might say one more than are holding
  - dragonfly passes through dirt
  - can see dirt disappear in the fog
+ - right clicking on hovercard appears to not suppress context menu
+ - restart level loses hotkeys
+ - dead ants still have vision
 
 
  - - - - - - LEVEL EDITOR - - - - - -
@@ -99,6 +102,8 @@
  - fog of war:
     - support partial rendering of big entities that are partially visible
  - groups of ants can ignore gravity by climbing on each other
+    - perhaps have "stable" as a property that is computed once at the start
+      and then when the entity moves
  - panning with mouse on the side of the screen
  - conditionals with OR/AND
  - better pathing for ants that involves random walk when they get stuck
