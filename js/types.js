@@ -34,6 +34,7 @@ export type State = {
   editor: ?EditorState,
   modal: ?Modal,
   hotKeys: Hotkeys,
+  levelActions: ?Array<Action>,
 };
 
 
@@ -132,6 +133,8 @@ export type GameState = {
   level: number,
 
   tasks: Array<Task>, // tasks that can be assigned to ants
+
+  hydrated: boolean, // HACK to know when level is loaded
 };
 
 // -------------------------------------------------------------------------------
@@ -384,5 +387,6 @@ export type Action =
   } |
   {type: 'SET_PHEROMONE_STRENGTH', category: number, strength: number} |
   {type: 'SET_TICKER', text: string, maxAge: number} |
+  {type: 'HYDRATE_GAME'} |
   {type: 'SET_EDITOR_BACKGROUND_TYPE', backgroundType: 'SKY' | 'DIRT'};
 

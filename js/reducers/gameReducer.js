@@ -45,6 +45,9 @@ const gameReducer = (game: GameState, action: Action): GameState => {
       const {id} = action;
       game.selectedEntities = game.selectedEntities.filter(i => i != id);
       const entity = game.entities[id];
+      if (entity == null) {
+        return game; // TODO: shouldn't happen!
+      }
       if (game.LOCATION.includes(id)) {
         for (const antID of game.ANT) {
           const ant = game.entities[antID];

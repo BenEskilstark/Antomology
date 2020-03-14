@@ -5,7 +5,8 @@ var initState = function initState() {
     mode: 'MENU',
     game: null,
     modal: null,
-    editor: null
+    editor: null,
+    levelActions: null
   };
 };
 

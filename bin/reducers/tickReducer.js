@@ -580,6 +580,7 @@ function computeCombat(game, entity, entityDamage) {
 ///////////////////////////////////////////////////////////////////////////////
 var computeLevelOver = function computeLevelOver(game) {
   var queen = getQueen(game);
+  if (queen == null) return; // probably not loaded yet
   if (!queen.alive) {
     game.gameOver = 'lose';
   }

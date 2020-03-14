@@ -23,6 +23,9 @@ var _require6 = require('./tickerSystem'),
 var _require7 = require('./hoverCardSystem'),
     initHoverCardSystem = _require7.initHoverCardSystem;
 
+var _require8 = require('./levelSystem'),
+    initLevelSystem = _require8.initLevelSystem;
+
 var initSystems = function initSystems(store) {
   var gameMode = store.getState().mode;
   var prevGameState = store.getState().game;
@@ -31,6 +34,7 @@ var initSystems = function initSystems(store) {
     var game = store.getState().game;
     // game systems
     if (prevGameState == null && game != null && nextGameMode === 'GAME') {
+      initLevelSystem(store);
       initRenderSystem(store);
       initMouseControlsSystem(store);
       initKeyboardControlsSystem(store);

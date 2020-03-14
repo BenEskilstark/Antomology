@@ -7,6 +7,7 @@ const {initKeyboardControlsSystem} = require('./keyboardControlsSystem');
 const {initGameOverSystem} = require('./gameOverSystem');
 const {initTickerSystem} = require('./tickerSystem');
 const {initHoverCardSystem} = require('./hoverCardSystem');
+const {initLevelSystem} = require('./levelSystem');
 
 const initSystems = (store: Store): void => {
   let gameMode = store.getState().mode;
@@ -16,6 +17,7 @@ const initSystems = (store: Store): void => {
     const game = store.getState().game;
     // game systems
     if (prevGameState == null && game != null && nextGameMode === 'GAME') {
+      initLevelSystem(store);
       initRenderSystem(store);
       initMouseControlsSystem(store);
       initKeyboardControlsSystem(store);

@@ -80,6 +80,9 @@ var gameReducer = function gameReducer(game, action) {
           return i != id;
         });
         var _entity2 = game.entities[id];
+        if (_entity2 == null) {
+          return game; // TODO: shouldn't happen!
+        }
         if (game.LOCATION.includes(id)) {
           var _iteratorNormalCompletion = true;
           var _didIteratorError = false;

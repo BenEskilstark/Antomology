@@ -6,6 +6,7 @@ const {gameReducer} = require('./gameReducer');
 const {editorReducer} = require('./editorReducer');
 const {tickReducer} = require('./tickReducer');
 const {modalReducer} = require('./modalReducer');
+const neoLevel1 = require('../levels/neoLevel1');
 
 import type {State, Action} from '../types';
 
@@ -23,9 +24,10 @@ const rootReducer = (state: State, action: Action): State => {
         }
       }
       // HACK: available from entities/entity via window
-      nextID = maxEntityID + 1;
+      // nextID = maxEntityID + 1;
       return {
         ...state,
+        levelActions: neoLevel1.level(), // TODO
         mode: 'GAME',
         game,
       };
@@ -101,6 +103,15 @@ const rootReducer = (state: State, action: Action): State => {
       return {
         ...state,
         game,
+      };
+    case 'HYDRATE_GAME':
+      if (!state.game) return state;
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          hydrated: true,
+        },
       };
     case 'CREATE_ENTITY':
     case 'CREATE_MANY_ENTITIES':

@@ -25,6 +25,7 @@ const graphTasks = require('../state/graphTasks');
 const level1 = require('../levels/level1');
 const level2 = require('../levels/level2');
 const level3 = require('../levels/level3');
+const neoLevel1 = require('../levels/neoLevel1');
 
 import type {GameState} from '../types';
 
@@ -36,8 +37,8 @@ const initGameState = (level: number): GameState => {
       return level0();
     case 1:
       return {
-        ...baseState(50, 50),
-        ...level1.level(),
+        ...baseState(60, 40),
+        hydrated: false,
         time: 0,
         tickInterval: null,
         level,
@@ -91,12 +92,6 @@ const level0 = (): GameState => {
   for (let x = 0; x < game.worldWidth; x++) {
     for (let y = 0; y < game.worldHeight; y++) {
       if (y < game.worldHeight * 0.3) {
-        if (x == colonyEntrance.position.x && y == colonyEntrance.position.y) {
-          continue;
-        }
-        if (x == colonyEntrance.position.x && y == colonyEntrance.position.y - 1) {
-          continue;
-        }
         addEntity(game, makeDirt({x, y}));
       }
     }
@@ -258,6 +253,7 @@ const baseState = (worldWidth: number, worldHeight: number): GameState => {
     gameOver: null,
 
     fog: true,
+    hydrated: true, // TODO
   };
 
   // seed start location

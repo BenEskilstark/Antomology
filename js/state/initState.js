@@ -8,6 +8,7 @@ const initState = (): State => {
     game: null,
     modal: null,
     editor: null,
+    levelActions: null,
   };
 }
 

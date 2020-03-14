@@ -14,8 +14,9 @@ const {makeStone, makeStuckStone} = require('../entities/stone');
 const {makeGrass} = require('../entities/grass');
 const {makeTarget} = require('../entities/target');
 const {
-  makeBeetle, makeAphid, makeDragonFly,
+  makeBeetle, makeAphid, makeDragonFly, makeWorm, makeCentipede,
 } = require('../entities/bugs');
+const {add} = require('../utils/vectors');
 
 const {config} = require('../config');
 
@@ -65,6 +66,43 @@ const makeEntityByType = (
       return makeDragonFly(gridPos, 6);
     case 'APHID':
       return makeAphid(gridPos);
+    // TODO
+    case 'WORM': {
+      const segments = [];
+      let s = {...gridPos};
+      for (let i = 0; i < 12; i++) {
+        let x = 0;
+        let y = 0;
+        const rand = Math.random();
+        if (rand < 0.5) {
+          x = 1;
+        } else {
+          y = -1;
+        }
+        const nextSeg = add(s, {x, y});
+        segments.push(nextSeg);
+        s = nextSeg;
+      }
+      return makeWorm(gridPos, segments);
+    }
+    case 'CENTIPEDE': {
+      const segments = [];
+      let s = {...gridPos};
+      for (let i = 0; i < 8; i++) {
+        let x = 0;
+        let y = 0;
+        const rand = Math.random();
+        if (rand < 0.5) {
+          x = 1;
+        } else {
+          y = -1;
+        }
+        const nextSeg = add(s, {x, y});
+        segments.push(nextSeg);
+        s = nextSeg;
+      }
+      return makeCentipede(gridPos, segments);
+    }
     default:
       console.error('no entity of type', entityType);
   }

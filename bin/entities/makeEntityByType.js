@@ -1,5 +1,7 @@
 'use strict';
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 var _require = require('../entities/ant'),
     makeAnt = _require.makeAnt;
 
@@ -43,10 +45,15 @@ var _require13 = require('../entities/target'),
 var _require14 = require('../entities/bugs'),
     makeBeetle = _require14.makeBeetle,
     makeAphid = _require14.makeAphid,
-    makeDragonFly = _require14.makeDragonFly;
+    makeDragonFly = _require14.makeDragonFly,
+    makeWorm = _require14.makeWorm,
+    makeCentipede = _require14.makeCentipede;
 
-var _require15 = require('../config'),
-    config = _require15.config;
+var _require15 = require('../utils/vectors'),
+    add = _require15.add;
+
+var _require16 = require('../config'),
+    config = _require16.config;
 
 /**
  * Create a default entity of the given type at the given position.
@@ -88,6 +95,45 @@ var makeEntityByType = function makeEntityByType(game, editorState, entityType, 
       return makeDragonFly(gridPos, 6);
     case 'APHID':
       return makeAphid(gridPos);
+    // TODO
+    case 'WORM':
+      {
+        var segments = [];
+        var s = _extends({}, gridPos);
+        for (var i = 0; i < 12; i++) {
+          var x = 0;
+          var y = 0;
+          var rand = Math.random();
+          if (rand < 0.5) {
+            x = 1;
+          } else {
+            y = -1;
+          }
+          var nextSeg = add(s, { x: x, y: y });
+          segments.push(nextSeg);
+          s = nextSeg;
+        }
+        return makeWorm(gridPos, segments);
+      }
+    case 'CENTIPEDE':
+      {
+        var _segments = [];
+        var _s = _extends({}, gridPos);
+        for (var _i = 0; _i < 8; _i++) {
+          var _x = 0;
+          var _y = 0;
+          var _rand = Math.random();
+          if (_rand < 0.5) {
+            _x = 1;
+          } else {
+            _y = -1;
+          }
+          var _nextSeg = add(_s, { x: _x, y: _y });
+          _segments.push(_nextSeg);
+          _s = _nextSeg;
+        }
+        return makeCentipede(gridPos, _segments);
+      }
     default:
       console.error('no entity of type', entityType);
   }

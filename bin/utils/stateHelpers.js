@@ -568,7 +568,6 @@ function maybeDoRandomMove(game, entity, policies, constraint, blockers) {
   }
 
   if (constraint != null) {
-    console.log(constraint);
     freePositions = freePositions.filter(function (pos) {
       return collides(game, _extends({}, entity, { position: pos }), _extends({}, constraint, { isConstraint: true }));
     });

@@ -1,24 +1,31 @@
 
 
- - - - - - - - FRIDAY - - - - - - -
- - tool for creating worms/other segmented entities
- - restart level loses hotkeys
- - right clicking on hovercard appears to not suppress context menu
- - to think about
-    - pheromone trail organization
-    - FoW again...
-    - Level 2
+ - - - - - - - SATURDAY - - - - - - -
+ - system for applying level actions on load
+ - MOVE high level task appears to do nothing
+ - elseBehaviors don't seem to work (at least with pickup dirt)
+ - level1 bugs
+    - trying to remove entities that don't exist when loading level
+    - non-rendered entities all ended up as STUCK_STONE or FOOD
+    - likely trying to create multiple entities with the same id
+    - obelisk not rendering
+    - target not rendering
+    - worm not rendering
+    - beetles not rendering
+
+
+ - - - - - - THINK ABOUT - - - - - -
+ - pheromone trail organization
+ - FoW again...
+ - Level 2
 
 
  - - - - - - - BUGS - - - - - - -
  - off-by-one on big entity pick up might say one more than are holding
  - dragonfly passes through dirt
  - can see dirt disappear in the fog
- - MOVE high level task appears to do nothing
- - elseBehaviors don't seem to work (at least with pickup dirt)
-
-
- - - - - - - LEVEL EDITOR - - - - - -
+ - when many ants kill a worm they get stuck on the food
+ - level editor queue needs to record setting the world size
 
 
  - - - - - - PHEROMONE TRAILS - - - - - -
@@ -40,6 +47,7 @@
 
 
  - - - - - - UI / UX - - - - - -
+ - make canvas truly full screen and fully responsive
  - blip the clicked grid square when sending ants somewhere
  - hungry ants look bad
  - add instructions to options menu
@@ -69,6 +77,7 @@
     - target not revealed at start
  - new harder level 2
  - clean up levels on main menu
+ - fix how level data gets applied so it's not so janky
 
 
  - - - - - - LIFTNG BIG ENTITIES - - - - - -
@@ -102,21 +111,24 @@
  - better pathing for ants that involves random walk when they get stuck
  - audio system
  - saving with local storage
- - make canvas truly full screen and fully responsive
  - hotkeys:
     - get meta key set up
     - let cmd/ctrl + left click == right click
     - set up button and number field to register their onkeydowns
  - have dead selected ants say how they died
  - add pheromone trails in level editor
- - assign tasks to locations in level editor
  - bring back reinforcing pheromone trails
  - let hovercards still display on pause
+
+
+ - - - - - - LEVEL EDITOR - - - - - -
  - deal with editor UI being exceedingly wide
  - level editor palette for drawing out each entity type on mouse move
     - allow specifying dimensions of obelisk
     - mousedown creates entity, mouse move drags it, mouseup drops it in place
  - add undo/redo to level editor
+ - tool for creating worms/other segmented entities
+ - assign tasks to locations in level editor
 
 
  - - - - - - RENDERING - - - - - -

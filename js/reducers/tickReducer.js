@@ -357,6 +357,7 @@ function computeCombat(game, entity, entityDamage) {
 ///////////////////////////////////////////////////////////////////////////////
 const computeLevelOver = (game): void => {
   const queen = getQueen(game);
+  if (queen == null) return; // probably not loaded yet
   if (!queen.alive) {
     game.gameOver = 'lose';
   }

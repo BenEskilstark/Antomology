@@ -50,6 +50,7 @@ var graphTasks = require('../state/graphTasks');
 var level1 = require('../levels/level1');
 var level2 = require('../levels/level2');
 var level3 = require('../levels/level3');
+var neoLevel1 = require('../levels/neoLevel1');
 
 var initGameState = function initGameState(level) {
   switch (level) {
@@ -58,7 +59,8 @@ var initGameState = function initGameState(level) {
     case 0:
       return level0();
     case 1:
-      return _extends({}, baseState(50, 50), level1.level(), {
+      return _extends({}, baseState(60, 40), {
+        hydrated: false,
         time: 0,
         tickInterval: null,
         level: level
@@ -108,12 +110,6 @@ var level0 = function level0() {
   for (var _x = 0; _x < game.worldWidth; _x++) {
     for (var _y = 0; _y < game.worldHeight; _y++) {
       if (_y < game.worldHeight * 0.3) {
-        if (_x == colonyEntrance.position.x && _y == colonyEntrance.position.y) {
-          continue;
-        }
-        if (_x == colonyEntrance.position.x && _y == colonyEntrance.position.y - 1) {
-          continue;
-        }
         addEntity(game, makeDirt({ x: _x, y: _y }));
       }
     }
@@ -253,7 +249,8 @@ var baseState = function baseState(worldWidth, worldHeight) {
 
     gameOver: null,
 
-    fog: true
+    fog: true,
+    hydrated: true // TODO
   };
 
   // seed start location

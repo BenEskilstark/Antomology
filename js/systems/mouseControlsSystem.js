@@ -145,7 +145,7 @@ const handleMouseMove = (
       const {editor} = state;
       switch (editor.editorMode) {
         case 'CREATE_ENTITY':
-          makeEntityUnderMouse(state, dispatch, editor.entityType, gridPos);
+          // makeEntityUnderMouse(state, dispatch, editor.entityType, gridPos);
           break;
         case 'MARK_TRAIL':
 

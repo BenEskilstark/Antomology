@@ -20,6 +20,8 @@ var _require5 = require('./tickReducer'),
 var _require6 = require('./modalReducer'),
     modalReducer = _require6.modalReducer;
 
+var neoLevel1 = require('../levels/neoLevel1');
+
 var rootReducer = function rootReducer(state, action) {
   if (state === undefined) return initState();
 
@@ -36,8 +38,9 @@ var rootReducer = function rootReducer(state, action) {
           }
         }
         // HACK: available from entities/entity via window
-        nextID = _maxEntityID + 1;
+        // nextID = maxEntityID + 1;
         return _extends({}, state, {
+          levelActions: neoLevel1.level(), // TODO
           mode: 'GAME',
           game: _game
         });
@@ -117,6 +120,13 @@ var rootReducer = function rootReducer(state, action) {
       nextID = maxEntityID + 1;
       return _extends({}, state, {
         game: game
+      });
+    case 'HYDRATE_GAME':
+      if (!state.game) return state;
+      return _extends({}, state, {
+        game: _extends({}, state.game, {
+          hydrated: true
+        })
       });
     case 'CREATE_ENTITY':
     case 'CREATE_MANY_ENTITIES':

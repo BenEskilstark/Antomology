@@ -168,7 +168,7 @@ var handleMouseMove = function handleMouseMove(state, dispatch, gridPos, canvasP
 
       switch (editor.editorMode) {
         case 'CREATE_ENTITY':
-          makeEntityUnderMouse(state, dispatch, editor.entityType, gridPos);
+          // makeEntityUnderMouse(state, dispatch, editor.entityType, gridPos);
           break;
         case 'MARK_TRAIL':
 

@@ -23,110 +23,16 @@ function Game(props: Props): React.Node {
 
   //////////////////////////////////////////////////////////////////////////////
   // Register hotkeys
-  // TODO: clean these up
   //////////////////////////////////////////////////////////////////////////////
-  useEffect(() => {
-    dispatch({
-      type: 'SET_HOTKEY',
-      press: 'onKeyDown',
-      key: 'space',
-      fn: (s) => {
-        const state = s.getState();
-        const isPaused = state.game.tickInterval == null;
-        if (isPaused) {
-          s.dispatch({type: 'START_TICK', updateSim: true});
-        } else {
-          s.dispatch({type: 'STOP_TICK'});
-        }
-      }
-    });
-
-    dispatch({
-      type: 'SET_HOTKEY', press: 'onKeyDown',
-      key: 'E',
-      fn: (s) => s.dispatch({type: 'SET_ANT_MODE', antMode: 'EAT'}),
-    });
-    dispatch({
-      type: 'SET_HOTKEY', press: 'onKeyDown',
-      key: 'F',
-      fn: (s) => s.dispatch({type: 'SET_ANT_MODE', antMode: 'FEED'}),
-    });
-    dispatch({
-      type: 'SET_HOTKEY', press: 'onKeyDown',
-      key: 'R',
-      fn: (s) => s.dispatch({type: 'SET_ANT_MODE', antMode: 'PICKUP'}),
-    });
-
-    dispatch({
-      type: 'SET_HOTKEY', press: 'onKeyDown',
-      key: 'Z',
-      fn: (s) => s.dispatch({type: 'SET_USER_MODE', userMode: 'SELECT'}),
-    });
-    dispatch({
-      type: 'SET_HOTKEY', press: 'onKeyDown',
-      key: 'C',
-      fn: (s) => s.dispatch({type: 'SET_USER_MODE', userMode: 'CREATE_LOCATION'}),
-    });
-    dispatch({
-      type: 'SET_HOTKEY', press: 'onKeyDown',
-      key: 'X',
-      fn: (s) => s.dispatch({type: 'SET_USER_MODE', userMode: 'DELETE_LOCATION'}),
-    });
-
-    dispatch({
-      type: 'SET_HOTKEY', press: 'onKeyDown',
-      key: 'U',
-      fn: (s) => s.dispatch({type: 'SET_INFO_TAB', infoTab: 'Colony Status'}),
-    });
-    dispatch({
-      type: 'SET_HOTKEY', press: 'onKeyDown',
-      key: 'L',
-      fn: (s) => s.dispatch({type: 'SET_INFO_TAB', infoTab: 'Locations'}),
-    });
-    dispatch({
-      type: 'SET_HOTKEY', press: 'onKeyDown',
-      key: 'H',
-      fn: (s) => s.dispatch({type: 'SET_INFO_TAB', infoTab: 'Pheromones'}),
-    });
-    dispatch({
-      type: 'SET_HOTKEY', press: 'onKeyDown',
-      key: 'K',
-      fn: (s) => s.dispatch({type: 'SET_INFO_TAB', infoTab: 'Options'}),
-    });
-    dispatch({
-      type: 'SET_HOTKEY', press: 'onKeyDown',
-      key: 'N',
-      fn: (s) => s.dispatch({type: 'SET_INFO_TAB', infoTab: 'None'}),
-    });
-
-    dispatch({
-      type: 'SET_HOTKEY', press: 'onKeyDown',
-      key: 'Q',
-      fn: (s) => {
-        const game = s.getState().game;
-        if (game == null) return;
-        const queenID = getQueen(game).id;
-        s.dispatch({type: 'SET_SELECTED_ENTITIES', entityIDs: [queenID]});
-      }
-    });
-    dispatch({
-      type: 'SET_HOTKEY', press: 'onKeyDown',
-      key: 'G',
-      fn: (s) => {
-        const game = s.getState().game;
-        if (game == null) return;
-        const queenID = getQueen(game).id;
-        s.dispatch({type: 'ASSIGN_TASK', task: createLayEggTask(), ants: [queenID]});
-      }
-    });
-  }, []);
+  const fKey = state.game.hotKeys.onKeyDown['F'];
+  useEffect(() => registerHotkeys(dispatch), [fKey != null]);
 
   const hoverCard = (
     <div
       style={{
         position: 'absolute',
-        top: props.state.game.mouse.curPixel.y,
-        left: props.state.game.mouse.curPixel.x,
+        top: props.state.game.mouse.curPixel.y + 4,
+        left: props.state.game.mouse.curPixel.x + 4,
       }}
     >
       {props.state.game.hoverCard.jsx}
@@ -149,5 +55,101 @@ function Game(props: Props): React.Node {
     </div>
   );
 }
+
+const registerHotkeys = (dispatch) => {
+  dispatch({
+    type: 'SET_HOTKEY',
+    press: 'onKeyDown',
+    key: 'space',
+    fn: (s) => {
+      const state = s.getState();
+      const isPaused = state.game.tickInterval == null;
+      if (isPaused) {
+        s.dispatch({type: 'START_TICK', updateSim: true});
+      } else {
+        s.dispatch({type: 'STOP_TICK'});
+      }
+    }
+  });
+
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'E',
+    fn: (s) => s.dispatch({type: 'SET_ANT_MODE', antMode: 'EAT'}),
+  });
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'F',
+    fn: (s) => s.dispatch({type: 'SET_ANT_MODE', antMode: 'FEED'}),
+  });
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'R',
+    fn: (s) => s.dispatch({type: 'SET_ANT_MODE', antMode: 'PICKUP'}),
+  });
+
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'Z',
+    fn: (s) => s.dispatch({type: 'SET_USER_MODE', userMode: 'SELECT'}),
+  });
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'C',
+    fn: (s) => s.dispatch({type: 'SET_USER_MODE', userMode: 'CREATE_LOCATION'}),
+  });
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'X',
+    fn: (s) => s.dispatch({type: 'SET_USER_MODE', userMode: 'DELETE_LOCATION'}),
+  });
+
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'U',
+    fn: (s) => s.dispatch({type: 'SET_INFO_TAB', infoTab: 'Colony Status'}),
+  });
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'L',
+    fn: (s) => s.dispatch({type: 'SET_INFO_TAB', infoTab: 'Locations'}),
+  });
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'H',
+    fn: (s) => s.dispatch({type: 'SET_INFO_TAB', infoTab: 'Pheromones'}),
+  });
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'K',
+    fn: (s) => s.dispatch({type: 'SET_INFO_TAB', infoTab: 'Options'}),
+  });
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'N',
+    fn: (s) => s.dispatch({type: 'SET_INFO_TAB', infoTab: 'None'}),
+  });
+
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'Q',
+    fn: (s) => {
+      const game = s.getState().game;
+      if (game == null) return;
+      const queenID = getQueen(game).id;
+      s.dispatch({type: 'SET_SELECTED_ENTITIES', entityIDs: [queenID]});
+    }
+  });
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'G',
+    fn: (s) => {
+      const game = s.getState().game;
+      if (game == null) return;
+      const queenID = getQueen(game).id;
+      s.dispatch({type: 'ASSIGN_TASK', task: createLayEggTask(), ants: [queenID]});
+    }
+  });
+};
 
 module.exports = Game;
