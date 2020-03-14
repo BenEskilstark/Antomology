@@ -44,6 +44,7 @@ const rootReducer = (state: State, action: Action): State => {
           antSubType: 'QUEEN',
           backgroundType: 'SKY',
           allowDeleteBackground: true,
+          actions: [],
         }
       };
     }
@@ -102,7 +103,12 @@ const rootReducer = (state: State, action: Action): State => {
         game,
       };
     case 'CREATE_ENTITY':
+    case 'CREATE_MANY_ENTITIES':
     case 'DESTROY_ENTITY':
+      if (state.editor != null) {
+        state.editor.actions.push(action);
+      }
+      // fall through on purpose
     case 'SET_SELECTED_ENTITIES':
     case 'CREATE_TASK':
     case 'UPDATE_TASK':

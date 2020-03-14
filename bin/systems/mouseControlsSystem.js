@@ -59,7 +59,10 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
     if (ev.button == 0) {
       // left click
       dispatch({ type: 'SET_MOUSE_DOWN', isLeft: true, isDown: false });
-      dispatch({ type: 'SET_VIEW_POS', viewPos: floor(state.game.viewPos) });
+      dispatch({
+        type: 'SET_VIEW_POS', viewPos: floor(state.game.viewPos),
+        inEditor: state.editor != null
+      });
       if (gridPos == null) return;
       handleLeftClick(state, dispatch, gridPos);
       dispatch({ type: 'SET_USER_MODE', userMode: 'SELECT' });
@@ -206,7 +209,10 @@ var doPan = function doPan(state, dispatch, gridPos, canvasPos, dragDiffPixel) {
   });
   var nextViewPos = subtract(state.game.viewPos, dragDiff);
   dispatch({ type: 'SET_MOUSE_POS', curPos: gridPos, curPixel: canvasPos });
-  dispatch({ type: 'SET_VIEW_POS', viewPos: nextViewPos });
+  dispatch({
+    type: 'SET_VIEW_POS', viewPos: nextViewPos,
+    inEditor: state.editor != null
+  });
 };
 
 var dragPheromoneTrail = function dragPheromoneTrail(state, dispatch, gridPos) {

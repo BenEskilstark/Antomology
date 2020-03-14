@@ -10,6 +10,7 @@ var _require = require('../config'),
 var Button = require('./components/Button.react');
 var Checkbox = require('./components/Checkbox.react');
 var Dropdown = require('./components/Dropdown.react');
+var NumberField = require('./components/NumberField.react');
 
 var _require2 = require('../selectors/selectors'),
     getEntitiesByType = _require2.getEntitiesByType;
@@ -247,21 +248,30 @@ function Conditional(props) {
   }
   var objectField = 'True';
   if (typeName === 'RANDOM' || typeName === 'CALORIES' || typeName === 'AGE') {
-    objectField = React.createElement('input', { type: 'text',
+    objectField = React.createElement(NumberField, {
       value: conditionObject,
-      onChange: function onChange(ev) {
-        var val = ev.target.value;
-        if (val == '' || val[val.length - 1] === '.') {
-          behavior.condition.payload.object = val;
-        } else if (parseFloat(val) == NaN) {
-          console.log(val);
-          return;
-        } else {
-          behavior.condition.payload.object = parseFloat(val);
-        }
+      submitOnBlur: true,
+      onChange: function onChange(val) {
+        behavior.condition.payload.object = val;
         setBehavior(behavior);
       }
     });
+
+    // objectField = <input type="text"
+    //   value={conditionObject}
+    //   onChange={(ev) => {
+    //     const val = ev.target.value;
+    //     if (val == '' || val[val.length - 1] === '.') {
+    //       behavior.condition.payload.object = val;
+    //     } else if (parseFloat(val) == NaN) {
+    //       console.log(val);
+    //       return;
+    //     } else {
+    //       behavior.condition.payload.object = parseFloat(val);
+    //     }
+    //     setBehavior(behavior);
+    //   }}
+    // />;
   }
   if (typeName === 'LOCATION') {
     objectField = React.createElement(Dropdown, {

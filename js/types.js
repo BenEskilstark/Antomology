@@ -41,6 +41,7 @@ export type EditorMode =
   'CREATE_ENTITY' | 'CREATE_LOCATION' | 'MARK_TRAIL' | 'MARQUEE_ENTITY' |
   'DELETE_ENTITY';
 export type EditorState = {
+  actions: Array<Action>,
   editorMode: EditorMode,
   entityType: EntityType,
   antSubType: AntSubType,
@@ -337,8 +338,13 @@ export type Action =
   {type: 'STOP_TICK'} |
   {type: 'START_TICK', updateSim: boolean} |
   {type: 'TOGGLE_FOG', fog: boolean} |
-  {type: 'TICK', updateSim: boolean} | // whether the simulation should update on ticks
+  {type: 'TICK', updateSim: boolean} | // whether the sim should update on ticks
   {type: 'CREATE_ENTITY', entity: Entity} |
+  {
+    type: 'CREATE__MANY_ENTITIES',
+    pos: Vector, width: number, height: number,
+    editorState: {antSubType: string, backgroundType: string},
+  } |
   {type: 'SET_SELECTED_ENTITIES', entityIDs: Array<EntityID>} |
   {type: 'DESTROY_ENTITY', id: EntityID} |
   {type: 'UPDATE_TASK', task: Task, originalName: string} |

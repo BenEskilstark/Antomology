@@ -39,6 +39,7 @@ function Sidebar(props: {state: State, dispatch: Action => void}): React.Node {
       options={[
         'ANT', 'BACKGROUND', 'DIRT', 'EGG', 'FOOD', 'LARVA',
         'OBELISK', 'PUPA', 'STONE', 'STUCK_STONE', 'TARGET', 'GRASS',
+        'APHID', 'BEETLE', 'DRAGONFLY', 'WORM', 'CENTIPEDE',
       ]}
       selected={editor.entityType}
       onChange={(entityType) => {
@@ -113,7 +114,8 @@ function Sidebar(props: {state: State, dispatch: Action => void}): React.Node {
         <div style={{paddingLeft: 10}}>
           Width:
           <NumberField value={game.worldWidth}
-            submitOnEnter={true}
+            submitOnBlur={true}
+            onlyInt={true}
             onChange={(width) => {
               dispatch({type: 'SET_WORLD_SIZE', width});
             }}
@@ -122,7 +124,8 @@ function Sidebar(props: {state: State, dispatch: Action => void}): React.Node {
         <div style={{paddingLeft: 10}}>
           Height:
           <NumberField value={game.worldHeight}
-            submitOnEnter={true}
+            submitOnBlur={true}
+            onlyInt={true}
             onChange={(height) => {
               dispatch({type: 'SET_WORLD_SIZE', height});
             }}
@@ -178,13 +181,16 @@ function Sidebar(props: {state: State, dispatch: Action => void}): React.Node {
       <div>
         <Button label="Export Level as JSON"
           onClick={() => {
-            console.log(JSON.stringify(game));
+            console.log(JSON.stringify(editor.actions));
           }}
         />
         <Button label="Import Level from JSON"
           onClick={() => {
             if (importedGame != '') {
-              dispatch({type: 'APPLY_GAME_STATE', game: importedGame});
+              //dispatch({type: 'APPLY_GAME_STATE', game: importedGame});
+              for (const action of importedGame) {
+                dispatch(action);
+              }
               setImportedGame('');
             }
           }}

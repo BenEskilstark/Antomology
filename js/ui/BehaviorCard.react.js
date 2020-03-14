@@ -5,6 +5,7 @@ const {config} = require('../config');
 const Button = require('./components/Button.react');
 const Checkbox = require('./components/Checkbox.react');
 const Dropdown = require('./components/Dropdown.react');
+const NumberField = require('./components/NumberField.react');
 const {getEntitiesByType} = require('../selectors/selectors');
 const {useState, useEffect} = React;
 
@@ -243,21 +244,32 @@ function Conditional(
   }
   let objectField = 'True';
   if (typeName === 'RANDOM' || typeName === 'CALORIES' || typeName === 'AGE') {
-    objectField = <input type="text"
-      value={conditionObject}
-      onChange={(ev) => {
-        const val = ev.target.value;
-        if (val == '' || val[val.length - 1] === '.') {
+    objectField = (
+      <NumberField
+        value={conditionObject}
+        submitOnBlur={true}
+        onChange={(val) => {
           behavior.condition.payload.object = val;
-        } else if (parseFloat(val) == NaN) {
-          console.log(val);
-          return;
-        } else {
-          behavior.condition.payload.object = parseFloat(val);
-        }
-        setBehavior(behavior);
-      }}
-    />;
+          setBehavior(behavior);
+        }}
+      />
+    );
+
+    // objectField = <input type="text"
+    //   value={conditionObject}
+    //   onChange={(ev) => {
+    //     const val = ev.target.value;
+    //     if (val == '' || val[val.length - 1] === '.') {
+    //       behavior.condition.payload.object = val;
+    //     } else if (parseFloat(val) == NaN) {
+    //       console.log(val);
+    //       return;
+    //     } else {
+    //       behavior.condition.payload.object = parseFloat(val);
+    //     }
+    //     setBehavior(behavior);
+    //   }}
+    // />;
   }
   if (typeName === 'LOCATION') {
     objectField = <Dropdown

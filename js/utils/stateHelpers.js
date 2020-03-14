@@ -421,7 +421,11 @@ function maybeDoRandomMove(
 
   if (constraint != null) {
     freePositions = freePositions.filter((pos) => {
-      return collides(game, {...entity, position: pos}, constraint);
+      return collides(
+        game,
+        {...entity, position: pos},
+        {...constraint, isConstraint: true},
+      );
     });
   }
 

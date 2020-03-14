@@ -1,19 +1,9 @@
 
 
  - - - - - - - FRIDAY - - - - - - -
- - number input disallows 0.0X
- - number input has submit on enter turned off (breaks editor level resize)
- - zooming:
-    - configure min and max zoom
-    - screen size in grid cells should be on the state, not the config
-    - zoom to mouse instead of center of screen
- - allow panning and zooming without clamping/limits in editor
-    - marqueeing resets the view weirdly
- - exporting levels
-    - save editor actions in a queue that can be replayed to load the level
-    - need native action for marquee entity creation
-    - can add undo/redo very easily with this
  - tool for creating worms/other segmented entities
+ - restart level loses hotkeys
+ - right clicking on hovercard appears to not suppress context menu
  - to think about
     - pheromone trail organization
     - FoW again...
@@ -24,9 +14,8 @@
  - off-by-one on big entity pick up might say one more than are holding
  - dragonfly passes through dirt
  - can see dirt disappear in the fog
- - right clicking on hovercard appears to not suppress context menu
- - restart level loses hotkeys
- - dead ants still have vision
+ - MOVE high level task appears to do nothing
+ - elseBehaviors don't seem to work (at least with pickup dirt)
 
 
  - - - - - - LEVEL EDITOR - - - - - -
@@ -61,6 +50,10 @@
     - change cursor based on userMode
  - ticker
     - what to say on levels 1 and 2
+ - zooming:
+    - configure min and max zoom
+    - screen size in grid cells should be on the state, not the config
+    - zoom to mouse instead of center of screen
 
 
  - - - - - - TASK EDITOR - - - - - -
@@ -123,6 +116,7 @@
  - level editor palette for drawing out each entity type on mouse move
     - allow specifying dimensions of obelisk
     - mousedown creates entity, mouse move drags it, mouseup drops it in place
+ - add undo/redo to level editor
 
 
  - - - - - - RENDERING - - - - - -

@@ -37,7 +37,7 @@ function Sidebar(props) {
 
   var entityPicker = React.createElement(Dropdown, {
     noNoneOption: true,
-    options: ['ANT', 'BACKGROUND', 'DIRT', 'EGG', 'FOOD', 'LARVA', 'OBELISK', 'PUPA', 'STONE', 'STUCK_STONE', 'TARGET', 'GRASS'],
+    options: ['ANT', 'BACKGROUND', 'DIRT', 'EGG', 'FOOD', 'LARVA', 'OBELISK', 'PUPA', 'STONE', 'STUCK_STONE', 'TARGET', 'GRASS', 'APHID', 'BEETLE', 'DRAGONFLY', 'WORM', 'CENTIPEDE'],
     selected: editor.entityType,
     onChange: function onChange(entityType) {
       dispatch({ type: 'SET_EDITOR_ENTITY', entityType: entityType });
@@ -124,7 +124,8 @@ function Sidebar(props) {
         { style: { paddingLeft: 10 } },
         'Width:',
         React.createElement(NumberField, { value: game.worldWidth,
-          submitOnEnter: true,
+          submitOnBlur: true,
+          onlyInt: true,
           onChange: function onChange(width) {
             dispatch({ type: 'SET_WORLD_SIZE', width: width });
           }
@@ -135,7 +136,8 @@ function Sidebar(props) {
         { style: { paddingLeft: 10 } },
         'Height:',
         React.createElement(NumberField, { value: game.worldHeight,
-          submitOnEnter: true,
+          submitOnBlur: true,
+          onlyInt: true,
           onChange: function onChange(height) {
             dispatch({ type: 'SET_WORLD_SIZE', height: height });
           }
@@ -176,13 +178,38 @@ function Sidebar(props) {
       null,
       React.createElement(Button, { label: 'Export Level as JSON',
         onClick: function onClick() {
-          console.log(JSON.stringify(game));
+          console.log(JSON.stringify(editor.actions));
         }
       }),
       React.createElement(Button, { label: 'Import Level from JSON',
         onClick: function onClick() {
           if (importedGame != '') {
-            dispatch({ type: 'APPLY_GAME_STATE', game: importedGame });
+            //dispatch({type: 'APPLY_GAME_STATE', game: importedGame});
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+              for (var _iterator = importedGame[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                var _action = _step.value;
+
+                dispatch(_action);
+              }
+            } catch (err) {
+              _didIteratorError = true;
+              _iteratorError = err;
+            } finally {
+              try {
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                  _iterator.return();
+                }
+              } finally {
+                if (_didIteratorError) {
+                  throw _iteratorError;
+                }
+              }
+            }
+
             setImportedGame('');
           }
         }

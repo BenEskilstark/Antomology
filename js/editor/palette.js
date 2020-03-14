@@ -16,8 +16,13 @@ const makeEntityUnderMouse = (
     .map(i => state.game.entities[i])
     .filter(e => e.type == entityType)
     .length > 0;
+  const {antSubType, backgroundType} = state.editor;
   if (!occupied) {
-    const entity = makeEntityByType(state, state.editor.entityType, gridPos);
+    const entity = makeEntityByType(
+      state.game,
+      {antSubType, backgroundType},
+      entityType, gridPos,
+    );
     dispatch({type: 'CREATE_ENTITY', entity});
   }
 };
@@ -32,14 +37,16 @@ const makeEntitiesInMarquee = (
   const dims = subtract(mouse.curPos, mouse.downPos);
   const x = dims.x > 0 ? mouse.downPos.x : mouse.curPos.x;
   const y = dims.y > 0 ? mouse.downPos.y : mouse.curPos.y;
-  for (let i = 0; i < Math.abs(dims.x) + 1; i++) {
-    for (let j = 0; j < Math.abs(dims.y) + 1; j++) {
-      makeEntityUnderMouse(
-        state, dispatch, entityType,
-        {x: x + i, y: y + j},
-      );
-    }
-  }
+
+  const {antSubType, backgroundType} = state.editor;
+  dispatch({
+    type: 'CREATE_MANY_ENTITIES',
+    pos: {x, y},
+    width: Math.abs(dims.x),
+    height: Math.abs(dims.y),
+    editorState: {antSubType, backgroundType},
+    entityType,
+  });
 };
 
 const deleteEntitiesUnderMouse = (

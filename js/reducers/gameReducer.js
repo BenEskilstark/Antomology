@@ -5,8 +5,10 @@ const {
   addEntity,
   removeEntity,
   antSwitchTask,
+  lookupInGrid,
 } = require('../utils/stateHelpers');
 const {clamp} = require('../utils/helpers');
+const {makeEntityByType} = require('../entities/makeEntityByType');
 const {createEdge} = require('../entities/edge');
 const {insideWorld} = require('../selectors/selectors');
 const {createIdleTask} = require('../state/tasks');
@@ -17,41 +19,26 @@ const gameReducer = (game: GameState, action: Action): GameState => {
   switch (action.type) {
     case 'CREATE_ENTITY': {
       const {entity} = action;
-      if (entity.position != null && !insideWorld(game, entity.position)) {
-        return game;
-      }
-      if (entity.type == 'LOCATION') {
-        // if trying to make a location with the same name as one that already exists,
-        // just update the position of the currently-existing entity for that location
-        const locationIDWithName = game.LOCATION.filter(l => {
-          return game.entities[l].name === entity.name;
-        })[0];
-        if (locationIDWithName != null) {
-          // is null for clicked location
-          const locationEntity = game.entities[locationIDWithName];
-          removeEntity(game, game.entities[locationIDWithName]);
-          const updatedLocation = {
-            ...entity, id: locationIDWithName,
-            task: locationEntity != null ? locationEntity.task : entity.task,
-          };
-          addEntity(game, updatedLocation);
-          for (const antID of game.ANT) {
-            const ant = game.entities[antID];
-            if (ant.location != null && ant.location.id === locationIDWithName) {
-              ant.location = updatedLocation;
-            }
+      createEntityReducer(game, entity);
+      return game;
+    }
+    case 'CREATE_MANY_ENTITIES': {
+      const {entityType, pos, width, height, editorState} = action;
+      const {x, y} = pos;
+      for (let i = 0; i <= width; i++) {
+        for (let j = 0; j <= height; j++) {
+          const gridPos = {x: x + i, y: y + j};
+          const occupied = lookupInGrid(game.grid, gridPos)
+            .map(i => game.entities[i])
+            .filter(e => e.type == entityType)
+            .length > 0;
+          if (!occupied) {
+            const entity = makeEntityByType(game, editorState, entityType, gridPos);
+            createEntityReducer(game, entity);
           }
-        } else {
-          addEntity(game, entity);
         }
-      } else {
-        addEntity(game, entity);
       }
-      if (entity.type === 'PHEROMONE') {
-        game.prevPheromone = entity.id;
-        // TODO: remove or bring back edges
-        // game.edges[entity.edge].pheromones.push(entity.id);
-      }
+
       return game;
     }
     case 'DESTROY_ENTITY': {
@@ -376,5 +363,43 @@ const gameReducer = (game: GameState, action: Action): GameState => {
 
   return game;
 };
+
+const createEntityReducer = (game: Game, entity: Entity): void => {
+  if (entity.position != null && !insideWorld(game, entity.position)) {
+    return;
+  }
+  if (entity.type == 'LOCATION') {
+    // if trying to make a location with the same name as one that already exists,
+    // just update the position of the currently-existing entity for that location
+    const locationIDWithName = game.LOCATION.filter(l => {
+      return game.entities[l].name === entity.name;
+    })[0];
+    if (locationIDWithName != null) {
+      // is null for clicked location
+      const locationEntity = game.entities[locationIDWithName];
+      removeEntity(game, game.entities[locationIDWithName]);
+      const updatedLocation = {
+        ...entity, id: locationIDWithName,
+        task: locationEntity != null ? locationEntity.task : entity.task,
+      };
+      addEntity(game, updatedLocation);
+      for (const antID of game.ANT) {
+        const ant = game.entities[antID];
+        if (ant.location != null && ant.location.id === locationIDWithName) {
+          ant.location = updatedLocation;
+        }
+      }
+    } else {
+      addEntity(game, entity);
+    }
+  } else {
+    addEntity(game, entity);
+  }
+  if (entity.type === 'PHEROMONE') {
+    game.prevPheromone = entity.id;
+    // TODO: remove or bring back edges
+    // game.edges[entity.edge].pheromones.push(entity.id);
+  }
+}
 
 module.exports = {gameReducer};

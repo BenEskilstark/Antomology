@@ -12,7 +12,7 @@ import type {GameID, State, Game, Entity} from '../types';
 
 const collides = (game: GameState, entityA: Entity, entityB: Entity): boolean => {
   if (entityB == null) {
-    console.error('callsite');
+    console.error('collides cllsite');
   }
   if (entityA == null || entityB == null) {
     return false;
@@ -25,6 +25,51 @@ const collides = (game: GameState, entityA: Entity, entityB: Entity): boolean =>
   }
   if (entityB.width == null || entityB.height == null) {
     return false;
+  }
+
+
+  // fall-back to testing shape overlaps
+  if (entityA.isContraint || entityB.isConstraint) {
+    const dist = subtract(entityA.position, entityB.position);
+    let xOverlap = false;
+    let yOverlap = false;
+    if (dist.x === 0) {
+      xOverlap = true;
+    } else if (dist.x < 0) {
+      if (
+        entityB.position.x + entityB.width > entityA.position.x &&
+        entityB.position.x + entityB.width <= entityA.position.x + entityA.width
+      ) {
+        xOverlap = true;
+      }
+    } else {
+      if (
+        entityA.position.x + entityA.width > entityB.position.x &&
+        entityA.position.x + entityA.width <= entityB.position.x + entityB.width
+      ) {
+        xOverlap = true;
+      }
+    }
+
+    if (dist.y === 0) {
+      yOverlap = true;
+    } else if (dist.y < 0) {
+      if (
+        entityB.position.y + entityB.height > entityA.position.y &&
+        entityB.position.y + entityB.height <= entityA.position.y + entityA.height
+      ) {
+        yOverlap = true;
+      }
+    } else {
+      if (
+        entityA.position.y + entityA.height > entityB.position.y &&
+        entityA.position.y + entityA.height <= entityB.position.y + entityB.height
+      ) {
+        yOverlap = true;
+      }
+    }
+
+    return xOverlap && yOverlap;
   }
 
   for (let x = 0; x < entityA.width; x++) {
@@ -90,67 +135,67 @@ function lookupInGrid(grid: Grid, position: Vector): Array<EntityID> {
 // Fast functions
 /////////////////////////////////////////////////////////////////
 
-const fastCollidesWith = (game: GameState, entity: Entity): Array<Entity> => {
-  if (entity.position == null) return [];
-  const collisions = [];
-  if (entity.segmented) {
-    const {position, segments} = entity;
-    collisions.push(...lookupInGrid(game.grid, position));
-    for (const segment of segments) {
-      const thisSquare = lookupInGrid(game.grid, segment.position);
-      for (const id of thisSquare) {
-        if (!collisions.includes(id) && id != entity.id) {
-          collisions.push(id);
+  const fastCollidesWith = (game: GameState, entity: Entity): Array<Entity> => {
+    if (entity.position == null) return [];
+    const collisions = [];
+    if (entity.segmented) {
+      const {position, segments} = entity;
+      collisions.push(...lookupInGrid(game.grid, position));
+      for (const segment of segments) {
+        const thisSquare = lookupInGrid(game.grid, segment.position);
+        for (const id of thisSquare) {
+          if (!collisions.includes(id) && id != entity.id) {
+            collisions.push(id);
+          }
+        }
+      }
+      return collisions.map(i => game.entities[i]);
+    }
+    let {position, width, height} = entity;
+    if (width == null) {
+      console.error("checking collision on non-entity", entity);
+      width = 1;
+    }
+    if (height == null) {
+      console.error("checking collision on non-entity", entity);
+      height = 1;
+    }
+    for (let x = 0; x < width; x++) {
+      for (let y = 0; y < height; y++) {
+        const thisSquare = lookupInGrid(game.grid, add(entity.position, {x, y}));
+        for (const id of thisSquare) {
+          if (!collisions.includes(id) && id != entity.id) {
+            collisions.push(id);
+          }
         }
       }
     }
     return collisions.map(i => game.entities[i]);
-  }
-  let {position, width, height} = entity;
-  if (width == null) {
-    console.error("checking collision on non-entity", entity);
-    width = 1;
-  }
-  if (height == null) {
-    console.error("checking collision on non-entity", entity);
-    height = 1;
-  }
-  for (let x = 0; x < width; x++) {
-    for (let y = 0; y < height; y++) {
-      const thisSquare = lookupInGrid(game.grid, add(entity.position, {x, y}));
-      for (const id of thisSquare) {
-        if (!collisions.includes(id) && id != entity.id) {
-          collisions.push(id);
-        }
-      }
-    }
-  }
-  return collisions.map(i => game.entities[i]);
-};
+  };
 
 /////////////////////////////////////////////////////////////////
 // Neighbors
 /////////////////////////////////////////////////////////////////
 
-const getNeighborPositions = (entity: Entity, includeDiagonal: boolean): Array<Vector> => {
-  const {position, width, height} = entity;
-  const neighbors = [];
-  for (let x = position.x; x < position.x + width; x++) {
-    neighbors.push({x, y: position.y + height});
-    neighbors.push({x, y: position.y - 1});
+  const getNeighborPositions = (entity: Entity, includeDiagonal: boolean): Array<Vector> => {
+    const {position, width, height} = entity;
+    const neighbors = [];
+    for (let x = position.x; x < position.x + width; x++) {
+      neighbors.push({x, y: position.y + height});
+      neighbors.push({x, y: position.y - 1});
+    }
+    for (let y = position.y; y < position.y + width; y++) {
+      neighbors.push({x: position.x - 1, y});
+      neighbors.push({x: position.x + width, y});
+    }
+    if (includeDiagonal) {
+      neighbors.push({x: position.x - 1, y: position.y - 1});
+      neighbors.push({x: position.x - 1, y: position.y + height});
+      neighbors.push({x: position.x + width, y: position.y - 1});
+      neighbors.push({x: position.x + width, y: position.y + height});
+    }
+    return neighbors;
   }
-  for (let y = position.y; y < position.y + width; y++) {
-    neighbors.push({x: position.x - 1, y});
-    neighbors.push({x: position.x + width, y});
-  }
-  if (includeDiagonal) {
-    neighbors.push({x: position.x - 1, y: position.y - 1});
-    neighbors.push({x: position.x - 1, y: position.y + height});
-    neighbors.push({x: position.x + width, y: position.y - 1});
-    neighbors.push({x: position.x + width, y: position.y + height});
-  }
-  return neighbors;
-}
 
 const fastGetEmptyNeighborPositions = (
   game: GameState, entity: Entity, blockingEntityTypes: Array<EntityType>,
@@ -211,9 +256,9 @@ const getEntitiesInRadius = (
 // Entities by type
 /////////////////////////////////////////////////////////////////
 
-const getSelectedAntIDs = (game: GameState): Array<EntityID> => {
-  return game.selectedEntities.filter(id => game.ANT.includes(id));
-};
+  const getSelectedAntIDs = (game: GameState): Array<EntityID> => {
+    return game.selectedEntities.filter(id => game.ANT.includes(id));
+  };
 
 const getEntitiesByType = (
   game: GameState,
@@ -237,12 +282,12 @@ const filterEntitiesByType = (
 // Queen
 /////////////////////////////////////////////////////////////////
 
-const getQueen = (game: GameState): Ant => {
-  return game.ANT
-    .map(id => game.entities[id])
-    .filter(a => a.subType === 'QUEEN')
+  const getQueen = (game: GameState): Ant => {
+    return game.ANT
+      .map(id => game.entities[id])
+      .filter(a => a.subType === 'QUEEN')
     [0];
-}
+  }
 
 const canLayEgg = (game: GameState, ant: Ant): string | boolean => {
   if (ant.subType != 'QUEEN') return 'Not Queen';
@@ -269,43 +314,43 @@ const canLayEgg = (game: GameState, ant: Ant): string | boolean => {
 // Gravity
 /////////////////////////////////////////////////////////////////
 
-const shouldFall = (game, entity): boolean => {
-  if (!config.fallingEntities.includes(entity.type)) return false;
-  if (!entity.position) return false;
-  if (entity.lifted) return false;
-  // TODO lifted (big)entities not affected by gravity for now
-  const isBig = entity.toLift > 1;
-  const isReadyToLift = entity.toLift <= entity.heldBy.length;
-  // if (isBig && isReadyToLift && !entity.isLifted) continue;
-  const positionBeneath = subtract(entity.position, {x: 0, y: 1});
-  const entitiesBeneath = fastCollidesWith(game, {...entity, position: positionBeneath})
-    .filter(e => config.stopFallingEntities.includes(e.type))
-    .length > 0;
-  let entitiesSupporting = [];
-  if (config.supportedEntities.includes(entity.type)) {
-    entitiesSupporting = fastCollidesWith(game, entity)
-      .filter(e => {
-        return (
-          config.supportingBackgroundTypes.includes(e.subType) ||
-          (config.supportingForegroundTypes.includes(e.type)
-            && entity.type != 'DIRT') // TODO doesn't well handle what
-                                      // can climb on grass
-        );
-      })
-    if (config.climbingEntities.includes(entity.type)) {
-      entitiesSupporting = entitiesSupporting
-        .concat(
-          fastGetNeighbors(game, entity, true /* diagonal */)
-          .filter(e => config.stopFallingEntities.includes(e.type))
-        );
+  const shouldFall = (game, entity): boolean => {
+    if (!config.fallingEntities.includes(entity.type)) return false;
+    if (!entity.position) return false;
+    if (entity.lifted) return false;
+    // TODO lifted (big)entities not affected by gravity for now
+    const isBig = entity.toLift > 1;
+    const isReadyToLift = entity.toLift <= entity.heldBy.length;
+    // if (isBig && isReadyToLift && !entity.isLifted) continue;
+    const positionBeneath = subtract(entity.position, {x: 0, y: 1});
+    const entitiesBeneath = fastCollidesWith(game, {...entity, position: positionBeneath})
+      .filter(e => config.stopFallingEntities.includes(e.type))
+      .length > 0;
+    let entitiesSupporting = [];
+    if (config.supportedEntities.includes(entity.type)) {
+      entitiesSupporting = fastCollidesWith(game, entity)
+        .filter(e => {
+          return (
+            config.supportingBackgroundTypes.includes(e.subType) ||
+            (config.supportingForegroundTypes.includes(e.type)
+              && entity.type != 'DIRT') // TODO doesn't well handle what
+            // can climb on grass
+          );
+        })
+      if (config.climbingEntities.includes(entity.type)) {
+        entitiesSupporting = entitiesSupporting
+          .concat(
+            fastGetNeighbors(game, entity, true /* diagonal */)
+            .filter(e => config.stopFallingEntities.includes(e.type))
+          );
+      }
     }
+    entitiesSupporting = entitiesSupporting.filter(e => e.id != entity.id);
+    return (
+      (!entitiesSupporting.length > 0 && !entitiesBeneath)
+      && insideWorld(game, positionBeneath)
+    );
   }
-  entitiesSupporting = entitiesSupporting.filter(e => e.id != entity.id);
-  return (
-    (!entitiesSupporting.length > 0 && !entitiesBeneath)
-    && insideWorld(game, positionBeneath)
-  );
-}
 
 const selectors = {
   getEntitiesByType,

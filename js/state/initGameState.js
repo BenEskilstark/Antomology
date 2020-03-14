@@ -67,13 +67,13 @@ const initGameState = (level: number): GameState => {
 
 const level0 = (): GameState => {
   const game = baseState(75, 75);
-  const colonyEntrance = makeLocation('Colony Entrance', 5, 5, {x: 25, y: 30});
+  // const colonyEntrance = makeLocation('Colony Entrance', 5, 5, {x: 25, y: 30});
     // ...makeLocation('Colony Entrance', 5, 5, {x: 25, y: 29}), id: config.colonyEntrance,
   // };
-  addEntity(game, colonyEntrance);
+  // addEntity(game, colonyEntrance);
 
-  const locationTwo = makeLocation('Location Two', 5, 5, {x: 40, y: 30});
-  addEntity(game, locationTwo);
+  // const locationTwo = makeLocation('Location Two', 5, 5, {x: 40, y: 30});
+  // addEntity(game, locationTwo);
 
   // seed background
   for (let x = 0; x < game.worldWidth; x++) {

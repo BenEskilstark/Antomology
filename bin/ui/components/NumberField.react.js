@@ -12,14 +12,16 @@ var useState = React.useState,
  * value: number
  * onChange: (number) => void,
  * onlyInt: boolean, // only allow ints instead of floats
- * submitOnEnter: boolean,
+ * submitOnEnter: boolean, // TODO: not implemented
+ * submitOnBlur: boolean,
  */
 
 var NumberField = function NumberField(props) {
   var value = props.value,
       _onChange = props.onChange,
       onlyInt = props.onlyInt,
-      submitOnEnter = props.submitOnEnter;
+      submitOnEnter = props.submitOnEnter,
+      submitOnBlur = props.submitOnBlur;
 
   var _useState = useState(value),
       _useState2 = _slicedToArray(_useState, 2),
@@ -52,11 +54,14 @@ var NumberField = function NumberField(props) {
     },
     onBlur: function onBlur() {
       setFocus(false);
+      if (submitOnBlur) {
+        submitValue(_onChange, stateValue, onlyInt);
+      }
     },
     onChange: function onChange(ev) {
       var nextVal = ev.target.value;
       setValue(nextVal);
-      if (!submitOnEnter) {
+      if (!submitOnEnter && !submitOnBlur) {
         submitValue(_onChange, nextVal, onlyInt);
       }
     }

@@ -54,7 +54,8 @@ var rootReducer = function rootReducer(state, action) {
             entityType: 'BACKGROUND',
             antSubType: 'QUEEN',
             backgroundType: 'SKY',
-            allowDeleteBackground: true
+            allowDeleteBackground: true,
+            actions: []
           }
         });
       }
@@ -118,7 +119,12 @@ var rootReducer = function rootReducer(state, action) {
         game: game
       });
     case 'CREATE_ENTITY':
+    case 'CREATE_MANY_ENTITIES':
     case 'DESTROY_ENTITY':
+      if (state.editor != null) {
+        state.editor.actions.push(action);
+      }
+    // fall through on purpose
     case 'SET_SELECTED_ENTITIES':
     case 'CREATE_TASK':
     case 'UPDATE_TASK':

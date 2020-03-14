@@ -15,8 +15,12 @@ var makeEntityUnderMouse = function makeEntityUnderMouse(state, dispatch, entity
   }).filter(function (e) {
     return e.type == entityType;
   }).length > 0;
+  var _state$editor = state.editor,
+      antSubType = _state$editor.antSubType,
+      backgroundType = _state$editor.backgroundType;
+
   if (!occupied) {
-    var entity = makeEntityByType(state, state.editor.entityType, gridPos);
+    var entity = makeEntityByType(state.game, { antSubType: antSubType, backgroundType: backgroundType }, entityType, gridPos);
     dispatch({ type: 'CREATE_ENTITY', entity: entity });
   }
 };
@@ -28,11 +32,19 @@ var makeEntitiesInMarquee = function makeEntitiesInMarquee(state, dispatch, enti
   var dims = subtract(mouse.curPos, mouse.downPos);
   var x = dims.x > 0 ? mouse.downPos.x : mouse.curPos.x;
   var y = dims.y > 0 ? mouse.downPos.y : mouse.curPos.y;
-  for (var i = 0; i < Math.abs(dims.x) + 1; i++) {
-    for (var j = 0; j < Math.abs(dims.y) + 1; j++) {
-      makeEntityUnderMouse(state, dispatch, entityType, { x: x + i, y: y + j });
-    }
-  }
+
+  var _state$editor2 = state.editor,
+      antSubType = _state$editor2.antSubType,
+      backgroundType = _state$editor2.backgroundType;
+
+  dispatch({
+    type: 'CREATE_MANY_ENTITIES',
+    pos: { x: x, y: y },
+    width: Math.abs(dims.x),
+    height: Math.abs(dims.y),
+    editorState: { antSubType: antSubType, backgroundType: backgroundType },
+    entityType: entityType
+  });
 };
 
 var deleteEntitiesUnderMouse = function deleteEntitiesUnderMouse(state, dispatch, gridPos, type) {

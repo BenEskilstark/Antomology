@@ -40,23 +40,28 @@ var _require12 = require('../entities/grass'),
 var _require13 = require('../entities/target'),
     makeTarget = _require13.makeTarget;
 
-var _require14 = require('../config'),
-    config = _require14.config;
+var _require14 = require('../entities/bugs'),
+    makeBeetle = _require14.makeBeetle,
+    makeAphid = _require14.makeAphid,
+    makeDragonFly = _require14.makeDragonFly;
+
+var _require15 = require('../config'),
+    config = _require15.config;
 
 /**
  * Create a default entity of the given type at the given position.
  * Meant to be used in level editor and so works only for "organic"
  * entity types (e.g. not locations or pheromones)
  */
-var makeEntityByType = function makeEntityByType(state, entityType, gridPos) {
-  if (state.editor == null) {
-    console.error('no editor state', state, entityType);
+var makeEntityByType = function makeEntityByType(game, editorState, entityType, gridPos) {
+  if (gridPos == null) {
+    console.error("CALLSITE!");
   }
   switch (entityType) {
     case 'ANT':
-      return makeAnt(gridPos, state.editor.antSubType);
+      return makeAnt(gridPos, editorState.antSubType);
     case 'BACKGROUND':
-      return makeBackground(gridPos, state.editor.backgroundType);
+      return makeBackground(gridPos, editorState.backgroundType);
     case 'DIRT':
       return makeDirt(gridPos);
     case 'EGG':
@@ -77,6 +82,12 @@ var makeEntityByType = function makeEntityByType(state, entityType, gridPos) {
       return makeGrass(gridPos);
     case 'TARGET':
       return makeTarget(gridPos);
+    case 'BEETLE':
+      return makeBeetle(gridPos, 3, 2);
+    case 'DRAGONFLY':
+      return makeDragonFly(gridPos, 6);
+    case 'APHID':
+      return makeAphid(gridPos);
     default:
       console.error('no entity of type', entityType);
   }

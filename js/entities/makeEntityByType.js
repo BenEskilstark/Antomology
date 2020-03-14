@@ -13,6 +13,9 @@ const {makePupa} = require('../entities/pupa');
 const {makeStone, makeStuckStone} = require('../entities/stone');
 const {makeGrass} = require('../entities/grass');
 const {makeTarget} = require('../entities/target');
+const {
+  makeBeetle, makeAphid, makeDragonFly,
+} = require('../entities/bugs');
 
 const {config} = require('../config');
 
@@ -24,17 +27,18 @@ import type {State, EntityType, Vector} from '../types';
  * entity types (e.g. not locations or pheromones)
  */
 const makeEntityByType = (
-  state: State,
+  game: GameState,
+  editorState: {antSubType: string, backgroundType: string},
   entityType: EntityType, gridPos: Vector,
 ): Entity => {
-  if (state.editor == null) {
-    console.error('no editor state', state, entityType);
+  if (gridPos == null) {
+    console.error("CALLSITE!");
   }
   switch (entityType) {
     case 'ANT':
-      return makeAnt(gridPos, state.editor.antSubType);
+      return makeAnt(gridPos, editorState.antSubType);
     case 'BACKGROUND':
-      return makeBackground(gridPos, state.editor.backgroundType);
+      return makeBackground(gridPos, editorState.backgroundType);
     case 'DIRT':
       return makeDirt(gridPos);
     case 'EGG':
@@ -55,6 +59,12 @@ const makeEntityByType = (
       return makeGrass(gridPos);
     case 'TARGET':
       return makeTarget(gridPos);
+    case 'BEETLE':
+      return makeBeetle(gridPos, 3, 2);
+    case 'DRAGONFLY':
+      return makeDragonFly(gridPos, 6);
+    case 'APHID':
+      return makeAphid(gridPos);
     default:
       console.error('no entity of type', entityType);
   }

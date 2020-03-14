@@ -21,7 +21,7 @@ var _require3 = require('../config'),
 
 var collides = function collides(game, entityA, entityB) {
   if (entityB == null) {
-    console.error('callsite');
+    console.error('collides cllsite');
   }
   if (entityA == null || entityB == null) {
     return false;
@@ -34,6 +34,38 @@ var collides = function collides(game, entityA, entityB) {
   }
   if (entityB.width == null || entityB.height == null) {
     return false;
+  }
+
+  // fall-back to testing shape overlaps
+  if (entityA.isContraint || entityB.isConstraint) {
+    var dist = subtract(entityA.position, entityB.position);
+    var xOverlap = false;
+    var yOverlap = false;
+    if (dist.x === 0) {
+      xOverlap = true;
+    } else if (dist.x < 0) {
+      if (entityB.position.x + entityB.width > entityA.position.x && entityB.position.x + entityB.width <= entityA.position.x + entityA.width) {
+        xOverlap = true;
+      }
+    } else {
+      if (entityA.position.x + entityA.width > entityB.position.x && entityA.position.x + entityA.width <= entityB.position.x + entityB.width) {
+        xOverlap = true;
+      }
+    }
+
+    if (dist.y === 0) {
+      yOverlap = true;
+    } else if (dist.y < 0) {
+      if (entityB.position.y + entityB.height > entityA.position.y && entityB.position.y + entityB.height <= entityA.position.y + entityA.height) {
+        yOverlap = true;
+      }
+    } else {
+      if (entityA.position.y + entityA.height > entityB.position.y && entityA.position.y + entityA.height <= entityB.position.y + entityB.height) {
+        yOverlap = true;
+      }
+    }
+
+    return xOverlap && yOverlap;
   }
 
   for (var _x = 0; _x < entityA.width; _x++) {

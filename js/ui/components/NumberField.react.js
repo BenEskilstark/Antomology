@@ -6,10 +6,13 @@ const {useState, useMemo, useEffect} = React;
  * value: number
  * onChange: (number) => void,
  * onlyInt: boolean, // only allow ints instead of floats
- * submitOnEnter: boolean,
+ * submitOnEnter: boolean, // TODO: not implemented
+ * submitOnBlur: boolean,
  */
 const NumberField = (props) => {
-  const {value, onChange, onlyInt, submitOnEnter} = props;
+  const {
+    value, onChange, onlyInt, submitOnEnter, submitOnBlur,
+  } = props;
 
   const [stateValue, setValue] = useState(value);
   useEffect(() => {
@@ -36,12 +39,15 @@ const NumberField = (props) => {
         setFocus(true)
       }}
       onBlur={() => {
-        setFocus(false)
+        setFocus(false);
+        if (submitOnBlur) {
+          submitValue(onChange, stateValue, onlyInt);
+        }
       }}
       onChange={(ev) => {
         const nextVal = ev.target.value;
         setValue(nextVal);
-        if (!submitOnEnter) {
+        if (!submitOnEnter && !submitOnBlur) {
           submitValue(onChange, nextVal, onlyInt);
         }
       }}

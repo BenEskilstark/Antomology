@@ -2,6 +2,8 @@
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 var _require = require('../config'),
@@ -10,19 +12,23 @@ var _require = require('../config'),
 var _require2 = require('../utils/stateHelpers'),
     addEntity = _require2.addEntity,
     removeEntity = _require2.removeEntity,
-    antSwitchTask = _require2.antSwitchTask;
+    antSwitchTask = _require2.antSwitchTask,
+    lookupInGrid = _require2.lookupInGrid;
 
 var _require3 = require('../utils/helpers'),
     clamp = _require3.clamp;
 
-var _require4 = require('../entities/edge'),
-    createEdge = _require4.createEdge;
+var _require4 = require('../entities/makeEntityByType'),
+    makeEntityByType = _require4.makeEntityByType;
 
-var _require5 = require('../selectors/selectors'),
-    insideWorld = _require5.insideWorld;
+var _require5 = require('../entities/edge'),
+    createEdge = _require5.createEdge;
 
-var _require6 = require('../state/tasks'),
-    createIdleTask = _require6.createIdleTask;
+var _require6 = require('../selectors/selectors'),
+    insideWorld = _require6.insideWorld;
+
+var _require7 = require('../state/tasks'),
+    createIdleTask = _require7.createIdleTask;
 
 var gameReducer = function gameReducer(game, action) {
   switch (action.type) {
@@ -30,62 +36,41 @@ var gameReducer = function gameReducer(game, action) {
       {
         var entity = action.entity;
 
-        if (entity.position != null && !insideWorld(game, entity.position)) {
-          return game;
-        }
-        if (entity.type == 'LOCATION') {
-          // if trying to make a location with the same name as one that already exists,
-          // just update the position of the currently-existing entity for that location
-          var locationIDWithName = game.LOCATION.filter(function (l) {
-            return game.entities[l].name === entity.name;
-          })[0];
-          if (locationIDWithName != null) {
-            // is null for clicked location
-            var locationEntity = game.entities[locationIDWithName];
-            removeEntity(game, game.entities[locationIDWithName]);
-            var updatedLocation = _extends({}, entity, { id: locationIDWithName,
-              task: locationEntity != null ? locationEntity.task : entity.task
-            });
-            addEntity(game, updatedLocation);
-            var _iteratorNormalCompletion = true;
-            var _didIteratorError = false;
-            var _iteratorError = undefined;
+        createEntityReducer(game, entity);
+        return game;
+      }
+    case 'CREATE_MANY_ENTITIES':
+      {
+        var _ret = function () {
+          var entityType = action.entityType,
+              pos = action.pos,
+              width = action.width,
+              height = action.height,
+              editorState = action.editorState;
+          var x = pos.x,
+              y = pos.y;
 
-            try {
-              for (var _iterator = game.ANT[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                var antID = _step.value;
-
-                var ant = game.entities[antID];
-                if (ant.location != null && ant.location.id === locationIDWithName) {
-                  ant.location = updatedLocation;
-                }
-              }
-            } catch (err) {
-              _didIteratorError = true;
-              _iteratorError = err;
-            } finally {
-              try {
-                if (!_iteratorNormalCompletion && _iterator.return) {
-                  _iterator.return();
-                }
-              } finally {
-                if (_didIteratorError) {
-                  throw _iteratorError;
-                }
+          for (var i = 0; i <= width; i++) {
+            for (var j = 0; j <= height; j++) {
+              var gridPos = { x: x + i, y: y + j };
+              var occupied = lookupInGrid(game.grid, gridPos).map(function (i) {
+                return game.entities[i];
+              }).filter(function (e) {
+                return e.type == entityType;
+              }).length > 0;
+              if (!occupied) {
+                var _entity = makeEntityByType(game, editorState, entityType, gridPos);
+                createEntityReducer(game, _entity);
               }
             }
-          } else {
-            addEntity(game, entity);
           }
-        } else {
-          addEntity(game, entity);
-        }
-        if (entity.type === 'PHEROMONE') {
-          game.prevPheromone = entity.id;
-          // TODO: remove or bring back edges
-          // game.edges[entity.edge].pheromones.push(entity.id);
-        }
-        return game;
+
+          return {
+            v: game
+          };
+        }();
+
+        if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
       }
     case 'DESTROY_ENTITY':
       {
@@ -94,40 +79,40 @@ var gameReducer = function gameReducer(game, action) {
         game.selectedEntities = game.selectedEntities.filter(function (i) {
           return i != id;
         });
-        var _entity = game.entities[id];
+        var _entity2 = game.entities[id];
         if (game.LOCATION.includes(id)) {
-          var _iteratorNormalCompletion2 = true;
-          var _didIteratorError2 = false;
-          var _iteratorError2 = undefined;
+          var _iteratorNormalCompletion = true;
+          var _didIteratorError = false;
+          var _iteratorError = undefined;
 
           try {
-            for (var _iterator2 = game.ANT[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-              var _antID = _step2.value;
+            for (var _iterator = game.ANT[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+              var antID = _step.value;
 
-              var _ant = game.entities[_antID];
-              if (_ant.location != null && _ant.location.id === id) {
-                _ant.location = null;
+              var ant = game.entities[antID];
+              if (ant.location != null && ant.location.id === id) {
+                ant.location = null;
               }
-              if (_ant.task != null && _ant.task.name == _entity.task.name) {
-                antSwitchTask(game, _ant, createIdleTask());
+              if (ant.task != null && ant.task.name == _entity2.task.name) {
+                antSwitchTask(game, ant, createIdleTask());
               }
             }
           } catch (err) {
-            _didIteratorError2 = true;
-            _iteratorError2 = err;
+            _didIteratorError = true;
+            _iteratorError = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion2 && _iterator2.return) {
-                _iterator2.return();
+              if (!_iteratorNormalCompletion && _iterator.return) {
+                _iterator.return();
               }
             } finally {
-              if (_didIteratorError2) {
-                throw _iteratorError2;
+              if (_didIteratorError) {
+                throw _iteratorError;
               }
             }
           }
         }
-        removeEntity(game, _entity);
+        removeEntity(game, _entity2);
         return game;
       }
     case 'SET_SELECTED_ENTITIES':
@@ -137,33 +122,33 @@ var gameReducer = function gameReducer(game, action) {
         var prevSelected = [].concat(_toConsumableArray(game.selectedEntities));
 
         // deselected ants inside a location should take up that task
-        var _iteratorNormalCompletion3 = true;
-        var _didIteratorError3 = false;
-        var _iteratorError3 = undefined;
+        var _iteratorNormalCompletion2 = true;
+        var _didIteratorError2 = false;
+        var _iteratorError2 = undefined;
 
         try {
-          for (var _iterator3 = prevSelected[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-            var _id = _step3.value;
+          for (var _iterator2 = prevSelected[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+            var _id = _step2.value;
 
             if (!entityIDs.includes(_id)) {
-              var _ant2 = game.entities[_id];
-              if (_ant2.type != 'ANT') continue;
-              if (_ant2.location != null && (_ant2.task == null || _ant2.task.name != _ant2.location.task.name)) {
-                antSwitchTask(game, _ant2, _ant2.location.task, [{ name: 'Follow Trail', index: 0 }, { name: 'Find Pheromone Trail', index: 0 }]);
+              var _ant = game.entities[_id];
+              if (_ant.type != 'ANT') continue;
+              if (_ant.location != null && (_ant.task == null || _ant.task.name != _ant.location.task.name)) {
+                antSwitchTask(game, _ant, _ant.location.task, [{ name: 'Follow Trail', index: 0 }, { name: 'Find Pheromone Trail', index: 0 }]);
               }
             }
           }
         } catch (err) {
-          _didIteratorError3 = true;
-          _iteratorError3 = err;
+          _didIteratorError2 = true;
+          _iteratorError2 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion3 && _iterator3.return) {
-              _iterator3.return();
+            if (!_iteratorNormalCompletion2 && _iterator2.return) {
+              _iterator2.return();
             }
           } finally {
-            if (_didIteratorError3) {
-              throw _iteratorError3;
+            if (_didIteratorError2) {
+              throw _iteratorError2;
             }
           }
         }
@@ -215,33 +200,33 @@ var gameReducer = function gameReducer(game, action) {
         // delete entities outside the world
         var entitiesToDelete = [];
         for (var _id2 in game.entities) {
-          var _entity2 = game.entities[_id2];
-          if (_entity2 == null) continue; // entity already deleted
-          if (_entity2.position.x >= nextWorldWidth || _entity2.position.y >= nextWorldHeight) {
-            entitiesToDelete.push(_entity2);
+          var _entity3 = game.entities[_id2];
+          if (_entity3 == null) continue; // entity already deleted
+          if (_entity3.position.x >= nextWorldWidth || _entity3.position.y >= nextWorldHeight) {
+            entitiesToDelete.push(_entity3);
           }
         }
-        var _iteratorNormalCompletion4 = true;
-        var _didIteratorError4 = false;
-        var _iteratorError4 = undefined;
+        var _iteratorNormalCompletion3 = true;
+        var _didIteratorError3 = false;
+        var _iteratorError3 = undefined;
 
         try {
-          for (var _iterator4 = entitiesToDelete[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-            var _entity3 = _step4.value;
+          for (var _iterator3 = entitiesToDelete[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+            var _entity4 = _step3.value;
 
-            removeEntity(game, _entity3);
+            removeEntity(game, _entity4);
           }
         } catch (err) {
-          _didIteratorError4 = true;
-          _iteratorError4 = err;
+          _didIteratorError3 = true;
+          _iteratorError3 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion4 && _iterator4.return) {
-              _iterator4.return();
+            if (!_iteratorNormalCompletion3 && _iterator3.return) {
+              _iterator3.return();
             }
           } finally {
-            if (_didIteratorError4) {
-              throw _iteratorError4;
+            if (_didIteratorError3) {
+              throw _iteratorError3;
             }
           }
         }
@@ -332,13 +317,13 @@ var gameReducer = function gameReducer(game, action) {
       {
         var _task3 = action.task,
             ants = action.ants;
-        var _iteratorNormalCompletion5 = true;
-        var _didIteratorError5 = false;
-        var _iteratorError5 = undefined;
+        var _iteratorNormalCompletion4 = true;
+        var _didIteratorError4 = false;
+        var _iteratorError4 = undefined;
 
         try {
-          for (var _iterator5 = ants[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-            var _id6 = _step5.value;
+          for (var _iterator4 = ants[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+            var _id6 = _step4.value;
 
             game.entities[_id6].task = _task3;
             game.entities[_id6].taskStack = [];
@@ -346,16 +331,16 @@ var gameReducer = function gameReducer(game, action) {
           }
           // add the task to the task array
         } catch (err) {
-          _didIteratorError5 = true;
-          _iteratorError5 = err;
+          _didIteratorError4 = true;
+          _iteratorError4 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion5 && _iterator5.return) {
-              _iterator5.return();
+            if (!_iteratorNormalCompletion4 && _iterator4.return) {
+              _iterator4.return();
             }
           } finally {
-            if (_didIteratorError5) {
-              throw _iteratorError5;
+            if (_didIteratorError4) {
+              throw _iteratorError4;
             }
           }
         }
@@ -532,6 +517,64 @@ var gameReducer = function gameReducer(game, action) {
   }
 
   return game;
+};
+
+var createEntityReducer = function createEntityReducer(game, entity) {
+  if (entity.position != null && !insideWorld(game, entity.position)) {
+    return;
+  }
+  if (entity.type == 'LOCATION') {
+    // if trying to make a location with the same name as one that already exists,
+    // just update the position of the currently-existing entity for that location
+    var locationIDWithName = game.LOCATION.filter(function (l) {
+      return game.entities[l].name === entity.name;
+    })[0];
+    if (locationIDWithName != null) {
+      // is null for clicked location
+      var locationEntity = game.entities[locationIDWithName];
+      removeEntity(game, game.entities[locationIDWithName]);
+      var updatedLocation = _extends({}, entity, { id: locationIDWithName,
+        task: locationEntity != null ? locationEntity.task : entity.task
+      });
+      addEntity(game, updatedLocation);
+      var _iteratorNormalCompletion5 = true;
+      var _didIteratorError5 = false;
+      var _iteratorError5 = undefined;
+
+      try {
+        for (var _iterator5 = game.ANT[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+          var antID = _step5.value;
+
+          var ant = game.entities[antID];
+          if (ant.location != null && ant.location.id === locationIDWithName) {
+            ant.location = updatedLocation;
+          }
+        }
+      } catch (err) {
+        _didIteratorError5 = true;
+        _iteratorError5 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion5 && _iterator5.return) {
+            _iterator5.return();
+          }
+        } finally {
+          if (_didIteratorError5) {
+            throw _iteratorError5;
+          }
+        }
+      }
+    } else {
+      addEntity(game, entity);
+    }
+  } else {
+    addEntity(game, entity);
+  }
+  if (entity.type === 'PHEROMONE') {
+    game.prevPheromone = entity.id;
+    // TODO: remove or bring back edges
+    // game.edges[entity.edge].pheromones.push(entity.id);
+  }
 };
 
 module.exports = { gameReducer: gameReducer };
