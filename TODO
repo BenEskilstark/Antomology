@@ -25,6 +25,8 @@
  - can see dirt disappear in the fog
  - when many ants kill a worm they get stuck on the food
  - render target on top of everything
+ - ants carrying obelisk don't move out of the way properly any more
+ - ants can't move the obelisk they are carrying
 
 
  - - - - - - PHEROMONE TRAILS - - - - - -
