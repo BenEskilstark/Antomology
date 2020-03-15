@@ -13,7 +13,6 @@ var initLevelSystem = function initLevelSystem(store) {
     var dispatch = store.dispatch;
 
 
-    console.log("hydrating");
     dispatch({ type: 'HYDRATE_GAME' });
     var _iteratorNormalCompletion = true;
     var _didIteratorError = false;
@@ -23,7 +22,6 @@ var initLevelSystem = function initLevelSystem(store) {
       for (var _iterator = state.levelActions[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
         var action = _step.value;
 
-        console.log(action);
         dispatch(action);
       }
     } catch (err) {

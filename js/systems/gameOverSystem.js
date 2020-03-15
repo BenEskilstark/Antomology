@@ -36,7 +36,7 @@ const initGameOverSystem = (store) => {
     } else if (gameOver === 'lose') {
       dispatch({type: 'SET_MODAL', modal: {
         title: 'The Queen is Dead!',
-        text: 'Ant colonies won\'t survive without their queen.',
+        text: 'Ant colonies can\'t survive without their queen.',
         buttons: [
           {label: 'Back to menu', onClick: () => {
             dispatch({type: 'DISMISS_MODAL'});

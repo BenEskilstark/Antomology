@@ -37,6 +37,7 @@ var gameReducer = function gameReducer(game, action) {
         var entity = action.entity;
 
         createEntityReducer(game, entity);
+        nextID = Math.max(nextID, entity.id + 1);
         return game;
       }
     case 'CREATE_MANY_ENTITIES':
@@ -50,6 +51,12 @@ var gameReducer = function gameReducer(game, action) {
           var x = pos.x,
               y = pos.y;
 
+          if (game.entities[nextID] != null) {
+            console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+            console.log("NEXT_ID", nextID, game.entities[nextID]);
+            console.log(game.entities[nextID + 1]);
+            // nextID++;
+          }
           for (var i = 0; i <= width; i++) {
             for (var j = 0; j <= height; j++) {
               var gridPos = { x: x + i, y: y + j };

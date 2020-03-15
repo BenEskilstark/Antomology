@@ -20,11 +20,18 @@ const gameReducer = (game: GameState, action: Action): GameState => {
     case 'CREATE_ENTITY': {
       const {entity} = action;
       createEntityReducer(game, entity);
+      nextID = Math.max(nextID, entity.id + 1);
       return game;
     }
     case 'CREATE_MANY_ENTITIES': {
       const {entityType, pos, width, height, editorState} = action;
       const {x, y} = pos;
+      if (game.entities[nextID] != null) {
+        console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        console.log("NEXT_ID", nextID, game.entities[nextID]);
+        console.log(game.entities[nextID + 1]);
+        // nextID++;
+      }
       for (let i = 0; i <= width; i++) {
         for (let j = 0; j <= height; j++) {
           const gridPos = {x: x + i, y: y + j};

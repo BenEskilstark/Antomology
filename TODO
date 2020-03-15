@@ -1,17 +1,16 @@
 
 
- - - - - - - - SATURDAY - - - - - - -
+ - - - - - - - SUNDAY - - - - - - -
  - system for applying level actions on load
  - MOVE high level task appears to do nothing
  - elseBehaviors don't seem to work (at least with pickup dirt)
- - level1 bugs
-    - trying to remove entities that don't exist when loading level
-    - non-rendered entities all ended up as STUCK_STONE or FOOD
-    - likely trying to create multiple entities with the same id
-    - obelisk not rendering
-    - target not rendering
-    - worm not rendering
-    - beetles not rendering
+ - level editor queue needs to record setting the world size
+ - ants trying to find pheromone trail won't reverse in a 1x1 outer edge
+ - ants dead of old age keep health bar showing -- turn off old age death
+ - putdown food on a larva should just feed it
+ - new harder level 2
+ - clean up levels on main menu
+ - fix how level data gets applied so it's not so janky
 
 
  - - - - - - THINK ABOUT - - - - - -
@@ -25,7 +24,7 @@
  - dragonfly passes through dirt
  - can see dirt disappear in the fog
  - when many ants kill a worm they get stuck on the food
- - level editor queue needs to record setting the world size
+ - render target on top of everything
 
 
  - - - - - - PHEROMONE TRAILS - - - - - -
@@ -41,6 +40,7 @@
 
 
  - - - - - - WORLD - - - - - -
+ - queen should probably heal over time
 
 
  - - - - - - LOCATIONS - - - - - -
@@ -69,15 +69,6 @@
 
 
  - - - - - - LEVELS - - - - - -
- - fix up level 1
-    - fix for level size of 60 x 40
-    - more food under ground, less above
-    - remove unneeded tasks from state
-    - ants need full hp
-    - target not revealed at start
- - new harder level 2
- - clean up levels on main menu
- - fix how level data gets applied so it's not so janky
 
 
  - - - - - - LIFTNG BIG ENTITIES - - - - - -
