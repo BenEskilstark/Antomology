@@ -183,8 +183,8 @@ const handleTick = (game: GameState): GameState => {
 
     // ways ants can die
     if (
-      ant.calories <= 0 || ant.hp <= 0 ||
-      (ant.subType != 'QUEEN' && ant.age > config.antMaxAge)
+      ant.calories <= 0 || ant.hp <= 0
+      // || (ant.subType != 'QUEEN' && ant.age > config.antMaxAge)
     ) {
       ant.alive = false;
       if (ant.holding) {
@@ -231,9 +231,8 @@ const updateHeldBigEntities = (
         const didMove = maybeMoveEntity(
           game, bigEntity,
           add(bigEntity.position, {x: 0, y: 1}),
-          false, // don't debug
         );
-        bigEntity.lifted = didMove;
+        bigEntity.lifted = didMove == true;
       } else {
         // move the bigEntity according to the average movement of the ants holding it
         let sum = {x: 0, y: 0};
@@ -246,7 +245,7 @@ const updateHeldBigEntities = (
           x: Math.round(sum.x / bigEntity.heldBy.length),
           y: Math.round(sum.y / bigEntity.heldBy.length),
         };
-        maybeMoveEntity(game, bigEntity, add(bigEntity.position, avg), false);
+        maybeMoveEntity(game, bigEntity, add(bigEntity.position, avg));
       }
     }
   }

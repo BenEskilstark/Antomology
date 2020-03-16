@@ -313,6 +313,7 @@ function maybeMoveEntity(
   }
   if (equals(entity.position, nextPos)) {
     if (debug) console.log("already there", entity.position, nextPos);
+    entity.prevPosition = {...entity.position};
     return false; // already there
   }
   let occupied = fastCollidesWith(game, {...entity, position: nextPos})
@@ -335,6 +336,7 @@ function maybeMoveEntity(
       console.log("occupied", occupied);
     }
   }
+  entity.prevPosition = {...entity.position};
   return false;
 }
 
@@ -430,6 +432,7 @@ function maybeDoRandomMove(
   }
 
   if (freePositions.length == 0) {
+    entity.prevPosition = {...entity.position};
     return false;
   }
 

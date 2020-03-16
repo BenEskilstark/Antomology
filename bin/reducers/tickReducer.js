@@ -208,15 +208,17 @@ var handleTick = function handleTick(game) {
       }
 
       // ways ants can die
-      if (ant.calories <= 0 || ant.hp <= 0 || ant.subType != 'QUEEN' && ant.age > config.antMaxAge) {
-        ant.alive = false;
-        if (ant.holding) {
-          putDownEntity(game, ant);
+      if (ant.calories <= 0 || ant.hp <= 0
+      // || (ant.subType != 'QUEEN' && ant.age > config.antMaxAge)
+      ) {
+          ant.alive = false;
+          if (ant.holding) {
+            putDownEntity(game, ant);
+          }
+          game.selectedEntities = game.selectedEntities.filter(function (id) {
+            return id != ant.id;
+          });
         }
-        game.selectedEntities = game.selectedEntities.filter(function (id) {
-          return id != ant.id;
-        });
-      }
 
       if (ant.holding != null && !heldEntityIDs.includes(ant.holding.id)) {
         heldEntityIDs.push(ant.holding.id);
@@ -280,9 +282,8 @@ var updateHeldBigEntities = function updateHeldBigEntities(game, heldEntityIDs) 
 
       if (bigEntity.toLift <= bigEntity.heldBy.length) {
         if (!bigEntity.lifted) {
-          var didMove = maybeMoveEntity(game, bigEntity, add(bigEntity.position, { x: 0, y: 1 }), false // don't debug
-          );
-          bigEntity.lifted = didMove;
+          var didMove = maybeMoveEntity(game, bigEntity, add(bigEntity.position, { x: 0, y: 1 }));
+          bigEntity.lifted = didMove == true;
         } else {
           // move the bigEntity according to the average movement of the ants holding it
           var sum = { x: 0, y: 0 };
@@ -295,7 +296,7 @@ var updateHeldBigEntities = function updateHeldBigEntities(game, heldEntityIDs) 
             x: Math.round(sum.x / bigEntity.heldBy.length),
             y: Math.round(sum.y / bigEntity.heldBy.length)
           };
-          maybeMoveEntity(game, bigEntity, add(bigEntity.position, avg), false);
+          maybeMoveEntity(game, bigEntity, add(bigEntity.position, avg));
         }
       }
     }

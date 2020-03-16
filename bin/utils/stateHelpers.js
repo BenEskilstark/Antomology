@@ -423,6 +423,7 @@ function maybeMoveEntity(game, entity, nextPos, blockers, debug) {
   }
   if (equals(entity.position, nextPos)) {
     if (debug) console.log("already there", entity.position, nextPos);
+    entity.prevPosition = _extends({}, entity.position);
     return false; // already there
   }
   var occupied = fastCollidesWith(game, _extends({}, entity, { position: nextPos })).filter(function (e) {
@@ -442,6 +443,7 @@ function maybeMoveEntity(game, entity, nextPos, blockers, debug) {
       console.log("occupied", occupied);
     }
   }
+  entity.prevPosition = _extends({}, entity.position);
   return false;
 }
 
@@ -574,6 +576,7 @@ function maybeDoRandomMove(game, entity, policies, constraint, blockers) {
   }
 
   if (freePositions.length == 0) {
+    entity.prevPosition = _extends({}, entity.position);
     return false;
   }
 

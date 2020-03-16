@@ -17,17 +17,23 @@ const rootReducer = (state: State, action: Action): State => {
     case 'START': {
       const {level} = action;
       const game = initGameState(level);
-      let maxEntityID = 0;
-      for (const id in game.entities) {
-        if (id > maxEntityID) {
-          maxEntityID = id;
-        }
-      }
+      // let maxEntityID = 0;
+      // for (const id in game.entities) {
+      //   if (id > maxEntityID) {
+      //     maxEntityID = id;
+      //   }
+      // }
       // HACK: available from entities/entity via window
-      // nextID = maxEntityID + 1;
+      // nextID = maxEntityID + 1
+      let levelActions = [];
+      switch (level) {
+        case 1:
+          levelActions = neoLevel1.level();
+          break;
+      }
       return {
         ...state,
-        levelActions: neoLevel1.level(), // TODO
+        levelActions,
         mode: 'GAME',
         game,
       };

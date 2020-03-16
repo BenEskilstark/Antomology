@@ -83,8 +83,6 @@ var doAction = function doAction(game, ant, action) {
     // }
   }
 
-  // split out idle first since it could involve a random move
-
   var obj = object;
   // then handle the actually-assigned action
   switch (actionType) {
@@ -254,7 +252,7 @@ var doAction = function doAction(game, ant, action) {
               repeating: false,
               behaviorQueue: [goToLocationBehavior, {
                 type: 'SWITCH_TASK',
-                task: 'Holding and Idle'
+                task: 'Idle'
               }]
             });
             ant.taskIndex = -1; // HACK to switch tasks inside a task
@@ -449,7 +447,7 @@ var doHighLevelAction = function doHighLevelAction(game, ant, action) {
       {
         doAction(game, ant, {
           type: 'MOVE',
-          payload: { object: 'RANDOM', constraint: action.payload.object }
+          payload: { object: 'RANDOM', constraint: getInnerLocation(ant.location) }
         });
         break;
       }

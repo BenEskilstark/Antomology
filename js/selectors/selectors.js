@@ -177,25 +177,25 @@ function lookupInGrid(grid: Grid, position: Vector): Array<EntityID> {
 // Neighbors
 /////////////////////////////////////////////////////////////////
 
-  const getNeighborPositions = (entity: Entity, includeDiagonal: boolean): Array<Vector> => {
-    const {position, width, height} = entity;
-    const neighbors = [];
-    for (let x = position.x; x < position.x + width; x++) {
-      neighbors.push({x, y: position.y + height});
-      neighbors.push({x, y: position.y - 1});
-    }
-    for (let y = position.y; y < position.y + width; y++) {
-      neighbors.push({x: position.x - 1, y});
-      neighbors.push({x: position.x + width, y});
-    }
-    if (includeDiagonal) {
-      neighbors.push({x: position.x - 1, y: position.y - 1});
-      neighbors.push({x: position.x - 1, y: position.y + height});
-      neighbors.push({x: position.x + width, y: position.y - 1});
-      neighbors.push({x: position.x + width, y: position.y + height});
-    }
-    return neighbors;
+const getNeighborPositions = (entity: Entity, includeDiagonal: boolean): Array<Vector> => {
+  const {position, width, height} = entity;
+  const neighbors = [];
+  for (let x = position.x; x < position.x + width; x++) {
+    neighbors.push({x, y: position.y + height});
+    neighbors.push({x, y: position.y - 1});
   }
+  for (let y = position.y; y < position.y + width; y++) {
+    neighbors.push({x: position.x - 1, y});
+    neighbors.push({x: position.x + width, y});
+  }
+  if (includeDiagonal) {
+    neighbors.push({x: position.x - 1, y: position.y - 1});
+    neighbors.push({x: position.x - 1, y: position.y + height});
+    neighbors.push({x: position.x + width, y: position.y - 1});
+    neighbors.push({x: position.x + width, y: position.y + height});
+  }
+  return neighbors;
+}
 
 const fastGetEmptyNeighborPositions = (
   game: GameState, entity: Entity, blockingEntityTypes: Array<EntityType>,

@@ -37,7 +37,7 @@ const initGameState = (level: number): GameState => {
       return level0();
     case 1:
       return {
-        ...baseState(60, 40),
+        ...baseState(60, 40), // TODO: setting size should also be an action
         hydrated: false,
         time: 0,
         tickInterval: null,

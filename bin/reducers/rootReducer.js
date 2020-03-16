@@ -31,16 +31,22 @@ var rootReducer = function rootReducer(state, action) {
         var level = action.level;
 
         var _game = initGameState(level);
-        var _maxEntityID = 0;
-        for (var id in _game.entities) {
-          if (id > _maxEntityID) {
-            _maxEntityID = id;
-          }
-        }
+        // let maxEntityID = 0;
+        // for (const id in game.entities) {
+        //   if (id > maxEntityID) {
+        //     maxEntityID = id;
+        //   }
+        // }
         // HACK: available from entities/entity via window
-        // nextID = maxEntityID + 1;
+        // nextID = maxEntityID + 1
+        var levelActions = [];
+        switch (level) {
+          case 1:
+            levelActions = neoLevel1.level();
+            break;
+        }
         return _extends({}, state, {
-          levelActions: neoLevel1.level(), // TODO
+          levelActions: levelActions,
           mode: 'GAME',
           game: _game
         });
@@ -111,9 +117,9 @@ var rootReducer = function rootReducer(state, action) {
       var game = action.game;
 
       var maxEntityID = 0;
-      for (var _id in game.entities) {
-        if (_id > maxEntityID) {
-          maxEntityID = _id;
+      for (var id in game.entities) {
+        if (id > maxEntityID) {
+          maxEntityID = id;
         }
       }
       // HACK: available from entities/entity via window

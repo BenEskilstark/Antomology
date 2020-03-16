@@ -170,7 +170,7 @@ function transitionBehavior(behavior, newType) {
           action: {
             type: 'MOVE',
             payload: {
-              object: 'RANDOM'
+              object: null
             }
           }
         };
@@ -179,7 +179,7 @@ function transitionBehavior(behavior, newType) {
           action: {
             type: 'MOVE',
             payload: {
-              object: 'RANDOM'
+              object: null
             }
           }
         };
@@ -216,7 +216,7 @@ function transitionBehavior(behavior, newType) {
         newBehavior.action = {
           type: 'IDLE',
           payload: {
-            object: 'RANDOM'
+            object: null
           }
         };
         break;
@@ -256,22 +256,6 @@ function Conditional(props) {
         setBehavior(behavior);
       }
     });
-
-    // objectField = <input type="text"
-    //   value={conditionObject}
-    //   onChange={(ev) => {
-    //     const val = ev.target.value;
-    //     if (val == '' || val[val.length - 1] === '.') {
-    //       behavior.condition.payload.object = val;
-    //     } else if (parseFloat(val) == NaN) {
-    //       console.log(val);
-    //       return;
-    //     } else {
-    //       behavior.condition.payload.object = parseFloat(val);
-    //     }
-    //     setBehavior(behavior);
-    //   }}
-    // />;
   }
   if (typeName === 'LOCATION') {
     objectField = React.createElement(Dropdown, {

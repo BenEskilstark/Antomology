@@ -265,7 +265,7 @@ const renderEntity = (
       ctx.closePath();
 
       if (
-        (entity.hp > 0 && entity.hp < config.antStartingHP) ||
+        (entity.hp > 0 && entity.hp < config.antStartingHP && entity.alive) ||
         (entity.hp <= 0 && game.selectedEntities.includes(entity.id))
       ) {
         renderHealthBar(state, ctx, entity, config.antStartingHP);

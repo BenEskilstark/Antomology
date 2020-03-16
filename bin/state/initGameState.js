@@ -59,7 +59,7 @@ var initGameState = function initGameState(level) {
     case 0:
       return level0();
     case 1:
-      return _extends({}, baseState(60, 40), {
+      return _extends({}, baseState(60, 40), { // TODO: setting size should also be an action
         hydrated: false,
         time: 0,
         tickInterval: null,

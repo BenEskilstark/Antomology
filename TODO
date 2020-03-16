@@ -1,16 +1,11 @@
 
 
- - - - - - - - SUNDAY - - - - - - -
- - system for applying level actions on load
- - MOVE high level task appears to do nothing
- - elseBehaviors don't seem to work (at least with pickup dirt)
- - level editor queue needs to record setting the world size
- - ants trying to find pheromone trail won't reverse in a 1x1 outer edge
- - ants dead of old age keep health bar showing -- turn off old age death
- - putdown food on a larva should just feed it
+ - - - - - - - MONDAY - - - - - - -
+ - render target on top of everything
  - new harder level 2
  - clean up levels on main menu
  - fix how level data gets applied so it's not so janky
+ - level editor queue needs to record setting the world size
 
 
  - - - - - - THINK ABOUT - - - - - -
@@ -24,9 +19,11 @@
  - dragonfly passes through dirt
  - can see dirt disappear in the fog
  - when many ants kill a worm they get stuck on the food
- - render target on top of everything
- - ants carrying obelisk don't move out of the way properly any more
- - ants can't move the obelisk they are carrying
+ - can't restart level pasted from editor
+ - groups of ants can ignore gravity by climbing on each other
+    - perhaps have "stable" as a property that is computed once at the start
+      and then when the entity moves
+ - if ants move obelisk and it gets stuck, when they move back obelisk moves away from them
 
 
  - - - - - - PHEROMONE TRAILS - - - - - -
@@ -43,6 +40,7 @@
 
  - - - - - - WORLD - - - - - -
  - queen should probably heal over time
+ - putdown food on a larva should just feed it
 
 
  - - - - - - LOCATIONS - - - - - -
@@ -96,9 +94,6 @@
     - falling big entities should push down and/or crush solitary ants
  - fog of war:
     - support partial rendering of big entities that are partially visible
- - groups of ants can ignore gravity by climbing on each other
-    - perhaps have "stable" as a property that is computed once at the start
-      and then when the entity moves
  - panning with mouse on the side of the screen
  - conditionals with OR/AND
  - better pathing for ants that involves random walk when they get stuck
@@ -122,6 +117,7 @@
  - add undo/redo to level editor
  - tool for creating worms/other segmented entities
  - assign tasks to locations in level editor
+ - CREATE_ENTITY should not take in entity
 
 
  - - - - - - RENDERING - - - - - -
@@ -163,3 +159,4 @@
  - level editor is not resilient to updating properties of entities
  - subtract calories at doAction site, not ant level
  - move hovercards under UI
+ - the way prevPosition is calculated is very all over the place

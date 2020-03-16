@@ -72,8 +72,6 @@ const doAction = (
     // }
   }
 
-  // split out idle first since it could involve a random move
-
   let obj = object;
   // then handle the actually-assigned action
   switch (actionType) {
@@ -206,7 +204,7 @@ const doAction = (
               goToLocationBehavior,
               {
                 type: 'SWITCH_TASK',
-                task: 'Holding and Idle'
+                task: 'Idle'
               }
             ],
           });
@@ -374,7 +372,7 @@ const doHighLevelAction = (
         game, ant,
         {
           type: 'MOVE',
-          payload: {object: 'RANDOM', constraint: action.payload.object}
+          payload: {object: 'RANDOM', constraint: getInnerLocation(ant.location)}
         },
       );
       break;
