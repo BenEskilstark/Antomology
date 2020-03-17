@@ -20,11 +20,23 @@ type Props = {
 
 function LevelEditor(props: Props): React.Node {
   return (
-    <div className="background" id="background">
+    <div
+      id="background"
+      className="background"
+      // style={{
+      //   overflow: 'hidden',
+      //   height: '100%',
+      //   width: '66%',
+      //   position: 'relative',
+      //   margin: 'auto',
+      // }}
+    >
       <Canvas
         width={props.width} height={props.height}
       />
-      <Sidebar state={props.state} dispatch={props.dispatch} />
+      <Sidebar state={props.state} dispatch={props.dispatch}
+        width={props.width} height={props.height}
+      />
     </div>
   );
 }
@@ -103,9 +115,10 @@ function Sidebar(props: {state: State, dispatch: Action => void}): React.Node {
         display: 'inline-block',
         width: 500,
         position: 'absolute',
-        left: config.canvasWidth,
-        height: config.canvasHeight,
+        left: props.width,
+        // height: props.height,
         overflowY: 'scroll',
+        backgroundColor: 'white',
       }}
     >
       <div><b>Tools</b></div>

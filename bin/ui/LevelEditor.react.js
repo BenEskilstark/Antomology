@@ -20,11 +20,23 @@ var useState = React.useState,
 function LevelEditor(props) {
   return React.createElement(
     'div',
-    { className: 'background', id: 'background' },
+    {
+      id: 'background',
+      className: 'background'
+      // style={{
+      //   overflow: 'hidden',
+      //   height: '100%',
+      //   width: '66%',
+      //   position: 'relative',
+      //   margin: 'auto',
+      // }}
+    },
     React.createElement(Canvas, {
       width: props.width, height: props.height
     }),
-    React.createElement(Sidebar, { state: props.state, dispatch: props.dispatch })
+    React.createElement(Sidebar, { state: props.state, dispatch: props.dispatch,
+      width: props.width, height: props.height
+    })
   );
 }
 
@@ -101,9 +113,10 @@ function Sidebar(props) {
         display: 'inline-block',
         width: 500,
         position: 'absolute',
-        left: config.canvasWidth,
-        height: config.canvasHeight,
-        overflowY: 'scroll'
+        left: props.width,
+        // height: props.height,
+        overflowY: 'scroll',
+        backgroundColor: 'white'
       }
     },
     React.createElement(

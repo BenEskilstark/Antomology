@@ -1,11 +1,8 @@
 
 
- - - - - - - - MONDAY - - - - - - -
- - render target on top of everything
- - new harder level 2
- - clean up levels on main menu
- - fix how level data gets applied so it's not so janky
- - level editor queue needs to record setting the world size
+ - - - - - - - WEDNESDAY - - - - - - -
+ - play test
+
 
 
  - - - - - - THINK ABOUT - - - - - -
@@ -15,7 +12,6 @@
 
 
  - - - - - - - BUGS - - - - - - -
- - off-by-one on big entity pick up might say one more than are holding
  - dragonfly passes through dirt
  - can see dirt disappear in the fog
  - when many ants kill a worm they get stuck on the food
@@ -69,6 +65,10 @@
 
 
  - - - - - - LEVELS - - - - - -
+ - new harder level 2
+ - clean up levels on main menu
+ - fix how level data gets applied so it's not so janky
+ - level editor queue needs to record setting the world size
 
 
  - - - - - - LIFTNG BIG ENTITIES - - - - - -

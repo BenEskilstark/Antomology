@@ -9,8 +9,7 @@ function Canvas(props) {
     { id: 'canvasWrapper',
       style: {
         width: '66%', height: '100%',
-        display: 'inline-block',
-        float: 'left'
+        display: 'inline-block'
       }
     },
     React.createElement('canvas', {

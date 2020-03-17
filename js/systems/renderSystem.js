@@ -106,6 +106,7 @@ const render = (state: State, ctx: any): void => {
     if (entity.type == 'BACKGROUND') continue;
     if (entity.type == 'GRASS') continue;
     if (entity.type == 'LOCATION' || entity.type === 'ANT') continue;
+    if (entity.type == 'TARGET') continue;
     if (!onScreen(game, entity.position)) continue;
     let toRender = entity;
     if (!entity.visible && entity.lastSeenPos != null) {
@@ -113,6 +114,13 @@ const render = (state: State, ctx: any): void => {
     }
 
     renderEntity(state, ctx, toRender);
+  }
+  // then render TARGET
+  for (const id of game.TARGET) {
+    const entity = game.entities[id];
+    if (entity.position == null) continue;
+    if (!onScreen(game, entity.position)) continue;
+    renderEntity(state, ctx, entity);
   }
   // then render ants
   for (const id of game.ANT) {

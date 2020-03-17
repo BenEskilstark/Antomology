@@ -103,6 +103,11 @@ const registerHotkeys = (dispatch) => {
     key: 'X',
     fn: (s) => s.dispatch({type: 'SET_USER_MODE', userMode: 'DELETE_LOCATION'}),
   });
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'T',
+    fn: (s) => s.dispatch({type: 'SET_USER_MODE', userMode: 'MARK_TRAIL'}),
+  });
 
   dispatch({
     type: 'SET_HOTKEY', press: 'onKeyDown',

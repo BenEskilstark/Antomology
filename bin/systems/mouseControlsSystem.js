@@ -108,18 +108,20 @@ var initMouseControlsSystem = function initMouseControlsSystem(store) {
               type: 'UPDATE_EDGE', id: edge.id, edge: _extends({}, edge, { end: loc.id })
             });
           }
+          var category = 1; // TODO
           dispatch({
             type: 'CREATE_ENTITY',
-            entity: makePheromone(gridPos, 0, 1, store.getState().game.curEdge)
+            entity: makePheromone(gridPos, 0, category, game.curEdge, game.pheromones[category].strength)
           });
         } else if (clickedPheromones.length > 0) {
+          var _category = 1; // TODO
           var _edge = game.edges[clickedPheromones[0].edge];
-          if (!_edge.end) {
+          if (_edge != null && !_edge.end) {
             dispatch({ type: 'SET_CUR_EDGE', curEdge: _edge.id });
           }
           dispatch({
             type: 'CREATE_ENTITY',
-            entity: makePheromone(gridPos, 0, 1, store.getState().game.curEdge)
+            entity: makePheromone(gridPos, 0, _category, game.curEdge, game.pheromones[_category].strength)
           });
         }
       }
@@ -216,14 +218,15 @@ var doPan = function doPan(state, dispatch, gridPos, canvasPos, dragDiffPixel) {
 };
 
 var dragPheromoneTrail = function dragPheromoneTrail(state, dispatch, gridPos) {
-  if (state.game.curEdge == null) {
-    return; // not creating an edge
-  }
+  // if (state.game.curEdge == null) {
+  //   return; // not creating an edge
+  // }
   var prevPheromone = state.game.entities[state.game.prevPheromone];
+  var category = 1; // TODO
   if (prevPheromone == null) {
     dispatch({
       type: 'CREATE_ENTITY',
-      entity: makePheromone(gridPos, 0 /* theta */, 1, state.game.curEdge, null)
+      entity: makePheromone(gridPos, 0 /* theta */, category, state.game.curEdge, null, state.game.pheromones[category].strength)
     });
     return;
   }
@@ -247,7 +250,7 @@ var dragPheromoneTrail = function dragPheromoneTrail(state, dispatch, gridPos) {
       cursor.y += diff.y / Math.abs(diff.y);
     }
     var theta = vectorTheta(subtract(cursor, prevPos));
-    var curPheromone = makePheromone(_extends({}, cursor), theta, 1, state.game.curEdge, prevPheromoneID);
+    var curPheromone = makePheromone(_extends({}, cursor), theta, category, state.game.curEdge, prevPheromoneID, state.game.pheromones[category].strength);
     dispatch({
       type: 'CREATE_ENTITY',
       entity: curPheromone

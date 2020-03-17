@@ -77,7 +77,7 @@ const config = {
   foodSpawnCalories : 1000,
 
   // selection
-  maxSelectableAnts: 100000,
+  maxSelectableAnts: 1,
   selectableEntities: ['ANT', 'EGG', 'LARVA', 'PUPA', 'LOCATION'],
 
   // ant-specific values

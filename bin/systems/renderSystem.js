@@ -160,6 +160,7 @@ var render = function render(state, ctx) {
     if (entity.type == 'BACKGROUND') continue;
     if (entity.type == 'GRASS') continue;
     if (entity.type == 'LOCATION' || entity.type === 'ANT') continue;
+    if (entity.type == 'TARGET') continue;
     if (!onScreen(game, entity.position)) continue;
     var toRender = entity;
     if (!entity.visible && entity.lastSeenPos != null) {
@@ -168,22 +169,21 @@ var render = function render(state, ctx) {
 
     renderEntity(state, ctx, toRender);
   }
-  // then render ants
+  // then render TARGET
   var _iteratorNormalCompletion3 = true;
   var _didIteratorError3 = false;
   var _iteratorError3 = undefined;
 
   try {
-    for (var _iterator3 = game.ANT[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+    for (var _iterator3 = game.TARGET[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
       var _id3 = _step3.value;
 
       var _entity3 = game.entities[_id3];
       if (_entity3.position == null) continue;
       if (!onScreen(game, _entity3.position)) continue;
-
       renderEntity(state, ctx, _entity3);
     }
-    // render locations last so they go on top
+    // then render ants
   } catch (err) {
     _didIteratorError3 = true;
     _iteratorError3 = err;
@@ -204,18 +204,16 @@ var render = function render(state, ctx) {
   var _iteratorError4 = undefined;
 
   try {
-    for (var _iterator4 = game.LOCATION[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+    for (var _iterator4 = game.ANT[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
       var _id4 = _step4.value;
 
       var _entity4 = game.entities[_id4];
       if (_entity4.position == null) continue;
-      if (_entity4.id === -1) continue; // don't render clicked location
       if (!onScreen(game, _entity4.position)) continue;
 
       renderEntity(state, ctx, _entity4);
     }
-
-    // render marquees
+    // render locations last so they go on top
   } catch (err) {
     _didIteratorError4 = true;
     _iteratorError4 = err;
@@ -227,6 +225,38 @@ var render = function render(state, ctx) {
     } finally {
       if (_didIteratorError4) {
         throw _iteratorError4;
+      }
+    }
+  }
+
+  var _iteratorNormalCompletion5 = true;
+  var _didIteratorError5 = false;
+  var _iteratorError5 = undefined;
+
+  try {
+    for (var _iterator5 = game.LOCATION[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+      var _id5 = _step5.value;
+
+      var _entity5 = game.entities[_id5];
+      if (_entity5.position == null) continue;
+      if (_entity5.id === -1) continue; // don't render clicked location
+      if (!onScreen(game, _entity5.position)) continue;
+
+      renderEntity(state, ctx, _entity5);
+    }
+
+    // render marquees
+  } catch (err) {
+    _didIteratorError5 = true;
+    _iteratorError5 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion5 && _iterator5.return) {
+        _iterator5.return();
+      }
+    } finally {
+      if (_didIteratorError5) {
+        throw _iteratorError5;
       }
     }
   }

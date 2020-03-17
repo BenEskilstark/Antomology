@@ -116,6 +116,13 @@ var registerHotkeys = function registerHotkeys(dispatch) {
       return s.dispatch({ type: 'SET_USER_MODE', userMode: 'DELETE_LOCATION' });
     }
   });
+  dispatch({
+    type: 'SET_HOTKEY', press: 'onKeyDown',
+    key: 'T',
+    fn: function fn(s) {
+      return s.dispatch({ type: 'SET_USER_MODE', userMode: 'MARK_TRAIL' });
+    }
+  });
 
   dispatch({
     type: 'SET_HOTKEY', press: 'onKeyDown',

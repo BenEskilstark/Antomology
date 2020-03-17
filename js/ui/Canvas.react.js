@@ -14,7 +14,6 @@ function Canvas(props: Props): React.Node {
       style={{
         width: '66%', height: '100%',
         display: 'inline-block',
-        float: 'left',
       }}
     >
       <canvas

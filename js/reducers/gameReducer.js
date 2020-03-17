@@ -402,13 +402,26 @@ const createEntityReducer = (game: Game, entity: Entity): void => {
     } else {
       addEntity(game, entity);
     }
-  } else {
-    addEntity(game, entity);
-  }
-  if (entity.type === 'PHEROMONE') {
+  } else if (entity.type === 'PHEROMONE') {
     game.prevPheromone = entity.id;
+    const pheromonesAtPos = lookupInGrid(game.grid, entity.position)
+      .map(id => game.entities[id])
+      .filter(e => e.type == 'PHEROMONE')
+      .filter(e => e.theta === entity.theta || entity.strength < 0);
+
+    if (pheromonesAtPos.length == 0) {
+      addEntity(game, entity);
+    }
+    for (const pher of pheromonesAtPos) {
+      pher.quantity = clamp(
+        entity.quantity + pher.quantity, 0, config.pheromoneMaxQuantity,
+      );
+    }
+
     // TODO: remove or bring back edges
     // game.edges[entity.edge].pheromones.push(entity.id);
+  } else {
+    addEntity(game, entity);
   }
 }
 

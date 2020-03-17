@@ -577,13 +577,48 @@ var createEntityReducer = function createEntityReducer(game, entity) {
     } else {
       addEntity(game, entity);
     }
+  } else if (entity.type === 'PHEROMONE') {
+    game.prevPheromone = entity.id;
+    var pheromonesAtPos = lookupInGrid(game.grid, entity.position).map(function (id) {
+      return game.entities[id];
+    }).filter(function (e) {
+      return e.type == 'PHEROMONE';
+    }).filter(function (e) {
+      return e.theta === entity.theta || entity.strength < 0;
+    });
+
+    if (pheromonesAtPos.length == 0) {
+      addEntity(game, entity);
+    }
+    var _iteratorNormalCompletion6 = true;
+    var _didIteratorError6 = false;
+    var _iteratorError6 = undefined;
+
+    try {
+      for (var _iterator6 = pheromonesAtPos[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+        var pher = _step6.value;
+
+        pher.quantity = clamp(entity.quantity + pher.quantity, 0, config.pheromoneMaxQuantity);
+      }
+
+      // TODO: remove or bring back edges
+      // game.edges[entity.edge].pheromones.push(entity.id);
+    } catch (err) {
+      _didIteratorError6 = true;
+      _iteratorError6 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion6 && _iterator6.return) {
+          _iterator6.return();
+        }
+      } finally {
+        if (_didIteratorError6) {
+          throw _iteratorError6;
+        }
+      }
+    }
   } else {
     addEntity(game, entity);
-  }
-  if (entity.type === 'PHEROMONE') {
-    game.prevPheromone = entity.id;
-    // TODO: remove or bring back edges
-    // game.edges[entity.edge].pheromones.push(entity.id);
   }
 };
 

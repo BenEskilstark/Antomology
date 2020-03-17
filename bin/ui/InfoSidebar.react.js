@@ -76,8 +76,8 @@ function InfoSidebar(props) {
       'Left-click and drag:',
       React.createElement(Dropdown, {
         noNoneOption: true,
-        options: ['SELECT', 'CREATE_LOCATION', 'DELETE_LOCATION'],
-        displayOptions: ['Select [Z]', 'Create Location [C]', 'Delete Location [X]'],
+        options: ['SELECT', 'MARK_TRAIL', 'CREATE_LOCATION', 'DELETE_LOCATION'],
+        displayOptions: ['Select [Z]', 'Create Trail [T]', 'Create Location [C]', 'Delete Location [X]'],
         selected: game.userMode,
         onChange: function onChange(userMode) {
           return dispatch({ type: 'SET_USER_MODE', userMode: userMode });

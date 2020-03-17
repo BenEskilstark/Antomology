@@ -81,18 +81,26 @@ const initMouseControlsSystem = (store) => {
               type: 'UPDATE_EDGE', id: edge.id, edge: {...edge, end: loc.id}
             });
           }
+          const category = 1; // TODO
           dispatch({
             type: 'CREATE_ENTITY',
-            entity: makePheromone(gridPos, 0, 1, store.getState().game.curEdge),
+            entity: makePheromone(
+              gridPos, 0, category, game.curEdge,
+              game.pheromones[category].strength,
+            ),
           });
         } else if (clickedPheromones.length > 0) {
+          const category = 1; // TODO
           const edge = game.edges[clickedPheromones[0].edge];
-          if (!edge.end) {
+          if (edge != null && !edge.end) {
             dispatch({type: 'SET_CUR_EDGE', curEdge: edge.id});
           }
           dispatch({
             type: 'CREATE_ENTITY',
-            entity: makePheromone(gridPos, 0, 1, store.getState().game.curEdge),
+            entity: makePheromone(
+              gridPos, 0, category, game.curEdge,
+              game.pheromones[category].strength,
+            ),
           });
         }
       }
@@ -203,14 +211,18 @@ const dragPheromoneTrail = (
   dispatch: Dispatch,
   gridPos: Vector,
 ): void => {
-  if (state.game.curEdge == null) {
-    return; // not creating an edge
-  }
+  // if (state.game.curEdge == null) {
+  //   return; // not creating an edge
+  // }
   let prevPheromone = state.game.entities[state.game.prevPheromone];
+  const category = 1; // TODO
   if (prevPheromone == null) {
     dispatch({
       type: 'CREATE_ENTITY',
-      entity: makePheromone(gridPos, 0 /* theta */, 1, state.game.curEdge, null),
+      entity: makePheromone(
+        gridPos, 0 /* theta */, category, state.game.curEdge, null,
+        state.game.pheromones[category].strength,
+      ),
     });
     return;
   }
@@ -235,7 +247,8 @@ const dragPheromoneTrail = (
     }
     const theta = vectorTheta(subtract(cursor, prevPos));
     const curPheromone = makePheromone(
-      {...cursor}, theta, 1, state.game.curEdge, prevPheromoneID,
+      {...cursor}, theta, category, state.game.curEdge, prevPheromoneID,
+      state.game.pheromones[category].strength,
     );
     dispatch({
       type: 'CREATE_ENTITY',

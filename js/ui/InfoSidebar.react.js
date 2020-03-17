@@ -72,8 +72,12 @@ function InfoSidebar(props: Props): React.Node {
         Left-click and drag:
         <Dropdown
           noNoneOption={true}
-          options={['SELECT', 'CREATE_LOCATION', 'DELETE_LOCATION']}
-          displayOptions={['Select [Z]', 'Create Location [C]', 'Delete Location [X]']}
+          options={['SELECT', 'MARK_TRAIL', 'CREATE_LOCATION', 'DELETE_LOCATION']}
+          displayOptions={
+            [
+              'Select [Z]', 'Create Trail [T]',
+              'Create Location [C]', 'Delete Location [X]',
+            ]}
           selected={game.userMode}
           onChange={(userMode) => dispatch({type: 'SET_USER_MODE', userMode})}
         />
